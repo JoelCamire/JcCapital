@@ -1,1 +1,400 @@
+<!DOCTYPE html>
+<html lang="fr">
 
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JC Capital – Propulser votre croissance</title>
+  <meta name="description" content="Planification financière et fiscale sur mesure pour entrepreneurs ambitieux." />
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- CSS Split -->
+  <link rel="stylesheet" href="style-mobile.css" media="(max-width: 768px)">
+  <link rel="stylesheet" href="style.css" media="(min-width: 769px)">
+  <!-- Font Awesome for social icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  <script defer src="script.js"></script>
+</head>
+
+<body>
+  <!-- HERO SECTION -->
+  <header id="home" class="hero-section">
+    <div class="hero-bg"></div>
+    <div class="hero-content glass-panel">
+      <div class="brand-container">
+        <div class="logo-wrapper">
+          <img src="img/final_logo.png" alt="JC Capital Logo" class="logo" />
+        </div>
+      </div>
+      <h1 class="main-title" data-fr="Propulser votre entreprise et vos finance personnelles à un autre niveau"
+        data-en="Take your business and personal finances to the next level">Propulser votre entreprise et vos finance
+        personnelles <br> à un autre niveau</h1>
+      <h2 class="sub-title"
+        data-fr="Planification financière et fiscale sur mesure pour entrepreneur et travailleurs autonomes ambitieux"
+        data-en="Tailored financial and tax planning for ambitious entrepreneurs">Planification financière et fiscale
+        sur mesure pour entrepreneur et travailleurs autonomes ambitieux</h2>
+      <div class="scroll-indicator" onclick="scrollToServices()"><span>&#8595;</span></div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION -->
+  <nav class="sticky-nav glass-panel">
+    <div class="nav-logo"><img src="img/2nd_logo.png" alt="JC Capital Logo"></div>
+    <div class="nav-controls">
+      <button class="lang-toggle" onclick="toggleLanguage()">FR</button>
+      <button class="hamburger-menu" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#services" onclick="closeMenu()" data-fr="Services" data-en="Services">Services</a></li>
+      <li><a href="#team" onclick="closeMenu()" data-fr="Équipe" data-en="Team">Équipe</a></li>
+      <li><a href="#events" onclick="closeMenu()" data-fr="Événements" data-en="Events">Événements</a></li>
+      <li><a href="#booking" onclick="closeMenu()" class="nav-cta" data-fr="Rendez‑vous"
+          data-en="Booking">Rendez‑vous</a></li>
+    </ul>
+  </nav>
+
+  <!-- SERVICES SECTION -->
+  <section id="services" class="section-container">
+    <h2 class="section-heading" data-fr="Nos Services" data-en="Our Services">Nos Services</h2>
+    <div class="services-wrapper">
+      <div class="service-bubble glass-panel" onclick="toggleService(this)">
+        <div class="service-header">
+          <h3 data-fr="Optimisation fiscale" data-en="Tax Optimisation">Optimisation fiscale</h3><span
+            class="toggle-icon">+</span>
+        </div>
+        <div class="service-body">
+          <p data-fr="Stratégies pour minimiser l'impact fiscal et maximiser vos revenus nets."
+            data-en="Strategies to minimize tax impact and maximize your net income.">Stratégies pour minimiser l'impact
+            fiscal et maximiser vos revenus nets.</p>
+        </div>
+      </div>
+      <div class="service-bubble glass-panel" onclick="toggleService(this)">
+        <div class="service-header">
+          <h3 data-fr="Transfert, achat & vente" data-en="Transfer, Purchase & Sale">Transfert, achat & vente</h3><span
+            class="toggle-icon">+</span>
+        </div>
+        <div class="service-body">
+          <p data-fr="Accompagnement complet pour les transactions d'entreprise."
+            data-en="Full support for business transactions.">Accompagnement complet pour les transactions d'entreprise.
+          </p>
+        </div>
+      </div>
+      <div class="service-bubble glass-panel" onclick="toggleService(this)">
+        <div class="service-header">
+          <h3 data-fr="Planification financière / Retraite" data-en="Financial Planning / Retirement">Planification
+            financière / Retraite</h3><span class="toggle-icon">+</span>
+        </div>
+        <div class="service-body">
+          <p data-fr="Préparation de votre avenir financier et de votre retraite."
+            data-en="Preparation of your financial future and retirement.">Préparation de votre avenir financier et de
+            votre retraite.</p>
+        </div>
+      </div>
+      <div class="service-bubble glass-panel" onclick="toggleService(this)">
+        <div class="service-header">
+          <h3 data-fr="Placement" data-en="Investment">Placement</h3><span class="toggle-icon">+</span>
+        </div>
+        <div class="service-body">
+          <p data-fr="Gestion de portefeuille adaptée à votre profil d'investisseur."
+            data-en="Portfolio management tailored to your investor profile.">Gestion de portefeuille adaptée à votre
+            profil d'investisseur.</p>
+        </div>
+      </div>
+      <div class="service-bubble glass-panel" onclick="toggleService(this)">
+        <div class="service-header">
+          <h3 data-fr="Protection (Assurance)" data-en="Protection (Insurance)">Protection (Assurance)</h3><span
+            class="toggle-icon">+</span>
+        </div>
+        <div class="service-body">
+          <p data-fr="Assurance vie, invalidité et maladies graves."
+            data-en="Life, disability and critical illness insurance.">Assurance vie, invalidité et maladies graves.</p>
+        </div>
+      </div>
+      <div class="service-bubble glass-panel" onclick="toggleService(this)">
+        <div class="service-header">
+          <h3 data-fr="Comptabilité" data-en="Accounting">Comptabilité</h3><span class="toggle-icon">+</span>
+        </div>
+        <div class="service-body">
+          <p data-fr="Services comptables rigoureux pour votre entreprise."
+            data-en="Rigorous accounting services for your business.">Services comptables rigoureux pour votre
+            entreprise.</p>
+        </div>
+      </div>
+      <div class="service-bubble glass-panel" onclick="toggleService(this)">
+        <div class="service-header">
+          <h3 data-fr="Productivité Interne" data-en="Internal Productivity">Productivité Interne</h3><span
+            class="toggle-icon">+</span>
+        </div>
+        <div class="service-body">
+          <p data-fr="Analyse et optimisation de vos processus d'affaires."
+            data-en="Analysis and optimization of your business processes.">Analyse et optimisation de vos processus
+            d'affaires.</p>
+        </div>
+      </div>
+      <div class="service-bubble glass-panel" onclick="toggleService(this)">
+        <div class="service-header">
+          <h3 data-fr="Financement" data-en="Financing">Financement</h3><span class="toggle-icon">+</span>
+        </div>
+        <div class="service-body">
+          <p data-fr="Solutions de financement pour vos projets de croissance."
+            data-en="Financing solutions for your growth projects.">Solutions de financement pour vos projets de
+            croissance.</p>
+        </div>
+      </div>
+
+      <div class="service-bubble glass-panel" onclick="toggleService(this)">
+        <div class="service-header">
+          <h3 data-fr="Gestion de patrimoine agricole" data-en="Agricultural Wealth Management">Gestion de patrimoine
+            agricole</h3><span class="toggle-icon">+</span>
+        </div>
+        <div class="service-body">
+          <p data-fr="Un accompagnement stratégique pour protéger, optimiser et faire croître la valeur de votre entreprise agricole, aujourd'hui et pour les générations futures"
+            data-en="Strategic support to protect, optimize and grow the value of your agricultural business, today and for future generations">
+            Un accompagnement stratégique pour protéger, optimiser et faire croître la valeur de votre entreprise
+            agricole, aujourd'hui et pour les générations futures</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- TEAM SECTION -->
+  <section id="team" class="section-container">
+    <h2 class="section-heading" data-fr="Notre Équipe" data-en="Our Team">Notre Équipe</h2>
+    <div class="carousel-container glass-panel">
+      <button class="carousel-btn prev" onclick="moveTeamCarousel(-1)">&#9664;</button>
+      <div class="carousel-track-wrapper">
+        <div class="carousel-track" id="team-track">
+          <div class="carousel-card team-card">
+            <div class="placeholder-img"><img src="img/joel.jpg" alt="Joel"></div>
+            <h3 data-fr="Membre 1" data-en="Member 1">Joel</h3>
+            <p data-fr="Rôle" data-en="Role">Rôle</p>
+          </div>
+          <div class="carousel-card team-card">
+            <div class="placeholder-img"></div>
+            <h3 data-fr="Membre 2" data-en="Member 2">Membre 2</h3>
+            <p data-fr="Rôle" data-en="Role">Rôle</p>
+          </div>
+          <div class="carousel-card team-card">
+            <div class="placeholder-img"></div>
+            <h3 data-fr="Membre 3" data-en="Member 3">Membre 3</h3>
+            <p data-fr="Rôle" data-en="Role">Rôle</p>
+          </div>
+        </div>
+      </div>
+      <button class="carousel-btn next" onclick="moveTeamCarousel(1)">&#9654;</button>
+    </div>
+  </section>
+
+  <!-- EVENTS SECTION -->
+  <section id="events" class="section-container">
+    <h2 class="section-heading" data-fr="Événements à venir" data-en="Upcoming Events">Événements à venir</h2>
+    <div class="events-list">
+      <div class="event-card glass-panel">
+        <div class="event-img-placeholder"></div>
+        <div class="event-info"><span class="event-date" data-fr="20 NOV" data-en="NOV 20">20 NOV</span>
+          <h3 data-fr="Conférence Fiscale" data-en="Tax Conference">Conférence Fiscale</h3><button class="btn-register"
+            data-fr="S'inscrire" data-en="Register">S'inscrire</button>
+        </div>
+      </div>
+      <div class="event-card glass-panel">
+        <div class="event-img-placeholder"></div>
+        <div class="event-info"><span class="event-date" data-fr="05 DÉC" data-en="DEC 05">05 DÉC</span>
+          <h3 data-fr="Webinaire Retraite" data-en="Retirement Webinar">Webinaire Retraite</h3><button
+            class="btn-register" data-fr="S'inscrire" data-en="Register">S'inscrire</button>
+        </div>
+      </div>
+      <div class="event-card glass-panel">
+        <div class="event-img-placeholder"></div>
+        <div class="event-info"><span class="event-date" data-fr="15 JAN" data-en="JAN 15">15 JAN</span>
+          <h3 data-fr="Gala Annuel" data-en="Annual Gala">Gala Annuel</h3><button class="btn-register"
+            data-fr="S'inscrire" data-en="Register">S'inscrire</button>
+        </div>
+      </div>
+    </div>
+    <div class="view-more-container"><button class="btn-text" data-fr="Voir plus d'événements"
+        data-en="View more events">Voir plus d'événements</button></div>
+  </section>
+
+  <!-- BOOKING SECTION -->
+  <section id="booking" class="section-container">
+    <h2 class="section-heading" data-fr="Prise de rendez‑vous" data-en="Book an Appointment">Prise de rendez‑vous</h2>
+    <div class="booking-container">
+      <!-- LEFT SIDE: BOOKING FORM -->
+      <div class="booking-form-wrapper glass-panel">
+        <form id="bookingForm">
+          <div class="form__group field">
+            <input type="text" class="form__field" placeholder="Nom complet" name="name" id="clientName" required />
+            <label for="clientName" class="form__label" data-fr="Nom complet" data-en="Full Name">Nom complet</label>
+          </div>
+          <div class="form__group field">
+            <input type="tel" class="form__field" placeholder="Téléphone" name="phone" id="clientPhone" required />
+            <label for="clientPhone" class="form__label" data-fr="Téléphone" data-en="Phone">Téléphone</label>
+          </div>
+          <div class="form__group field">
+            <input type="email" class="form__field" placeholder="Courriel" name="email" id="clientEmail" required />
+            <label for="clientEmail" class="form__label" data-fr="Courriel" data-en="Email">Courriel</label>
+          </div>
+
+          <div id="suggestionBox" class="suggestion-box hidden"><span id="suggestedService"></span> <button
+              type="button" id="confirmServiceBtn" class="btn-small" data-fr="Utiliser" data-en="Use">Utiliser</button>
+          </div>
+          <div class="input-group">
+            <label data-fr="Services (Sélectionnez tout ce qui s'applique)"
+              data-en="Services (Select all that apply)">Services (Sélectionnez tout ce qui s'applique)</label>
+            <div class="checkbox-group" id="serviceCheckboxes">
+              <label class="checkbox-label">
+                <input type="checkbox" name="service" value="fiscalite">
+                <span data-fr="Optimisation fiscale" data-en="Tax Optimisation">Optimisation fiscale</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="service" value="transfert">
+                <span data-fr="Transfert, achat & vente" data-en="Transfer, Purchase & Sale">Transfert, achat &
+                  vente</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="service" value="planification">
+                <span data-fr="Planification financière / Retraite"
+                  data-en="Financial Planning / Retirement">Planification financière / Retraite</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="service" value="placement">
+                <span data-fr="Placement" data-en="Investment">Placement</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="service" value="assurance">
+                <span data-fr="Protection (Assurance)" data-en="Protection (Insurance)">Protection (Assurance)</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="service" value="comptabilite">
+                <span data-fr="Comptabilité" data-en="Accounting">Comptabilité</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="service" value="productivite">
+                <span data-fr="Productivité Interne" data-en="Internal Productivity">Productivité Interne</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="service" value="financement">
+                <span data-fr="Financement" data-en="Financing">Financement</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="service" value="agricole">
+                <span data-fr="Gestion de patrimoine agricole" data-en="Agricultural Wealth Management">Gestion de
+                  patrimoine agricole</span>
+              </label>
+            </div>
+          </div>
+          <div class="form__group field">
+            <textarea class="form__field" placeholder="Description (max 50 mots)" name="message" id="clientNeed"
+              rows="3" required></textarea>
+            <label for="clientNeed" class="form__label" data-fr="Description (max 50 mots)"
+              data-en="Description (max 50 words)">Description (max 50 mots)</label>
+            <div id="wordCount" class="word-count">0</div>
+          </div>
+
+
+          <!-- OPTIONAL APPOINTMENT CHECKBOX -->
+
+          <div class="appointment-option">
+
+            <label class="appointment-checkbox-label">
+
+              <input type="checkbox" id="appointmentCheckbox" name="wantsAppointment">
+
+              <span data-fr="Je souhaite prendre rendez-vous (optionnel - utilisez le calendrier ci-contre)" 
+
+                    data-en="I want to schedule an appointment (optional - use calendar on the right)">
+
+                Je souhaite prendre rendez-vous (optionnel - utilisez le calendrier ci-contre)
+
+              </span>
+
+            </label>
+
+          </div>
+
+          <button type="submit" class="btn-submit" data-fr="Envoyer" data-en="Submit">Envoyer</button>
+        </form>
+      </div>
+
+      <!-- RIGHT SIDE: GOOGLE CALENDAR -->
+      <div class="calendar-wrapper glass-panel">
+        <h3 class="calendar-title" data-fr="Calendrier des disponibilités" data-en="Availability Calendar">Calendrier des disponibilités</h3>
+        <iframe src="https://calendar.app.google/DguEHRNLy6FEBDN67" 
+                frameborder="0" 
+                scrolling="yes"
+                class="calendar-iframe">
+        </iframe>
+        <p class="calendar-note" data-fr="📅 Sélectionnez un créneau dans le calendrier puis complétez le formulaire" 
+                                   data-en="📅 Select a time slot in the calendar then complete the form">
+          📅 Sélectionnez un créneau dans le calendrier puis complétez le formulaire
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIALS SECTION -->
+  <section id="social" class="section-container">
+    <h2 class="section-heading" data-fr="Réseaux Sociaux" data-en="Social Networks">Réseaux Sociaux</h2>
+    <div class="socials-grid">
+      <a href="https://www.linkedin.com/company/jc-capital" target="_blank" rel="noopener noreferrer"
+        class="social-bubble glass-panel" aria-label="LinkedIn">LinkedIn<i class="fab fa-linkedin social-icon"></i></a>
+      <a href="https://www.instagram.com/jccapital" target="_blank" rel="noopener noreferrer"
+        class="social-bubble glass-panel" aria-label="Instagram">Instagram<i
+          class="fab fa-instagram social-icon"></i></a>
+      <a href="https://www.tiktok.com/@jccapital" target="_blank" rel="noopener noreferrer"
+        class="social-bubble glass-panel" aria-label="TikTok">Tiktok<i class="fab fa-tiktok social-icon"></i></a>
+      <a href="https://www.facebook.com/jccapital" target="_blank" rel="noopener noreferrer"
+        class="social-bubble glass-panel" aria-label="Facebook">Facebook<i class="fab fa-facebook social-icon"></i></a>
+      <a href="https://open.spotify.com/user/jccapital" target="_blank" rel="noopener noreferrer"
+        class="social-bubble glass-panel" aria-label="Spotify">Podcasts<i class="fab fa-spotify social-icon"></i></a>
+      <a href="https://www.youtube.com/@jccapital" target="_blank" rel="noopener noreferrer"
+        class="social-bubble glass-panel" aria-label="YouTube">Video<i class="fab fa-youtube social-icon"></i></a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="premium-footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3 data-fr="À propos" data-en="About">À propos</h3>
+        <p data-fr="Votre partenaire de confiance pour la planification financière et fiscale."
+          data-en="Your trusted partner for financial and tax planning.">Votre partenaire de confiance pour la
+          planification financière et fiscale.</p>
+      </div>
+
+      <div class="footer-section">
+        <h3 data-fr="Contact" data-en="Contact">Contact</h3>
+        <p><i class="fas fa-phone"></i> +1 (555) 123‑4567</p>
+        <p><i class="fas fa-envelope"></i> info@jccapital.com</p>
+        <p><i class="fas fa-map-marker-alt"></i> <span data-fr="123 Rue de la Finance, Montréal, QC"
+            data-en="123 Finance Street, Montreal, QC">123 Rue de la Finance, Montréal, QC</span></p>
+      </div>
+
+      <div class="footer-section">
+        <h3 data-fr="Suivez-nous" data-en="Follow Us">Suivez-nous</h3>
+        <div class="footer-social-links">
+          <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+          <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2025 JC Capital. <span data-fr="Tous droits réservés." data-en="All rights reserved.">Tous droits
+          réservés.</span></p>
+      <p class="footer-credentials">AMF â€¢ IQPF</p>
+    </div>
+  </footer>
+</body>
+
+</html>
