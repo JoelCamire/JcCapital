@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JC Capital — Site en construction</title>
+    <meta name="description"
+        content="JC Capital — Cabinet de services financiers et fiscaux à Québec. Notre nouveau site est en construction. Revenez bientôt !">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/x-icon" href="../img/Logo_Icon.ico">
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ── Reset ── */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ── Brand Palette ── */
+        :root {
+            --navy: #1B2A3D;
+            --navy-d: #111D2B;
+            --gold: #C4A96A;
+            --gold-l: #D4BE8A;
+            --tan: #C9B48E;
+            --olive: #6B6434;
+            --white: #F5F2ED;
+            --muted: #9CABBA;
+        }
+
+        /* ── Body ── */
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--navy-d);
+            background-image:
+                radial-gradient(ellipse 70% 50% at 20% 80%, rgba(107, 100, 52, .12) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 50% at 80% 20%, rgba(196, 169, 106, .08) 0%, transparent 60%);
+            color: var(--white);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ── Animated grain overlay ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Subtle floating orbs ── */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            animation: drift 18s ease-in-out infinite alternate;
+        }
+
+        .orb--gold {
+            width: 380px;
+            height: 380px;
+            background: var(--gold);
+            top: -120px;
+            right: -80px;
+        }
+
+        .orb--olive {
+            width: 300px;
+            height: 300px;
+            background: var(--olive);
+            bottom: -100px;
+            left: -60px;
+            animation-delay: -6s;
+        }
+
+        .orb--tan {
+            width: 200px;
+            height: 200px;
+            background: var(--tan);
+            top: 50%;
+            left: 60%;
+            animation-delay: -12s;
+        }
+
+        @keyframes drift {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(30px, -20px) scale(1.08);
+            }
+        }
+
+        /* ── Container ── */
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 560px;
+            padding: 2rem 1.5rem;
+        }
+
+        /* ── Logo ── */
+        .logo {
+            width: 220px;
+            margin-bottom: 2.5rem;
+            animation: fadeUp .8s ease-out both;
+            filter: drop-shadow(0 4px 20px rgba(196, 169, 106, .15));
+        }
+
+        /* ── Divider ── */
+        .divider {
+            width: 48px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin: 0 auto 2rem;
+            animation: fadeUp .8s ease-out .15s both;
+        }
+
+        /* ── Badge ── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            padding: .35rem .9rem;
+            border-radius: 100px;
+            border: 1px solid rgba(196, 169, 106, .25);
+            background: rgba(196, 169, 106, .06);
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--gold-l);
+            margin-bottom: 2rem;
+            animation: fadeUp .8s ease-out .25s both;
+        }
+
+        .badge__dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--gold);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: .4;
+                transform: scale(.7);
+            }
+        }
+
+        /* ── Heading ── */
+        h1 {
+            font-size: clamp(1.6rem, 4vw, 2.2rem);
+            font-weight: 600;
+            line-height: 1.35;
+            margin-bottom: 1.2rem;
+            animation: fadeUp .8s ease-out .35s both;
+        }
+
+        h1 span {
+            background: linear-gradient(135deg, var(--gold-l), var(--tan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ── Description ── */
+        .description {
+            font-size: .95rem;
+            font-weight: 300;
+            line-height: 1.7;
+            color: var(--muted);
+            margin-bottom: 2.5rem;
+            animation: fadeUp .8s ease-out .45s both;
+        }
+
+        /* ── Contact bar ── */
+        .contact {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem;
+            animation: fadeUp .8s ease-out .55s both;
+        }
+
+        .contact a {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            color: var(--gold-l);
+            text-decoration: none;
+            font-size: .85rem;
+            font-weight: 400;
+            transition: color .25s;
+        }
+
+        .contact a:hover {
+            color: var(--white);
+        }
+
+        .contact a svg {
+            width: 16px;
+            height: 16px;
+            opacity: .7;
+        }
+
+        /* ── Bottom line ── */
+        .footer-line {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: .7rem;
+            color: rgba(156, 171, 186, .35);
+            letter-spacing: .06em;
+            z-index: 1;
+            animation: fadeUp .8s ease-out .7s both;
+        }
+
+        /* ── Animations ── */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 480px) {
+            .logo {
+                width: 170px;
+                margin-bottom: 2rem;
+            }
+
+            .contact {
+                flex-direction: column;
+                gap: .8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Ambient orbs -->
+    <div class="orb orb--gold"></div>
+    <div class="orb orb--olive"></div>
+    <div class="orb orb--tan"></div>
+
+    <main class="container">
+        <img src="../img/final_logo.png" alt="JC Capital" class="logo">
+
+        <div class="divider"></div>
+
+        <div class="badge">
+            <span class="badge__dot"></span>
+            En construction
+        </div>
+
+        <h1>Nous préparons <span>quelque chose de nouveau</span></h1>
+
+        <p class="description">
+            Notre nouveau site web est présentement en développement.
+            Nous travaillons fort pour vous offrir une expérience complète
+            en services financiers et fiscaux.<br><br>
+            <strong style="color: #C9B48E;">Revenez nous voir bientôt !</strong>
+        </p>
+
+        <div class="contact">
+            <a href="tel:+15813986747">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                </svg>
+                (581) 398-6747
+            </a>
+            <a href="mailto:admin@jccapital.ca">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                </svg>
+                admin@jccapital.ca
+            </a>
+        </div>
+    </main>
+
+    <p class="footer-line">© 2026 JC Capital — Cabinet de services financiers et fiscaux</p>
+
+</body>
+
+</html>
