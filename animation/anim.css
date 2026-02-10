@@ -1,0 +1,77 @@
+/* JC_Capital/animation/anim.css */
+
+:root {
+    --anim-bg: var(--c-dark-blue, #0a192f);
+    --anim-accent: var(--c-gold, #d4af37);
+}
+
+/* The Full Screen Overlay */
+#intro-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    /* Force viewport width, ignore scrollbar/overflow */
+    height: 100vh;
+    /* Fallback */
+    height: 100dvh;
+    /* Mobile viewport fix */
+    background-color: var(--anim-bg);
+    z-index: 99999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* The Logo Container */
+.intro-logo-wrapper {
+    width: 150px;
+    height: 150px;
+    opacity: 0;
+    /* This runs the "Expand then Shrink" animation */
+    animation: expandShrink 2.2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    /* Ensure no external margins interfere */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.intro-logo-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    /* Removes inline-block bottom gap */
+    margin: 0 auto;
+    /* Ensures image centers in wrapper */
+    /* Add a glow that pulses with the movement */
+    filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.5));
+}
+
+/* THE NEW ANIMATION: Expand -> Shrink */
+@keyframes expandShrink {
+    0% {
+        opacity: 0;
+        transform: scale(0.1);
+        /* Start tiny */
+    }
+
+    40% {
+        opacity: 1;
+        transform: scale(2.5);
+        /* EXPAND: Blow up huge (2.5x size) */
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        /* SHRINK: Snap back to normal size */
+    }
+}
+
+/* Class to hide the overlay */
+.intro-hidden {
+    opacity: 0 !important;
+    pointer-events: none;
+}
