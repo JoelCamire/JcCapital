@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Estimateur d'Économies Fiscales – JC Capital</title>
+    <meta name="description"
+        content="Estimateur d'économies fiscales pour entrepreneurs. Découvrez combien vous pourriez sauver en vous incorporant au Québec." />
+    <!-- Favicon & Mobile Icons -->
+    <link rel="icon" type="image/png" href="../img/2nd_logo.png">
+    <link rel="apple-touch-icon" href="../img/2nd_logo.png">
+
+    <!-- Open Graph & Social sharing -->
+    <meta property="og:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <meta name="twitter:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Split -->
+    <link rel="stylesheet" href="../css/_tokens.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Translations -->
+    <script src="../js/translations.js"></script>
+    <!-- Component Loader -->
+    <script defer src="../js/components.js"></script>
+
+    <style>
+        .page-content {
+            padding-top: 120px;
+            min-height: 80vh;
+            background: transparent;
+        }
+
+        .tool-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .tax-card {
+            background: rgba(34, 51, 59, 0.6);
+            border: 1px solid var(--c-brown);
+            border-radius: 15px;
+            padding: 2.5rem;
+            text-align: center;
+        }
+
+        .slider-container {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: rgba(10, 9, 8, 0.3);
+            border-radius: 10px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: var(--c-brown);
+            border-radius: 50%;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            background: var(--c-gold);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .comparison-box {
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .box-personal {
+            background: rgba(220, 53, 69, 0.2);
+            border-color: #dc3545;
+        }
+
+        .box-inc {
+            background: rgba(40, 167, 69, 0.2);
+            border-color: #28a745;
+        }
+
+        .tax-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        .savings-highlight {
+            margin-top: 2rem;
+            font-size: 1.5rem;
+            color: var(--c-gold);
+            font-weight: bold;
+            padding: 1rem;
+            border: 2px dashed var(--c-gold);
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+  <!-- JC AI Chatbot -->
+  <link rel="stylesheet" href="../LM/jc-chat.css">
+  <script defer src="../LM/jc-chat-data.js"></script>
+  <script defer src="../LM/jc-chat-quiz.js"></script>
+  <script defer src="../LM/jc-chat-engine.js"></script>
+  <script defer src="../LM/jc-chat-ui.js"></script>
+</head>
+
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="page-content">
+        <div class="tool-container">
+            <h1 style="color:var(--c-gold); text-align:center; margin-bottom: 2rem; font-size: 2.5rem;"
+                data-fr="Estimateur d'Économies Fiscales" data-en="Tax Savings Estimator">Estimateur d'Économies
+                Fiscales</h1>
+
+            <p style="text-align:center; color: var(--c-light-beige); margin-bottom: 2rem; max-width: 800px; margin-left: auto; margin-right: auto; line-height: 1.6;"
+                data-fr="Découvrez l'avantage fiscal de l'incorporation. Estimez vos économies potentielles en laissant les surplus dans une structure corporative plutôt qu'en salaire personnel."
+                data-en="Discover the tax advantage of incorporation. Estimate your potential savings by leaving surplus funds in a corporate structure rather than taking personal salary.">
+                Découvrez l'avantage fiscal de l'incorporation. Estimez vos économies potentielles en laissant les
+                surplus dans une structure corporative plutôt qu'en salaire personnel.
+            </p>
+
+            <div class="tax-card">
+                <h3 style="color:var(--c-light-beige); margin-bottom: 1rem;" data-fr="Revenu Net d'Entreprise"
+                    data-en="Net Business Income">Revenu Net d'Entreprise</h3>
+
+                <div class="slider-container">
+                    <input type="range" id="incomeSlider" min="50000" max="2500000" step="5000" value="100000"
+                        oninput="updateTax()">
+                    <div style="margin-top: 1rem; font-size: 2rem; color: var(--c-gold);" id="incomeDisplay">$100,000
+                    </div>
+                </div>
+
+                <div class="comparison-grid">
+                    <!-- Personal -->
+                    <div class="comparison-box box-personal">
+                        <h4 style="color:var(--c-light-beige)" data-fr="Personnel (Taux Marginal)"
+                            data-en="Personal (Marginal Rate)">Personnel (Taux Marginal)</h4>
+                        <div class="tax-value" style="color:#ff6b6b" id="personalTax">$0</div>
+                        <p style="opacity:0.8; font-size:0.9rem;" data-fr="Taux approx. ~35-53%"
+                            data-en="Approx rate ~35-53%">Taux approx. ~35-53%</p>
+                    </div>
+
+                    <!-- Inc -->
+                    <div class="comparison-box box-inc">
+                        <h4 style="color:var(--c-light-beige)" data-fr="Société (PME Québec)"
+                            data-en="Corporation (QC SME)">Société (PME Québec)</h4>
+                        <div class="tax-value" style="color:#51cf66" id="incTax">$0</div>
+                        <p style="opacity:0.8; font-size:0.9rem;" data-fr="~12.2% (premiers 500K) / ~26.5% (au-delà)"
+                            data-en="~12.2% (first 500K) / ~26.5% (above)">~12.2% (premiers 500K) / ~26.5% (au-delà)</p>
+                    </div>
+                </div>
+
+                <div class="savings-highlight">
+                    <span data-fr="Différence d'impôt potentielle à reporter :"
+                        data-en="Potential Tax Deferral Difference:">Différence d'impôt potentielle à reporter :</span>
+                    <br>
+                    <span id="savingsValue" style="font-size: 2rem;">$0</span>
+                </div>
+
+                <p style="margin-top: 1.5rem; font-size: 0.8rem; opacity: 0.6; color: var(--c-light-beige);">
+                    *Estimations simplifiées basées sur les taux d'imposition 2024 au Québec pour fin de comparaison
+                    seulement. Ne constitue pas un avis fiscal officiel.
+                </p>
+            </div>
+
+            <section class="seo-content" style="margin: 4rem auto; max-width: 800px; padding: 0 20px;">
+                <h2 style="color:var(--c-gold); margin-bottom: 1rem;"
+                    data-fr="Pourquoi s'incorporer en fiscalité agricole au Québec ?"
+                    data-en="Why incorporate in agricultural taxation in Quebec?">Pourquoi s'incorporer en fiscalité
+                    agricole au Québec ?</h2>
+                <p style="color:var(--c-light-beige); margin-bottom: 1.5rem;"
+                    data-fr="L'incorporation offre un avantage fiscal majeur via le report d'impôt. En 2026, le taux d'imposition des sociétés (PME) au Québec est réduit (environ 12.2% sur les premiers 500 000$), ce qui est nettement inférieur au taux marginal des particuliers."
+                    data-en="Incorporation offers a major tax advantage via tax deferral. In 2026, the corporate tax rate (SME) in Quebec is reduced (approximately 12.2% on the first $500,000), which is significantly lower than the marginal rate for individuals.">
+                    L'incorporation offre un avantage fiscal majeur via le report d'impôt. En 2026, le taux d'imposition
+                    des sociétés (PME)
+                    au Québec est réduit (environ 12.2% sur les premiers 500 000$), ce qui est nettement inférieur au
+                    taux marginal des particuliers.
+                </p>
+                <h3 style="color:var(--c-gold); margin-bottom: 1rem; font-size: 1.3rem;"
+                    data-fr="Avantages spécifiques pour les agriculteurs" data-en="Specific advantages for farmers">
+                    Avantages spécifiques pour les agriculteurs</h3>
+                <p style="color:var(--c-light-beige);"
+                    data-fr="L'incorporation permet l'accès à l'Exonération Cumulative des Gains en Capital (ECGC) lors de la vente ou du transfert de la ferme, un outil indispensable pour la planification de la relève agricole."
+                    data-en="Incorporation allows access to the Lifetime Capital Gains Exemption (LCGE) upon the sale or transfer of the farm, an essential tool for agricultural succession planning.">
+                    L'incorporation permet l'accès à l'Exonération Cumulative des Gains en Capital (ECGC) lors de la
+                    vente ou du transfert
+                    de la ferme, un outil indispensable pour la planification de la relève agricole.
+                </p>
+            </section>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script>
+        function updateTax() {
+            const income = parseInt(document.getElementById('incomeSlider').value);
+            document.getElementById('incomeDisplay').innerText = new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(income);
+
+            // Simple approximations for illustration
+            // Personal Tax Curve (Progressive) - Average effective rate simulation
+            let personalRate = 0.30;
+            if (income > 60000) personalRate = 0.37;
+            if (income > 100000) personalRate = 0.45;
+            if (income > 150000) personalRate = 0.48;
+            if (income > 200000) personalRate = 0.50;
+            if (income > 250000) personalRate = 0.51;
+            if (income > 500000) personalRate = 0.525;
+            if (income > 1000000) personalRate = 0.53;
+
+            const personalTaxAmount = income * personalRate;
+
+            // Corporate Tax in Quebec
+            // First $500K: Small Business Deduction ~12.2%
+            // Above $500K: General corporate rate ~26.5%
+            let incTaxAmount;
+            if (income <= 500000) {
+                incTaxAmount = income * 0.122;
+            } else {
+                incTaxAmount = 500000 * 0.122 + (income - 500000) * 0.265;
+            }
+
+            const savings = personalTaxAmount - incTaxAmount;
+
+            document.getElementById('personalTax').innerText = new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(personalTaxAmount);
+            document.getElementById('incTax').innerText = new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(incTaxAmount);
+            document.getElementById('savingsValue').innerText = "+ " + new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(savings);
+        }
+
+        document.addEventListener('DOMContentLoaded', updateTax);
+    </script>
+</body>
+
+</html>

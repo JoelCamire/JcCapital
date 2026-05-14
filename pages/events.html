@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Événements – JC Capital</title>
+    <meta name="description"
+        content="Découvrez nos prochains événements, conférences et webinaires sur la finance et l'investissement." />
+    <!-- Favicon & Mobile Icons -->
+    <link rel="icon" type="image/png" href="../img/2nd_logo.png">
+    <link rel="apple-touch-icon" href="../img/2nd_logo.png">
+
+    <!-- Open Graph & Social sharing -->
+    <meta property="og:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <meta name="twitter:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Split -->
+    <link rel="stylesheet" href="../css/_tokens.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Tailwind CSS (for layout utilities) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Translations -->
+    <script src="../js/translations.js"></script>
+    <!-- Component Loader -->
+    <script defer src="../js/components.js"></script>
+
+    <style>
+        .page-content {
+            padding-top: 120px;
+            min-height: 80vh;
+            background: transparent;
+        }
+
+        .events-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Filter Section */
+        .filter-bar {
+            background: rgba(34, 51, 59, 0.8);
+            border: 1px solid var(--c-brown);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 2;
+            min-width: 250px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--c-brown);
+            background: rgba(10, 9, 8, 0.5);
+            color: var(--c-light-beige);
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: var(--c-gold);
+        }
+
+        .filter-select {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--c-brown);
+            background: rgba(10, 9, 8, 0.5);
+            color: var(--c-light-beige);
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Events Grid */
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .event-card-full {
+            background: rgba(34, 51, 59, 0.6);
+            border: 1px solid var(--c-brown);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .event-card-full:hover {
+            transform: translateY(-5px);
+            border-color: var(--c-gold);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .event-img {
+            height: 200px;
+            background: linear-gradient(45deg, var(--c-dark-blue), var(--c-brown));
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .event-img i {
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.1);
+        }
+
+        .event-date-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--c-gold);
+            color: var(--c-dark-blue);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .event-details {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .event-title {
+            color: var(--c-gold);
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .event-meta {
+            color: var(--c-light-beige);
+            opacity: 0.8;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .event-desc {
+            color: var(--c-light-beige);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .btn-register-full {
+            background: transparent;
+            border: 1px solid var(--c-gold);
+            color: var(--c-gold);
+            padding: 10px;
+            border-radius: 6px;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            margin-top: auto;
+        }
+
+        .btn-register-full:hover {
+            background: var(--c-gold);
+            color: var(--c-dark-blue);
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            color: var(--c-light-beige);
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+  <!-- JC AI Chatbot -->
+  <link rel="stylesheet" href="../LM/jc-chat.css">
+  <script defer src="../LM/jc-chat-data.js"></script>
+  <script defer src="../LM/jc-chat-quiz.js"></script>
+  <script defer src="../LM/jc-chat-engine.js"></script>
+  <script defer src="../LM/jc-chat-ui.js"></script>
+</head>
+
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="page-content">
+        <div class="events-container">
+            <h1 class="section-heading" data-fr="Nos Événements" data-en="Our Events">Nos Événements</h1>
+
+            <!-- Filters -->
+            <div class="filter-bar">
+                <div style="flex: 2; position: relative;">
+                    <i class="fas fa-search"
+                        style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--c-gold);"></i>
+                    <input type="text" id="searchInput" class="search-input" style="padding-left: 45px;"
+                        placeholder="Rechercher un événement..." data-fr-placeholder="Rechercher un événement..."
+                        data-en-placeholder="Search for an event...">
+                </div>
+
+                <select id="monthFilter" class="filter-select">
+                    <option value="all" data-fr="Tous les mois" data-en="All Months">Tous les mois</option>
+                    <option value="01" data-fr="Janvier" data-en="January">Janvier</option>
+                    <option value="02" data-fr="Février" data-en="February">Février</option>
+                    <option value="03" data-fr="Mars" data-en="March">Mars</option>
+                    <option value="04" data-fr="Avril" data-en="April">Avril</option>
+                    <option value="05" data-fr="Mai" data-en="May">Mai</option>
+                    <option value="06" data-fr="Juin" data-en="June">Juin</option>
+                    <option value="07" data-fr="Juillet" data-en="July">Juillet</option>
+                    <option value="08" data-fr="Août" data-en="August">Août</option>
+                    <option value="09" data-fr="Septembre" data-en="September">Septembre</option>
+                    <option value="10" data-fr="Octobre" data-en="October">Octobre</option>
+                    <option value="11" data-fr="Novembre" data-en="November">Novembre</option>
+                    <option value="12" data-fr="Décembre" data-en="December">Décembre</option>
+                </select>
+
+                <select id="typeFilter" class="filter-select">
+                    <option value="all" data-fr="Tous les types" data-en="All Types">Tous les types</option>
+                    <option value="conference" data-fr="Conférence" data-en="Conference">Conférence</option>
+                    <option value="webinar" data-fr="Webinaire" data-en="Webinar">Webinaire</option>
+                    <option value="networking" data-fr="Réseautage" data-en="Networking">Réseautage</option>
+                </select>
+            </div>
+
+            <!-- Grid -->
+            <div id="eventsGrid" class="events-grid">
+                <!-- Javascript will populate this -->
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script>
+        // Fake Event Data
+        const eventsData = [
+            {
+                id: 1,
+                title_fr: "Conférence Fiscale",
+                title_en: "Tax Strategy Conference",
+                date: "2025-11-20",
+                displayDate_fr: "20 NOV",
+                displayDate_en: "NOV 20",
+                type: "conference",
+                desc_fr: "Décryptez les nouvelles mesures fiscales et optimisez votre fin d'année.",
+                desc_en: "Decode the new tax measures and optimize your year-end.",
+                icon: "fa-calculator"
+            },
+            {
+                id: 2,
+                title_fr: "Webinaire Retraite",
+                title_en: "Retirement Webinar",
+                date: "2025-12-05",
+                displayDate_fr: "05 DÉC",
+                displayDate_en: "DEC 05",
+                type: "webinar",
+                desc_fr: "Comment bâtir un revenu passif durable pour votre retraite.",
+                desc_en: "How to build sustainable passive income for your retirement.",
+                icon: "fa-umbrella-beach"
+            },
+            {
+                id: 3,
+                title_fr: "Gala Annuel JC Capital",
+                title_en: "JC Capital Annual Gala",
+                date: "2026-01-15",
+                displayDate_fr: "15 JAN",
+                displayDate_en: "JAN 15",
+                type: "networking",
+                desc_fr: "Une soirée exclusive pour célébrer nos clients et partenaires.",
+                desc_en: "An exclusive evening to celebrate our clients and partners.",
+                icon: "fa-champagne-glasses"
+            },
+            {
+                id: 4,
+                title_fr: "Masterclass Immobilier",
+                title_en: "Real Estate Masterclass",
+                date: "2026-02-10",
+                displayDate_fr: "10 FÉV",
+                displayDate_en: "FEB 10",
+                type: "conference",
+                desc_fr: "Stratégies avancées d'investissement immobilier multi-logements.",
+                desc_en: "Advanced strategies for multi-unit real estate investment.",
+                icon: "fa-building"
+            },
+            {
+                id: 5,
+                title_fr: "Sommet Investissement",
+                title_en: "Investment Summit",
+                date: "2026-03-22",
+                displayDate_fr: "22 MAR",
+                displayDate_en: "MAR 22",
+                type: "conference",
+                desc_fr: "Analyse des marchés boursiers : perspectives 2026.",
+                desc_en: "Stock market analysis: 2026 outlook.",
+                icon: "fa-chart-line"
+            },
+            {
+                id: 6,
+                title_fr: "5 à 7 des Entrepreneurs",
+                title_en: "Entrepreneurs' Networking",
+                date: "2026-04-18",
+                displayDate_fr: "18 AVR",
+                displayDate_en: "APR 18",
+                type: "networking",
+                desc_fr: "Rencontrez d'autres leaders d'affaires locaux autour d'un verre.",
+                desc_en: "Meet other local business leaders over a drink.",
+                icon: "fa-handshake"
+            },
+            {
+                id: 7,
+                title_fr: "Optimisation Agricole",
+                title_en: "Agricultural Optimization",
+                date: "2026-05-12",
+                displayDate_fr: "12 MAI",
+                displayDate_en: "MAY 12",
+                type: "webinar",
+                desc_fr: "Transfert de ferme et protection du patrimoine agricole.",
+                desc_en: "Farm transfer and agricultural wealth protection.",
+                icon: "fa-wheat-awn"
+            }
+        ];
+
+        function renderEvents() {
+            const grid = document.getElementById('eventsGrid');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const month = document.getElementById('monthFilter').value;
+            const type = document.getElementById('typeFilter').value;
+            const currentLang = document.documentElement.lang || 'fr';
+
+            grid.innerHTML = '';
+
+            const filtered = eventsData.filter(ev => {
+                const title = currentLang === 'fr' ? ev.title_fr.toLowerCase() : ev.title_en.toLowerCase();
+                const desc = currentLang === 'fr' ? ev.desc_fr.toLowerCase() : ev.desc_en.toLowerCase();
+                const evMonth = ev.date.split('-')[1];
+
+                const matchesSearch = title.includes(search) || desc.includes(search);
+                const matchesMonth = month === 'all' || evMonth === month;
+                const matchesType = type === 'all' || ev.type === type;
+
+                return matchesSearch && matchesMonth && matchesType;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="no-results">${currentLang === 'fr' ? 'Aucun événement trouvé.' : 'No events found.'}</div>`;
+                return;
+            }
+
+            filtered.forEach(ev => {
+                const title = currentLang === 'fr' ? ev.title_fr : ev.title_en;
+                const desc = currentLang === 'fr' ? ev.desc_fr : ev.desc_en;
+                const displayDate = currentLang === 'fr' ? ev.displayDate_fr : ev.displayDate_en;
+                const btnText = currentLang === 'fr' ? "S'inscrire" : "Register";
+
+                // Map types to display labels
+                let typeLabel = ev.type;
+                //"conference", "webinar", "networking" -> could be mapped if needed, but styling is generic
+
+                const html = `
+                <div class="event-card-full">
+                    <div class="event-img">
+                        <span class="event-date-badge">${displayDate}</span>
+                        <i class="fas ${ev.icon}"></i>
+                    </div>
+                    <div class="event-details">
+                        <div class="event-meta">
+                            <span><i class="far fa-clock"></i> 18:00</span>
+                            <span style="text-transform:capitalize;">${ev.type}</span>
+                        </div>
+                        <h3 class="event-title">${title}</h3>
+                        <p class="event-desc">${desc}</p>
+                        <button class="btn-register-full">${btnText}</button>
+                    </div>
+                </div>
+                `;
+                grid.innerHTML += html;
+            });
+        }
+
+        // Event Listeners
+        document.getElementById('searchInput').addEventListener('input', renderEvents);
+        document.getElementById('monthFilter').addEventListener('change', renderEvents);
+        document.getElementById('typeFilter').addEventListener('change', renderEvents);
+
+        // Listen for language toggle event from components.js
+        document.addEventListener('languageChanged', renderEvents);
+
+        // Initial Render
+        document.addEventListener('DOMContentLoaded', renderEvents);
+    </script>
+</body>
+
+</html>

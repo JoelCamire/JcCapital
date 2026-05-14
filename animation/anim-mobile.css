@@ -31,4 +31,15 @@
             transform: scale(1);
         }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+        .intro-logo-wrapper {
+            animation: none;
+            opacity: 1;
+            transform: scale(1);
+        }
+        #intro-overlay {
+            display: none;
+        }
+    }
 }

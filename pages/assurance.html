@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bilan de Protection Financière – JC Capital</title>
+    <meta name="description"
+        content="Identifiez vos vulnérabilités financières et obtenez une stratégie de protection sur mesure." />
+    <!-- Favicon & Mobile Icons -->
+    <link rel="icon" type="image/png" href="../img/2nd_logo.png">
+    <link rel="apple-touch-icon" href="../img/2nd_logo.png">
+
+    <!-- Open Graph & Social sharing -->
+    <meta property="og:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <meta name="twitter:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Split -->
+    <link rel="stylesheet" href="../css/_tokens.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Tailwind CSS (for consistent nav reset) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- EmailJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() { emailjs.init({ publicKey: "hwMGh9c8l-Cchop_0" }); })();
+    </script>
+    <!-- Translations -->
+    <script src="../js/translations.js"></script>
+    <!-- Component Loader -->
+    <script defer src="../js/components.js"></script>
+
+    <style>
+        /* Specific Styles for Assessment Tool - Using Site Variables */
+        .assessment-container {
+            max-width: 900px;
+            margin: 40px auto;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding: 40px;
+            overflow: hidden;
+        }
+
+        /* PROGRESS */
+        .progress-bar-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--c-gold);
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px var(--c-gold);
+        }
+
+        /* LAYOUTS */
+        .layout-section {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* QUESTIONS */
+        .step-indicator {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--c-gold);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .question-title {
+            font-size: 2rem;
+            color: var(--c-light-beige);
+            line-height: 1.2;
+            margin: 0 0 15px 0;
+            font-weight: 700;
+        }
+
+        .question-context {
+            font-size: 1rem;
+            color: var(--c-light-beige);
+            opacity: 0.9;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-left: 3px solid var(--c-gold);
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 25px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--c-brown);
+            padding: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .option-btn:hover {
+            border-color: var(--c-gold);
+            background: rgba(198, 172, 143, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .option-btn.selected {
+            border-color: var(--c-gold);
+            background: rgba(198, 172, 143, 0.2);
+            box-shadow: 0 0 15px rgba(198, 172, 143, 0.1);
+        }
+
+        .selector-icon {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--c-brown);
+            flex-shrink: 0;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .radio-style {
+            border-radius: 50%;
+        }
+
+        .check-style {
+            border-radius: 4px;
+        }
+
+        .option-btn.selected .selector-icon {
+            border-color: var(--c-gold);
+            background: var(--c-gold);
+        }
+
+        .option-btn.selected .selector-icon::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--c-black);
+            display: block;
+        }
+
+        .check-style.selector-icon::after {
+            border-radius: 1px;
+        }
+
+        .radio-style.selector-icon::after {
+            border-radius: 50%;
+        }
+
+        .option-content {
+            flex-grow: 1;
+        }
+
+        .option-main {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--c-light-beige);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .option-sub {
+            font-size: 0.9rem;
+            color: var(--c-light-beige);
+            opacity: 0.7;
+            line-height: 1.4;
+        }
+
+        /* NAVIGATION WITHIN CARD */
+        .nav-area {
+            margin-top: auto;
+            padding-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-prev {
+            background: transparent;
+            border: none;
+            color: var(--c-gold);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-family: var(--font-main);
+        }
+
+        .btn-prev:hover {
+            text-decoration: underline;
+        }
+
+        .btn-next {
+            background: var(--c-gold);
+            color: var(--c-black);
+            border: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 12px 30px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 4px;
+            display: none;
+            /* Hidden until selection */
+            font-family: var(--font-main);
+        }
+
+        .btn-next:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* LEAD FORM */
+        .lead-wrapper {
+            text-align: center;
+            max-width: 450px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-label {
+            display: block;
+            color: var(--c-gold);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--c-brown);
+            color: var(--c-light-beige);
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+            font-family: var(--font-main);
+        }
+
+        .custom-input:focus {
+            border-color: var(--c-gold);
+        }
+
+        .btn-unlock {
+            width: 100%;
+            background: var(--c-gold);
+            color: var(--c-black);
+            border: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 15px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+            transition: all 0.3s;
+            font-family: var(--font-main);
+            opacity: 0.5;
+        }
+
+        .btn-unlock:hover:not(:disabled) {
+            opacity: 1;
+            transform: translateY(-2px);
+        }
+
+        /* REPORT STYLES */
+        .contact-box {
+            background: rgba(198, 172, 143, 0.1);
+            border: 1px solid var(--c-gold);
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--c-light-beige);
+        }
+
+        .highlight-phone {
+            color: var(--c-gold);
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: block;
+            margin-top: 10px;
+        }
+
+        .report-section {
+            margin-bottom: 20px;
+            border: 1px solid var(--c-brown);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .section-header {
+            color: var(--c-gold);
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--c-brown);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .rec-text {
+            font-size: 1rem;
+            color: var(--c-light-beige);
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .rec-text strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .alert-text {
+            color: #fca5a5;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            font-style: italic;
+            border-left: 2px solid #ef4444;
+            padding-left: 10px;
+        }
+
+        .compliance-footer {
+            margin-top: 40px;
+            font-size: 0.8rem;
+            color: var(--c-light-beige);
+            opacity: 0.6;
+            text-align: center;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.5;
+            border-top: 1px solid var(--c-brown);
+            padding-top: 20px;
+        }
+
+        /* Loader Animation */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--c-gold);
+            animation: spin 1s infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Validation States */
+        .custom-input.valid { border-color: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.2); }
+        .custom-input.invalid { border-color: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.2); }
+
+        /* Consent Checkbox */
+        .consent-container {
+            display: flex; align-items: flex-start; gap: 10px; text-align: left;
+            background: rgba(255,255,255,0.03); padding: 15px; border-radius: 6px;
+            margin-bottom: 20px; border: 1px solid var(--c-brown);
+        }
+        .consent-container input[type="checkbox"] { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--c-gold); cursor: pointer; }
+        .consent-text { font-size: 0.8rem; color: var(--c-light-beige); opacity: 0.8; line-height: 1.4; }
+
+        /* Report Dashboard */
+        .report-dashboard {
+            border: 1px solid var(--c-gold); border-radius: 8px; padding: 20px; margin-bottom: 30px;
+            background: rgba(0,0,0,0.2);
+        }
+        .report-dashboard h3 {
+            color: var(--c-gold); margin-top: 0; text-align: center;
+            text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;
+        }
+        .dashboard-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px; text-align: center; margin-top: 15px;
+        }
+        .dashboard-cell {
+            background: rgba(255,255,255,0.03); padding: 15px; border-radius: 6px;
+        }
+        .dashboard-cell.highlight {
+            background: rgba(198, 172, 143, 0.1); border: 1px solid rgba(198, 172, 143, 0.3);
+        }
+        .dashboard-label {
+            font-size: 0.7rem; color: var(--c-light-beige); opacity: 0.6; text-transform: uppercase;
+        }
+        .dashboard-label.gold { color: var(--c-gold); opacity: 1; }
+        .dashboard-value {
+            font-size: 1.2rem; font-weight: bold; color: var(--c-light-beige); margin-top: 5px;
+        }
+        .dashboard-value.gold { color: var(--c-gold); }
+
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            .assessment-container {
+                padding: 20px;
+                margin: 20px auto;
+                min-height: auto;
+            }
+
+            .question-title {
+                font-size: 1.5rem;
+            }
+
+            .option-btn {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .main-title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+
+  <!-- JC AI Chatbot -->
+  <link rel="stylesheet" href="../LM/jc-chat.css">
+  <script defer src="../LM/jc-chat-data.js"></script>
+  <script defer src="../LM/jc-chat-quiz.js"></script>
+  <script defer src="../LM/jc-chat-engine.js"></script>
+  <script defer src="../LM/jc-chat-ui.js"></script>
+</head>
+
+<body>
+    <!-- Header placeholder - loaded dynamically -->
+    <div id="header-placeholder"></div>
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+        <section class="section-container" style="padding-top: 2rem;">
+            <div style="text-align: center; max-width: 800px; margin: 0 auto 2rem;">
+                <h1 class="main-title" style="margin-bottom: 1rem;"
+                    data-fr="Bilan de Protection <span style='color: var(--c-gold); font-style: italic;'>Financière</span>"
+                    data-en="Financial Protection <span style='color: var(--c-gold); font-style: italic;'>Assessment</span>">
+                    Bilan de Protection <span style="color: var(--c-gold); font-style: italic;">Financière</span></h1>
+                <p class="sub-title" style="font-size: 1.1rem; opacity: 0.8;"
+                    data-fr="Identifiez vos vulnérabilités financières en 2 minutes. Ce diagnostic analyse vos risques (Vie, Invalidité, Maladie) pour générer une stratégie de protection sur mesure."
+                    data-en="Identify your financial vulnerabilities in 2 minutes. This diagnosis analyzes your risks (Life, Disability, Critical Illness) to generate a tailored protection strategy.">
+                    Identifiez vos vulnérabilités financières en 2 minutes. Ce diagnostic analyse vos risques
+                    (Vie, Invalidité, Maladie) pour générer une stratégie de protection sur mesure.</p>
+            </div>
+            <div class="assessment-container glass-panel">
+                <div class="progress-bar-container">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+                <!-- 1. QUESTIONNAIRE -->
+                <div id="sectionQuiz" class="layout-section">
+                    <div id="questionContainer"></div>
+                    <div class="nav-area"><button id="btnPrev" class="btn-prev hidden" onclick="prevQuestion()"
+                            data-fr="← Précédent" data-en="← Previous">←
+                            Précédent</button><button id="btnNext" class="btn-next" onclick="nextQuestion()"
+                            data-fr="Continuer ➤" data-en="Continue ➤">Continuer ➤</button></div>
+                </div>
+                <!-- 2. LOADER -->
+                <div id="sectionLoader" class="layout-section hidden">
+                    <div style="text-align: center; padding-top: 50px;">
+                        <div class="spinner"></div>
+                        <h3 id="loaderStatus" style="color: var(--c-light-beige); margin-bottom: 0.5rem;">Analyse de vos revenus...</h3>
+                        <p style="color: var(--c-light-beige); opacity: 0.6; font-size: 0.9rem;">Génération basée sur l'algorithme JC CAPITAL.</p>
+                    </div>
+                </div>
+                <!-- 3. FORMULAIRE LEAD -->
+                <div id="sectionLead" class="layout-section hidden">
+                    <div class="lead-wrapper">
+                        <h2 style="color: var(--c-light-beige); margin-bottom: 15px;" data-fr="Diagnostic Prêt"
+                            data-en="Diagnosis Ready">Diagnostic Prêt</h2>
+                        <p style="color: var(--c-light-beige); opacity: 0.8; margin-bottom: 30px;"
+                            data-fr="Veuillez confirmer vos coordonnées pour déverrouiller l'accès sécurisé à votre stratégie."
+                            data-en="Please confirm your details to unlock secure access to your strategy.">
+                            Veuillez confirmer vos coordonnées pour déverrouiller l'accès sécurisé à votre stratégie.</p>
+                        <form id="leadForm" onsubmit="return false;">
+                            <div class="input-group">
+                                <label class="input-label">Prénom &amp; Nom</label>
+                                <input type="text" id="inpName" class="custom-input" placeholder="Ex: Martin Tremblay" oninput="validateForm()">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Téléphone (Mobile)</label>
+                                <input type="tel" id="inpPhone" class="custom-input" placeholder="Ex: 514-123-4567" maxlength="14" oninput="formatPhone(this)">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Courriel</label>
+                                <input type="email" id="inpEmail" class="custom-input" placeholder="Ex: martin@courriel.com" oninput="validateEmail(this)" list="emailSuggestions" autocomplete="off">
+                                <datalist id="emailSuggestions"></datalist>
+                            </div>
+                            <div class="consent-container">
+                                <input type="checkbox" id="consentCheck" onchange="validateForm()">
+                                <label for="consentCheck" class="consent-text">
+                                    <strong>J'accepte d'être contacté(e)</strong> par un expert certifié de JC CAPITAL pour discuter de mon analyse.
+                                </label>
+                            </div>
+                            <button type="button" id="btnUnlock" class="btn-unlock" onclick="processLead()" disabled>DÉVERROUILLER MON ANALYSE ➤</button>
+                            <p style="font-size: 0.8rem; opacity: 0.6; margin-top: 15px;">
+                                <span style="color:var(--c-gold);">🔒</span> Données chiffrées SSL. Respect des normes de confidentialité de l'AMF.
+                            </p>
+                        </form>
+                    </div>
+                </div>
+                <!-- 4. RAPPORT FINAL -->
+                <div id="sectionReport" class="layout-section hidden">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h2 style="font-size: 2rem; color: var(--c-gold);">Votre Plan
+                            Stratégique</h2>
+                    </div>
+                    <!-- CONFIRMATION DE CONTACT -->
+                    <div class="contact-box">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">📞 📧</div>
+                        <div>Merci <strong id="outName" style="color: #fff;">Client</strong>. Votre dossier est
+                            analysé. </div>
+                        <div style="margin-top: 15px; font-size: 1rem; line-height: 1.5;">Un
+                            expert de l'équipe <strong>JC CAPITAL</strong> communiquera avec
+                            vous<br>
+                            <strong>par téléphone ou par courriel</strong>au : <span id="outPhone"
+                                class="highlight-phone">...</span>d'ici 24h
+                            ouvrables pour valider ces recommandations critiques.
+                        </div>
+                    </div>
+                    <div id="reportContent"></div>
+                    <div style="text-align: center; margin-top: 30px;"><button onclick="window.print()"
+                            style="background: transparent; border: 1px solid var(--c-gold); color: var(--c-gold); padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; text-transform: uppercase;">IMPRIMER
+                            CE RAPPORT</button>
+                        <!-- NOTE LÉGALE AJOUTÉE -->
+                        <div class="compliance-footer"><strong>NOTE IMPORTANTE
+                                :</strong>Ce rapport est fourni à titre informatif et
+                            préliminaire uniquement. <br>Il ne constitue pas un avis
+                            financier officiel ni une recommandation formelle
+                            d'assurance et
+                            ne doit pas être interprété comme tel. <br><br>Les
+                            stratégies présentées ici doivent impérativement être
+                            validées lors d'une rencontre avec
+                            un conseiller certifié de <strong>JC CAPITAL</strong>,
+                            qui effectuera une Analyse des Besoins Financiers (ABF)
+                            complète conforme aux normes de l'AMF et de la CSF.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Footer placeholder - loaded dynamically -->
+    <div id="footer-placeholder"></div>
+    <script>
+// --- VALIDATION & AUTOCOMPLETE COURRIEL ---
+function formatPhone(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length > 3 && value.length <= 6) value = value.slice(0, 3) + '-' + value.slice(3);
+    else if (value.length > 6) value = value.slice(0, 3) + '-' + value.slice(3, 6) + '-' + value.slice(6, 10);
+    input.value = value;
+    if(value.length >= 12) { input.classList.add('valid'); input.classList.remove('invalid'); }
+    else { input.classList.remove('valid'); if(value.length>0) input.classList.add('invalid'); }
+    validateForm();
+}
+
+function validateEmail(input) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(re.test(input.value)) { input.classList.add('valid'); input.classList.remove('invalid'); }
+    else { input.classList.remove('valid'); if(input.value.length>0) input.classList.add('invalid'); }
+    const datalist = document.getElementById('emailSuggestions');
+    if (datalist) {
+        datalist.innerHTML = '';
+        const domains = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'yahoo.ca', 'icloud.com', 'videotron.ca', 'bell.net'];
+        let val = input.value;
+        if (val.includes('@')) {
+            let parts = val.split('@');
+            let prefix = parts[0];
+            let partialDomain = parts[1].toLowerCase();
+            domains.forEach(d => {
+                if (d.startsWith(partialDomain) && partialDomain !== d) {
+                    let opt = document.createElement('option');
+                    opt.value = prefix + '@' + d;
+                    datalist.appendChild(opt);
+                }
+            });
+        }
+    }
+    validateForm();
+}
+
+function validateForm() {
+    const name = document.getElementById('inpName').value;
+    const phone = document.getElementById('inpPhone').classList.contains('valid');
+    const email = document.getElementById('inpEmail').classList.contains('valid');
+    const consent = document.getElementById('consentCheck').checked;
+    const btn = document.getElementById('btnUnlock');
+    if(name.length > 2 && phone && email && consent) { btn.disabled = false; btn.style.opacity = "1"; }
+    else { btn.disabled = true; btn.style.opacity = "0.5"; }
+}
+
+// --- QUESTIONNAIRE ---
+const questions = [
+    { id: "age", cat: "Profil Client", title: "Quelle est votre tranche d'âge ?", context: "L'âge est le facteur principal pour établir la tarification et la stratégie de vos protections.", multi: false, options: [ { label: "19 à 34 ans", sub: "Le coût des assurances est à son plus bas.", val: "19-34" }, { label: "35 à 45 ans", sub: "Période clé de l'accumulation de patrimoine.", val: "35-45" }, { label: "46 à 55 ans", sub: "Les risques de santé augmentent statistiquement.", val: "46-55" }, { label: "Plus de 55 ans", sub: "Focus sur la succession et l'optimisation fiscale.", val: "over55" } ] },
+    { id: "famille", cat: "Axe Humain", title: "L'impact de votre absence", context: "En cas de décès inattendu, quelles personnes subiraient un impact financier majeur ? (Cochez tout ce qui s'applique)", multi: true, options: [ { label: "Mes enfants", sub: "Assurer leur avenir financier jusqu'à l'autonomie.", val: "kids" }, { label: "Un enfant à besoins particuliers", sub: "Prévoir des soins et un soutien financier à vie.", val: "special_needs" }, { label: "Mon/Ma conjoint(e)", sub: "Lui permettre de conserver la résidence et son niveau de vie.", val: "spouse" }, { label: "Mon ex-conjoint(e) (Pension)", sub: "Garantir le versement de la pension alimentaire.", val: "ex_spouse" }, { label: "Mes parents ou un proche", sub: "Maintenir mon soutien financier actuel.", val: "parents" }, { label: "Personne (Célibataire)", sub: "Couvrir uniquement mes dettes et mes impôts finaux.", val: "solo" } ] },
+    { id: "age_enfants", condition: (a) => a.famille && a.famille.includes('kids'), cat: "Axe Humain", title: "Âge de votre plus jeune enfant", context: "Pendant combien d'années êtes-vous encore financièrement responsable d'eux ?", multi: false, options: [ { label: "0 à 5 ans", sub: "Engagement financier à long terme (plus de 20 ans).", val: "0-5" }, { label: "6 à 12 ans", sub: "Engagement à moyen terme (10 à 15 ans).", val: "6-12" }, { label: "13 à 17 ans", sub: "Engagement à court terme, incluant les études supérieures.", val: "13-17" } ] },
+    { id: "etudes_enfants", condition: (a) => a.famille && a.famille.includes('kids'), cat: "Axe Humain", title: "Le financement des études", context: "En cas de décès, souhaitez-vous que l'assurance couvre les frais universitaires de vos enfants ?", multi: false, options: [ { label: "Oui, à 100%", sub: "Garantir leur parcours scolaire sans endettement.", val: "full" }, { label: "Non, ils seront autonomes", sub: "Ils financeront eux-mêmes leurs études.", val: "none" } ] },
+    { id: "revenus", cat: "Axe Professionnel", title: "Vos sources de revenus", context: "D'où proviennent vos revenus ? (Les régimes publics ne protègent pas toutes ces sources de la même façon).", multi: true, options: [ { label: "Salaire d'employé (T4)", sub: "Protection partielle via l'Assurance-Emploi ou la CNESST.", val: "t4" }, { label: "Dividendes d'entreprise", sub: "Aucune couverture publique. Stratégie privée requise.", val: "div" }, { label: "Travailleur autonome", sub: "Revenu d'entreprise. Aucun filet de sécurité social standard.", val: "self" }, { label: "Commissions / Pourboires / Bonus", sub: "Revenu variable assurable selon des critères spécifiques.", val: "comm" }, { label: "Revenus locatifs (Immobilier)", sub: "Revenus souvent liés à des obligations hypothécaires.", val: "immo" }, { label: "Placements / Retraite", sub: "Revenus d'investissements ou de fonds de pension.", val: "retraite" } ] },
+    { id: "frais_generaux", condition: (a) => a.revenus && (a.revenus.includes('self') || a.revenus.includes('div')), cat: "Axe Professionnel", title: "Les charges fixes de l'entreprise", context: "En cas d'invalidité prolongée, quelles sont les obligations financières de votre entreprise (loyer commercial, employés, etc.) ?", multi: false, options: [ { label: "Charges importantes", sub: "Plus de 2000$/mois. L'entreprise serait rapidement en péril sans moi.", val: "high" }, { label: "Charges minimes", sub: "Bureau à domicile, peu ou pas d'employés. Impact limité.", val: "low" } ] },
+    { id: "conjoint_travail", cat: "Axe Professionnel", title: "L'apport financier du conjoint", context: "Le revenu de votre conjoint(e) serait-il suffisant pour maintenir la stabilité familiale si vous deveniez invalide ?", multi: false, options: [ { label: "Oui, revenu stable et assurances", sub: "Réduit considérablement la pression financière globale.", val: "yes_insured" }, { label: "Oui, mais sans assurances", sub: "Risque modéré : vulnérabilité si les deux sont affectés.", val: "yes_uninsured" }, { label: "Non / Revenus très faibles", sub: "L'équilibre familial repose presque entièrement sur mon revenu.", val: "no" }, { label: "Je n'ai pas de conjoint", sub: "Je suis le seul soutien financier du ménage.", val: "na" } ] },
+    { id: "revenu_net", cat: "Axe Financier", title: "Votre revenu net mensuel", context: "Quel est le montant moyen de votre revenu mensuel net (après impôts) ? Cela détermine le plafond légal de votre assurance invalidité.", multi: false, options: [ { label: "Moins de 4 000 $", sub: "Besoin de couverture standard.", val: "low" }, { label: "4 000 $ à 7 000 $", sub: "Besoin de couverture intermédiaire.", val: "med" }, { label: "7 000 $ à 12 000 $", sub: "Besoin de couverture supérieure.", val: "high" }, { label: "Plus de 12 000 $", sub: "Nécessite des solutions de protection spécialisées.", val: "vhigh" } ] },
+    { id: "burnrate", cat: "Axe Financier", title: "Les dépenses essentielles du ménage", context: "En excluant les dépenses discrétionnaires, quel montant mensuel est absolument nécessaire pour couvrir vos obligations (hypothèque, épicerie, véhicules) ?", multi: false, options: [ { label: "Moins de 3 000 $ / mois", sub: "Dépenses fixes relativement faibles.", val: "low" }, { label: "3 000 $ à 5 000 $ / mois", sub: "Niveau de dépenses moyen et raisonnable.", val: "med" }, { label: "5 000 $ à 8 000 $ / mois", sub: "Obligations financières importantes.", val: "high" }, { label: "Plus de 8 000 $ / mois", sub: "Niveau d'engagements très élevé.", val: "vhigh" } ] },
+    { id: "liquidites", cat: "Axe Financier", title: "Vos liquidités d'urgence", context: "Si vos revenus cessaient demain, pendant combien de temps pourriez-vous maintenir vos obligations financières avec votre épargne liquide actuelle ?", multi: false, options: [ { label: "Moins d'un mois", sub: "Urgence : L'endettement s'accumulerait très rapidement.", val: "critical" }, { label: "De 1 à 3 mois", sub: "Coussin de sécurité modeste, vulnérable aux arrêts prolongés.", val: "med" }, { label: "Plus de 6 mois", sub: "Fonds d'urgence solide permettant une bonne flexibilité.", val: "safe" } ] },
+    { id: "patrimoine", cat: "Axe Financier", title: "Votre patrimoine global", context: "En cas d'imprévu majeur de santé (cancer, AVC, accident), quelle est la valeur totale de vos placements accessibles pour survivre financièrement ?", multi: false, options: [ { label: "Moins de 50 000 $", sub: "Capacité d'auto-assurance limitée.", val: "low" }, { label: "50 000 $ à 250 000 $", sub: "Bonne base pour absorber un imprévu temporaire.", val: "med" }, { label: "250 000 $ à 1 Million $", sub: "Patrimoine solide offrant plusieurs options.", val: "high" }, { label: "Plus de 1 Million $", sub: "Ressources suffisantes pour une auto-assurance partielle.", val: "vhigh" } ] },
+    { id: "dettes_hypo", cat: "Axe Financier", title: "La protection de votre résidence", context: "En cas de décès, comment vos proches assumeront-ils les frais liés au logement (hypothèque ou loyer) ?", multi: false, options: [ { label: "J'ai une assurance hypothécaire bancaire", sub: "La banque est bénéficiaire et le solde diminue avec le temps.", val: "bank" }, { label: "J'ai une assurance vie personnelle", sub: "Excellente option : vos proches reçoivent le capital directement.", val: "perso" }, { label: "Je n'ai aucune assurance", sub: "Risque élevé : vos proches devront assumer les paiements seuls.", val: "none" }, { label: "Logement payé / Locataire indépendant", sub: "Aucune obligation immobilière contraignante à léguer.", val: "na" } ] },
+    { id: "hypo_montant", condition: (a) => a.dettes_hypo && (a.dettes_hypo === 'bank' || a.dettes_hypo === 'perso' || a.dettes_hypo === 'none'), cat: "Axe Financier", title: "Solde hypothécaire", context: "Quel est le solde approximatif qu'il reste à payer sur votre résidence ?", multi: false, options: [ { label: "Moins de 250 000 $", sub: "Impact modéré sur le capital décès.", val: "150000" }, { label: "Entre 250 000 $ et 500 000 $", sub: "Impact significatif.", val: "375000" }, { label: "Entre 500 000 $ et 750 000 $", sub: "Impact majeur.", val: "625000" }, { label: "Plus de 750 000 $", sub: "Nécessite une forte couverture.", val: "850000" } ] },
+    { id: "hypo_duree", condition: (a) => a.dettes_hypo && (a.dettes_hypo === 'bank' || a.dettes_hypo === 'perso' || a.dettes_hypo === 'none'), cat: "Axe Financier", title: "Horizon hypothécaire", context: "Dans combien d'années prévoyez-vous avoir terminé de payer cette hypothèque ?", multi: false, options: [ { label: "Dans 10 ans ou moins", sub: "Protection à court terme (T10).", val: "10" }, { label: "Entre 11 et 20 ans", sub: "Protection à moyen terme (T20).", val: "20" }, { label: "Plus de 20 ans", sub: "Protection à long terme (T30).", val: "30" } ] },
+    { id: "obligations_biz", condition: (a) => a.revenus && (a.revenus.includes('self') || a.revenus.includes('div')), cat: "Axe Corporatif", title: "La continuité des affaires", context: "Votre entreprise présente-t-elle des vulnérabilités importantes en cas d'absence prolongée de votre part ? (Cochez tout ce qui s'applique)", multi: true, options: [ { label: "J'ai des associés", sub: "Besoin de structurer une convention d'actionnaires financée.", val: "partner" }, { label: "Prêts commerciaux garantis personnellement", sub: "Risque de saisie personnelle en cas de difficultés de l'entreprise.", val: "loan" }, { label: "Je suis une personne clé", sub: "Les revenus de l'entreprise dépendent majoritairement de moi.", val: "key" }, { label: "Aucune de ces situations", sub: "Structure d'entreprise simple.", val: "none" } ] },
+    { id: "collectif", cat: "Axe Contractuel", title: "Votre assurance collective", context: "Avez-vous une idée précise des couvertures réelles offertes par votre régime d'assurance employeur ?", multi: false, options: [ { label: "Aucune assurance collective", sub: "Vous n'avez pas de couverture de base en cas d'invalidité.", val: "none" }, { label: "J'en ai une, mais j'en ignore les limites", sub: "Risque de restrictions (ex: couverture limitée à 2 ans).", val: "unknown" }, { label: "Mon employeur paie la prime d'invalidité", sub: "La prestation d'invalidité sera imposable à la réception.", val: "taxable" }, { label: "Mon dossier est optimisé", sub: "Je connais exactement les paramètres de mon contrat.", val: "good" } ] },
+    { id: "ante_familiaux", cat: "Axe Médical", title: "Antécédents familiaux", context: "Y a-t-il eu des cas de maladie grave (cancer, infarctus, AVC) parmi vos parents ou frères/sœurs avant l'âge de 60 ans ?", multi: false, options: [ { label: "Non, aucun antécédent", sub: "Profil de santé familial favorable.", val: "no" }, { label: "Oui, un seul cas", sub: "Situation à surveiller.", val: "yes_1" }, { label: "Oui, plusieurs cas", sub: "Risque héréditaire plus élevé nécessitant une attention particulière.", val: "yes_2" } ] },
+    { id: "heritage", cat: "Axe Patrimonial", title: "Vos objectifs successoraux", context: "Au-delà de vos obligations actuelles, quelle est votre vision à long terme concernant votre patrimoine ?", multi: false, options: [ { label: "Laisser un héritage significatif", sub: "Créer un legs financier pour mes proches ou une fondation.", val: "maximize" }, { label: "Utiliser la totalité de mon capital", sub: "L'objectif est de profiter pleinement de mes actifs de mon vivant.", val: "spend" }, { label: "Couvrir uniquement l'impôt au décès", sub: "Éviter que mes héritiers n'aient à liquider des actifs pour payer l'impôt.", val: "taxes" } ] },
+    { id: "risque", cat: "Psychologie", title: "Vos principales préoccupations", context: "En cas d'imprévu majeur (maladie ou décès), quelles situations souhaitez-vous absolument éviter ? (Cochez tout ce qui s'applique)", multi: true, options: [ { label: "Perdre mon logement / mes actifs", sub: "Protéger le patrimoine familial accumulé.", val: "house" }, { label: "Transmettre mes dettes à autrui", sub: "Garantir une succession nette d'obligations.", val: "debt" }, { label: "Perdre mon autonomie financière", sub: "Ne pas dépendre de mes proches en cas de maladie.", val: "burden" }, { label: "Décaisser ma retraite pour des soins", sub: "Protéger mes REER et mes investissements à long terme.", val: "reer_drain" }, { label: "Devenir inassurable dans le futur", sub: "Peur qu'un changement de santé limite mes options plus tard.", val: "future" } ] },
+    { id: "budget", cat: "Capacité Financière", title: "Budget stratégique", context: "Pour orienter nos recommandations de façon réaliste, quel montant mensuel seriez-vous à l'aise d'allouer à la sécurité de votre patrimoine ou de votre entreprise ?", multi: false, options: [ { label: "Moins de 100$ / mois", sub: "L'essentiel absolu (Budget très limité).", val: "micro" }, { label: "100$ à 250$ / mois", sub: "Couvrir les priorités urgentes (Protection de base).", val: "base" }, { label: "250$ à 500$ / mois", sub: "Mettre en place une protection familiale solide.", val: "medium" }, { label: "500$ à 1500$ / mois", sub: "Stratégie avancée (Entrepreneur ou famille aisée).", val: "high" }, { label: "1500$ à 3000$ / mois", sub: "Optimisation fiscale et gestion de patrimoine importante.", val: "premium" }, { label: "Plus de 3000$ / mois (36k$+ / an)", sub: "Protection corporative majeure (Conventions, personne clé, transfert).", val: "elite" }, { label: "Je ne suis pas certain(e)", sub: "Nous définirons le budget ensemble selon l'urgence.", val: "tbd" } ] }
+];
+
+// --- MOTEUR ---
+let currentIndex = 0;
+let answers = {};
+
+window.onload = function() {
+    renderQuestion();
+    document.getElementById('leadForm').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (!document.getElementById('btnUnlock').disabled) { processLead(); }
+        }
+    });
+};
+
+function renderQuestion() {
+    while (currentIndex < questions.length && questions[currentIndex].condition && !questions[currentIndex].condition(answers)) {
+        currentIndex++;
+    }
+    if (currentIndex >= questions.length) { showLeadForm(); return; }
+
+    const q = questions[currentIndex];
+    const container = document.getElementById('questionContainer');
+    const btnNext = document.getElementById('btnNext');
+    const btnPrev = document.getElementById('btnPrev');
+    const progressBar = document.getElementById('progressBar');
+
+    const pct = ((currentIndex) / questions.length) * 100;
+    progressBar.style.width = pct + '%';
+
+    if (currentIndex === 0) btnPrev.classList.add('hidden');
+    else btnPrev.classList.remove('hidden');
+
+    if (q.multi) btnNext.style.display = 'block';
+    else btnNext.style.display = 'none';
+
+    let html = `<span class="step-indicator">ÉTAPE ${currentIndex + 1} SUR ${questions.length} - ${q.cat}</span>
+                <h2 class="question-title">${q.title}</h2>
+                <div class="question-context">${q.context}</div>
+                <div class="options-grid">`;
+
+    q.options.forEach(opt => {
+        let isSelected = false;
+        if (answers[q.id]) {
+            if (q.multi) isSelected = answers[q.id].includes(opt.val);
+            else isSelected = answers[q.id] === opt.val;
+        }
+        const iconClass = q.multi ? "check-style" : "radio-style";
+        html += `<div class="option-btn ${isSelected ? 'selected' : ''}" onclick="clickOption('${q.id}', '${opt.val}', ${q.multi})">
+                    <div class="selector-icon ${iconClass}"></div>
+                    <div class="option-content">
+                        <span class="option-main">${opt.label}</span>
+                        <span class="option-sub">${opt.sub}</span>
+                    </div>
+                </div>`;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
+function clickOption(qId, val, isMulti) {
+    if (isMulti) {
+        if (!answers[qId]) answers[qId] = [];
+        const idx = answers[qId].indexOf(val);
+        if (idx > -1) answers[qId].splice(idx, 1);
+        else answers[qId].push(val);
+        renderQuestion();
+    } else {
+        answers[qId] = val;
+        renderQuestion();
+        setTimeout(nextQuestion, 250);
+    }
+}
+
+function nextQuestion() {
+    const q = questions[currentIndex];
+    if (q.multi && (!answers[q.id] || answers[q.id].length === 0)) {
+        Swal.fire({ icon: 'warning', title: 'Oups!', text: 'Veuillez sélectionner au moins une option.', confirmButtonColor: '#C6AC8F', confirmButtonText: 'OK' });
+        return;
+    }
+    currentIndex++;
+    renderQuestion();
+    window.scrollTo({ top: document.querySelector('.assessment-container').offsetTop - 20, behavior: 'smooth' });
+}
+
+function prevQuestion() {
+    if (currentIndex > 0) {
+        currentIndex--;
+        while (currentIndex > 0 && questions[currentIndex].condition && !questions[currentIndex].condition(answers)) { currentIndex--; }
+        renderQuestion();
+        window.scrollTo({ top: document.querySelector('.assessment-container').offsetTop - 20, behavior: 'smooth' });
+    }
+}
+
+function showLeadForm() {
+    document.getElementById('sectionQuiz').classList.add('hidden');
+    const loader = document.getElementById('sectionLoader');
+    loader.classList.remove('hidden');
+    const statusText = document.getElementById('loaderStatus');
+    setTimeout(() => { statusText.innerText = "Vérification des vulnérabilités..."; }, 800);
+    setTimeout(() => { statusText.innerText = "Génération du plan stratégique..."; }, 1600);
+    setTimeout(() => {
+        loader.classList.add('hidden');
+        document.getElementById('sectionLead').classList.remove('hidden');
+        document.getElementById('inpName').focus();
+    }, 2400);
+}
+
+function processLead() {
+    const btn = document.getElementById('btnUnlock');
+    btn.innerText = "GÉNÉRATION EN COURS ⏳";
+    btn.disabled = true;
+
+    const name = document.getElementById('inpName').value;
+    const phone = document.getElementById('inpPhone').value;
+    const email = document.getElementById('inpEmail').value;
+
+    document.getElementById('outName').innerText = name;
+    document.getElementById('outPhone').innerText = phone;
+
+    generateReportHTML();
+
+    // Build readable email body
+    let emailBody = "--- RÉPONSES DÉTAILLÉES DU CLIENT ---\n\n";
+    questions.forEach((q, index) => {
+        const answerVal = answers[q.id];
+        if (answerVal) {
+            emailBody += `${index + 1}. ${q.title}\n`;
+            if (q.multi && Array.isArray(answerVal)) {
+                const labels = answerVal.map(val => { const opt = q.options.find(o => o.val === val); return opt ? `   - ${opt.label}` : `   - ${val}`; });
+                emailBody += labels.join("\n") + "\n\n";
+            } else {
+                const opt = q.options.find(o => o.val === answerVal);
+                emailBody += `   Rép : ${opt ? opt.label : answerVal}\n\n`;
+            }
+        }
+    });
+
+    const templateParams = { client_name: name, client_phone: phone, client_email: email, message: emailBody, to_email: "admin@jccapital.ca" };
+
+    emailjs.send('service_b4f4ooy', 'template_qphmqft', templateParams)
+        .then(function(response) { console.log('Succès !', response.status); finishProcess(); },
+              function(error) { console.error('Erreur...', error); finishProcess(); });
+}
+
+function finishProcess() {
+    document.getElementById('sectionLead').classList.add('hidden');
+    document.getElementById('sectionReport').classList.remove('hidden');
+    document.getElementById('progressBar').style.width = '100%';
+}
+
+function generateReportHTML() {
+    const container = document.getElementById('reportContent');
+    let html = "";
+
+    const has = (id, val) => {
+        if (!answers[id]) return false;
+        if (Array.isArray(answers[id])) return answers[id].includes(val);
+        return answers[id] === val;
+    };
+
+    // --- 1. FINANCIAL CALCULATIONS ---
+    let minDI = 2500, maxDI = 3500;
+    if(has('burnrate', 'med')) minDI = 4000;
+    if(has('burnrate', 'high')) minDI = 6500;
+    if(has('burnrate', 'vhigh')) minDI = 10000;
+    if(has('revenu_net', 'med')) maxDI = 5500;
+    if(has('revenu_net', 'high')) maxDI = 9000;
+    if(has('revenu_net', 'vhigh')) maxDI = 15000;
+
+    let lifeBase = 0;
+    if (answers.hypo_montant) { lifeBase += parseInt(answers.hypo_montant); }
+    else if (has('dettes_hypo', 'bank') || has('dettes_hypo', 'none') || has('dettes_hypo', 'perso')) { lifeBase += 350000; }
+    if(has('famille', 'kids')) {
+        if(has('age_enfants', '0-5')) lifeBase += 500000;
+        else if(has('age_enfants', '6-12')) lifeBase += 350000;
+        else if(has('age_enfants', '13-17')) lifeBase += 200000;
+    }
+    if(has('etudes_enfants', 'full')) lifeBase += 100000;
+    if(has('famille', 'spouse')) lifeBase += 250000;
+    if(has('heritage', 'maximize') || has('patrimoine', 'vhigh')) lifeBase += 350000;
+    if(lifeBase === 0) lifeBase = 50000;
+
+    let mgBase = 50000;
+    if(has('revenu_net', 'med')) mgBase = 75000;
+    if(has('revenu_net', 'high')) mgBase = 100000;
+    if(has('revenu_net', 'vhigh')) mgBase = 150000;
+    if(has('ante_familiaux', 'yes_2')) mgBase += 50000;
+
+    const formatCurrency = (val) => new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(val);
+    let lifeFormatted = formatCurrency(lifeBase);
+    let diFormatted = formatCurrency(minDI) + " à " + formatCurrency(maxDI);
+    let mgFormatted = formatCurrency(mgBase);
+    let budgetMap = { 'micro': "Moins de 100$", 'base': "100$ à 250$", 'medium': "250$ à 500$", 'high': "500$ à 1500$", 'premium': "1500$ à 3000$", 'elite': "3000$ et plus", 'tbd': "À déterminer" };
+    let budgetText = budgetMap[answers.budget] || "À déterminer";
+
+    // --- 2. EXECUTIVE DASHBOARD ---
+    html += `<div class="report-dashboard">
+        <h3>Tableau de bord : Cibles de protection</h3>
+        <div class="dashboard-grid">
+            <div class="dashboard-cell"><div class="dashboard-label">Capital Décès (Vie)</div><div class="dashboard-value">~ ${lifeFormatted}</div></div>
+            <div class="dashboard-cell"><div class="dashboard-label">Rente Mensuelle (Invalidité)</div><div class="dashboard-value">${diFormatted}</div></div>
+            <div class="dashboard-cell"><div class="dashboard-label">Montant Maladie Grave</div><div class="dashboard-value">~ ${mgFormatted}</div></div>
+            <div class="dashboard-cell highlight"><div class="dashboard-label gold">Budget Mensuel Estimé</div><div class="dashboard-value gold">${budgetText}</div></div>
+        </div>
+    </div>`;
+
+    // --- 3. SCORING & PRIORITIZATION ---
+    let sections = [];
+
+    // A. DISABILITY
+    let scoreDI = 50;
+    if(has('liquidites', 'critical')) scoreDI += 30;
+    if(has('collectif', 'none')) scoreDI += 20;
+    if(has('collectif', 'good')) scoreDI -= 30;
+    let carence = "90 jours (standard)";
+    if(has('liquidites', 'critical')) carence = "30 jours (Impératif vu vos réserves actuelles)";
+    if(has('liquidites', 'safe')) carence = "119 jours ou plus (Permet de réduire considérablement la prime)";
+
+    let invHtml = `<div class="report-section" style="border-left: 4px solid #ef4444;">
+        <div class="section-header" style="color: #ef4444;">PRIORITÉ {IDX} : SÉCURITÉ DU REVENU (INVALIDITÉ)</div>
+        <div class="rec-text">
+            <strong>L'enjeu critique :</strong> Votre capacité à générer un revenu est votre actif financier le plus important. Sans protection adéquate, un arrêt de travail de longue durée épuiserait vos actifs et mènerait à l'endettement.<br><br>
+            <strong>🎯 Architecture de la solution :</strong>
+            <ul style="margin-top:8px;">
+                <li><strong>Montant visé :</strong> Rente de ${formatCurrency(minDI)} à ${formatCurrency(maxDI)} par mois (versée libre d'impôt).</li>
+                <li><strong>Produit recommandé :</strong> Assurance Invalidité avec définition "Profession Habituelle".</li>
+                <li><strong>Délai d'attente (Carence) :</strong> ${carence}.</li>
+            </ul>
+        </div>
+    </div>`;
+    sections.push({ type: 'DI', score: scoreDI, html: invHtml });
+
+    // B. LIFE INSURANCE
+    let scoreLife = 40;
+    if(has('famille', 'kids') || has('famille', 'special_needs')) scoreLife += 35;
+    if(has('dettes_hypo', 'none')) scoreLife += 15;
+    if(has('heritage', 'maximize')) scoreLife += 10;
+
+    let vieProduits = [];
+    let maxTerm = 10;
+    if (has('age_enfants', '0-5')) maxTerm = Math.max(maxTerm, 20);
+    else if (has('age_enfants', '6-12')) maxTerm = Math.max(maxTerm, 15);
+    if (has('hypo_duree', '10')) maxTerm = Math.max(maxTerm, 10);
+    if (has('hypo_duree', '20')) maxTerm = Math.max(maxTerm, 20);
+    if (has('hypo_duree', '30')) maxTerm = Math.max(maxTerm, 30);
+
+    let hasTemporaryNeed = has('famille', 'kids') || has('dettes_hypo', 'bank') || has('dettes_hypo', 'none') || has('dettes_hypo', 'perso');
+    if(hasTemporaryNeed) vieProduits.push(`<strong>Temporaire ${maxTerm} ans (T-${maxTerm}) :</strong> Solution sur mesure alignée avec votre horizon hypothécaire et/ou l'âge de vos enfants.`);
+    if(has('heritage', 'maximize') || has('famille', 'special_needs') || has('patrimoine', 'vhigh') || has('age', 'over55')) vieProduits.push("<strong>Permanente (Vie Entière ou T-100) :</strong> Indispensable pour absorber l'impact fiscal au décès ou léguer un héritage intouchable.");
+    if(vieProduits.length === 0) vieProduits.push("<strong>Temporaire 10 ans (T-10) :</strong> Protection de base économique pour couvrir vos dettes résiduelles et frais finaux.");
+
+    let lifeHtml = `<div class="report-section" style="border-left: 4px solid var(--c-gold);">
+        <div class="section-header" style="color: var(--c-gold);">PRIORITÉ {IDX} : PROTECTION DU PATRIMOINE (VIE)</div>
+        <div class="rec-text">
+            <strong>L'enjeu critique :</strong> Assurer la continuité du niveau de vie de vos proches et éviter la transmission de vos dettes à votre succession.<br><br>
+            <strong>🎯 Architecture de la solution :</strong>
+            <ul style="margin-top:8px;">
+                <li><strong>Capital global évalué :</strong> ~ ${lifeFormatted} (Montant versé non imposable).</li>
+                <li><strong>Recommandation de produits :</strong><ul style="margin-top:5px;">${vieProduits.map(p => `<li style="margin-bottom:6px;">${p}</li>`).join('')}</ul></li>
+            </ul>
+        </div>
+    </div>`;
+    sections.push({ type: 'LIFE', score: scoreLife, html: lifeHtml });
+
+    // C. CRITICAL ILLNESS
+    let scoreMG = 30;
+    if(has('ante_familiaux', 'yes_2')) scoreMG += 35;
+    if(has('ante_familiaux', 'yes_1')) scoreMG += 15;
+
+    let mgHtml = `<div class="report-section" style="border-left: 4px solid #3b82f6;">
+        <div class="section-header" style="color: #3b82f6;">PRIORITÉ {IDX} : BOUCLIER DE SANTÉ (MALADIE GRAVE)</div>
+        <div class="rec-text">
+            <strong>L'enjeu critique :</strong> Une maladie sévère (Cancer, AVC) entraîne des coûts importants non couverts par la RAMQ. Ce capital protège vos épargnes de retraite d'un décaissement hâtif et lourdement imposé.<br><br>
+            <strong>🎯 Architecture de la solution :</strong>
+            <ul style="margin-top:8px;">
+                <li><strong>Montant forfaitaire visé :</strong> ~ ${mgFormatted}.</li>
+                <li><strong>Produit recommandé :</strong> Assurance Maladie Grave T-10 ou T-20 (Capital versé net d'impôt au moment du diagnostic).</li>
+                ${has('ante_familiaux', 'yes_2') || has('ante_familiaux', 'yes_1') ? `<li><strong style="color: #ef4444;">Note d'Assurabilité :</strong> En raison de vos antécédents familiaux, il est urgent de sécuriser cette protection avant que les règles de tarification des assureurs ne vous pénalisent.</li>` : `<li><strong>Le pouvoir de choisir :</strong> Permet d'accéder aux soins privés ou d'offrir à votre conjoint une pause de travail sans stress financier.</li>`}
+            </ul>
+        </div>
+    </div>`;
+    sections.push({ type: 'MG', score: scoreMG, html: mgHtml });
+
+    // D. CORPORATE (Optional)
+    let isCorp = has('revenus', 'div') || has('revenus', 'self');
+    if (isCorp) {
+        let scoreCorp = 55;
+        if(has('budget', 'premium') || has('budget', 'elite')) scoreCorp += 20;
+        let corpNeeds = [];
+        if(has('obligations_biz', 'partner')) corpNeeds.push("Convention d'actionnaires financée.");
+        if(has('frais_generaux', 'high')) corpNeeds.push("Assurance Frais Généraux.");
+
+        let corpHtml = `<div class="report-section" style="border-left: 4px solid #f59e0b;">
+            <div class="section-header" style="color: #f59e0b;">PRIORITÉ {IDX} : L'ENTREPRISE & L'OPTIMISATION FISCALE</div>
+            <div class="rec-text">
+                <strong>L'enjeu critique :</strong> Payer des primes avec de l'argent personnel (imposé à ~50%) est inefficace. Une structuration corporative permet de protéger l'entreprise tout en enrichissant votre succession.<br><br>
+                <strong>🎯 Architecture de la solution :</strong>
+                <ul style="margin-top:8px;">
+                    <li><strong>Stratégie fiscale :</strong> Intégrer les assurances au sein de la société (Prime payée avec des dollars à impôt réduit).</li>
+                    <li><strong>Transfert de richesse :</strong> Utilisation du Compte de Dividendes en Capital (CDC) pour sortir les liquidités libres d'impôt au décès.</li>
+                    ${corpNeeds.length > 0 ? `<li><strong>Protections commerciales requises :</strong> ${corpNeeds.join(' / ')}</li>` : ''}
+                </ul>
+            </div>
+        </div>`;
+        sections.push({ type: 'CORP', score: scoreCorp, html: corpHtml });
+    }
+
+    // --- 4. DISPLAY IN PRIORITY ORDER ---
+    sections.sort((a, b) => b.score - a.score);
+    sections.forEach((sec, index) => { html += sec.html.replace('{IDX}', index + 1); });
+    container.innerHTML = html;
+}
+
+    </script>
+</body>
+
+</html>

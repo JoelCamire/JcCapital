@@ -1,0 +1,32 @@
+/*
+   JC Capital — Design Tokens
+   Loaded unconditionally on every viewport.
+   Defines the brand palette, typography, glassmorphism, and form variables
+   referenced by style.css, style-mobile.css, anim.css, and LM/jc-chat.css.
+*/
+
+:root {
+    /* STRICT PALETTE */
+    --c-black: #0A0908;        /* Main background */
+    --c-dark-blue: #22333B;    /* Secondary background, nav, cards */
+    --c-light-beige: #EAE0D5;  /* Main text */
+    --c-gold: #C6AC8F;         /* Primary accent, buttons, headings */
+    --c-brown: #5E503F;        /* Secondary accent, borders, muted text */
+
+    /* Glassmorphism */
+    --glass-bg: rgba(34, 51, 59, 0.7);
+    --glass-border: var(--c-brown);
+
+    /* Typography */
+    --font-main: 'Outfit', sans-serif;
+
+    /* Form variables (mapped to palette) */
+    --primary: var(--c-gold);
+    --secondary: var(--c-brown);
+    --white: var(--c-light-beige);
+    --gray: var(--c-brown);
+    --sz: 30px;
+    --sp: 0.35s;
+    --ac: var(--c-gold);
+    --ic: var(--c-light-beige);
+}

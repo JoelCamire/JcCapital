@@ -23,10 +23,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // We start fading out the background just as the logo settles.
     setTimeout(() => {
         overlay.classList.add("intro-hidden");
-    }, 2000); // 2.0 seconds
+    }, 2200); // Match 2.2s CSS animation
 
     // Step B: Remove from DOM
     setTimeout(() => {
         overlay.remove();
-    }, 2600); // 2.6 seconds
+    }, 2800); // 600ms after fade starts
 });

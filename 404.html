@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 - Page Non Trouvée / Page Not Found</title>
+    <!-- Favicon & Mobile Icons -->
+    <link rel="icon" type="image/png" href="img/2nd_logo.png">
+    <link rel="apple-touch-icon" href="img/2nd_logo.png">
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Split -->
+    <link rel="stylesheet" href="css/_tokens.css">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Tailwind CSS (for consistent nav reset) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Translations -->
+    <script src="js/translations.js"></script>
+    <!-- Component Loader -->
+    <script defer src="js/components.js"></script>
+
+    <style>
+        .page-content {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .error-container {
+            background: rgba(34, 51, 59, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--c-brown);
+            border-radius: 20px;
+            padding: 4rem;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            border-bottom: 4px solid var(--c-gold);
+        }
+
+        .error-code {
+            font-size: 8rem;
+            font-weight: 700;
+            color: var(--c-gold);
+            line-height: 1;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(198, 172, 143, 0.3);
+        }
+
+        .error-title {
+            font-size: 2rem;
+            color: var(--c-light-beige);
+            margin-bottom: 1.5rem;
+        }
+
+        .error-message {
+            font-size: 1.1rem;
+            color: var(--c-light-beige);
+            opacity: 0.8;
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+        }
+
+        .home-btn {
+            display: inline-block;
+            background: var(--c-gold);
+            color: var(--c-dark-blue);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .home-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(198, 172, 143, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header placeholder - loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+        <div class="error-container">
+            <div class="error-code">404</div>
+            <h1 class="error-title" data-fr="Page Non Trouvée" data-en="Page Not Found">Page Non Trouvée</h1>
+            <p class="error-message" data-fr="La page que vous recherchez semble avoir été déplacée ou n'existe plus."
+                data-en="The page you are looking for seems to have been moved or no longer exists.">
+                La page que vous recherchez semble avoir été déplacée ou n'existe plus.
+            </p>
+            <a href="index.html" class="home-btn">
+                <i class="fas fa-home" style="margin-right: 8px;"></i>
+                <span data-fr="Retour à l'accueil" data-en="Back to Home">Retour à l'accueil</span>
+            </a>
+        </div>
+    </main>
+
+    <!-- Footer placeholder - loaded dynamically -->
+    <div id="footer-placeholder"></div>
+</body>
+
+</html>

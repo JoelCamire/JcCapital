@@ -1,0 +1,42 @@
+<!-- NAVIGATION -->
+<nav class="sticky-nav glass-panel">
+    <div class="nav-logo"><a href="/"><img src="img/2nd_logo.png" alt="JC Capital Logo" loading="lazy"></a></div>
+    <div class="nav-controls">
+        <button class="lang-toggle" onclick="toggleLanguage()" aria-label="Changer la langue / Toggle language">EN</button>
+        <button class="hamburger-menu" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+    <ul class="nav-links">
+        <li><a href="index.html#services" data-fr="Services" data-en="Services">Services</a></li>
+        <li><a href="pages/events.html" data-fr="Événements" data-en="Events">Événements</a></li>
+        <li><a href="pages/faq.html" data-fr="FAQ" data-en="FAQ">FAQ</a></li>
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" onclick="toggleDropdown(event)" data-fr="À propos" data-en="About Us" aria-label="À propos" aria-expanded="false" aria-haspopup="true">À
+                propos
+                <i class="fas fa-chevron-down" style="font-size: 0.8em; margin-left: 5px;"></i></a>
+            <ul class="dropdown-menu">
+                <li><a href="pages/about.html" data-fr="À propos de JC Capital" data-en="About JC Capital">À propos de
+                        JC Capital</a></li>
+                <li><a href="pages/team.html" data-fr="Notre équipe" data-en="Our Team">Notre équipe</a></li>
+            </ul>
+        </li>
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" onclick="toggleDropdown(event)" data-fr="Outils" data-en="Tools" aria-label="Outils" aria-expanded="false" aria-haspopup="true">Outils
+                <i class="fas fa-chevron-down" style="font-size: 0.8em; margin-left: 5px;"></i></a>
+            <ul class="dropdown-menu">
+                <li><a href="pages/compound.html" data-fr="Intérêts Composés" data-en="Compound Interest">Intérêts
+                        Composés</a></li>
+                <li><a href="pages/tax.html" data-fr="Économies Fiscales" data-en="Tax Savings">Économies Fiscales</a>
+                </li>
+                <li><a href="pages/mortgage.html" data-fr="Acheter ou Investir?" data-en="Buy vs Invest?">Acheter ou
+                        Investir?</a></li>
+                <li><a href="pages/assurance.html" data-fr="Bilan de protection financière"
+                        data-en="Financial Protection Assessment">Bilan de protection financière</a></li>
+            </ul>
+        </li>
+        <li><a href="index.html#booking" class="nav-cta" data-fr="Rendez‑vous" data-en="Booking">Rendez‑vous</a></li>
+    </ul>
+</nav>

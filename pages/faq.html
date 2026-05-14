@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FAQ – JC Capital</title>
+    <meta name="description"
+        content="Foire aux questions sur la fiscalité, l'investissement et les services de JC Capital." />
+    <!-- Favicon & Mobile Icons -->
+    <link rel="icon" type="image/png" href="../img/2nd_logo.png">
+    <link rel="apple-touch-icon" href="../img/2nd_logo.png">
+
+    <!-- Open Graph & Social sharing -->
+    <meta property="og:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <meta name="twitter:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Split -->
+    <link rel="stylesheet" href="../css/_tokens.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Tailwind CSS (for consistent nav reset) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Translations -->
+    <script src="../js/translations.js"></script>
+    <!-- Component Loader -->
+    <script defer src="../js/components.js"></script>
+
+    <style>
+        /* FAQ Page Specific Styles */
+        .page-content {
+            padding-top: 120px;
+            min-height: 80vh;
+            /* Transparent to let body background show through, or dark blue */
+            background-color: transparent;
+        }
+
+        .faq-container {
+            display: flex;
+            gap: 40px;
+            padding: 2rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Sidebar */
+        .faq-sidebar {
+            width: 300px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 120px;
+            height: fit-content;
+        }
+
+        .category-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .category-btn {
+            text-align: left;
+            padding: 15px 20px;
+            /* Dark Glass */
+            background: rgba(34, 51, 59, 0.6);
+            border: 1px solid var(--c-brown);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: var(--c-light-beige);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .category-btn:hover,
+        .category-btn.active {
+            background: var(--c-dark-blue);
+            border-color: var(--c-gold);
+            color: var(--c-gold);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15);
+        }
+
+        .category-btn i {
+            font-size: 0.9em;
+        }
+
+        /* Content Area */
+        .faq-content {
+            flex: 1;
+        }
+
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            border-radius: 12px;
+            border: 1px solid var(--c-brown);
+            background: rgba(34, 51, 59, 0.8);
+            font-size: 1.1rem;
+            outline: none;
+            color: var(--c-light-beige);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+            background: var(--c-dark-blue);
+            border-color: var(--c-gold);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--c-gold);
+        }
+
+        /* Accordion */
+        .accordion-item {
+            margin-bottom: 20px;
+            border-radius: 12px;
+            background: rgba(34, 51, 59, 0.6);
+            border: 1px solid var(--c-brown);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .accordion-item:hover {
+            border-color: var(--c-gold);
+            background: var(--c-dark-blue);
+            transform: translateX(5px);
+        }
+
+        .accordion-header {
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--c-light-beige);
+        }
+
+        .accordion-header i {
+            transition: transform 0.3s ease;
+            color: var(--c-gold);
+            margin-left: 15px;
+        }
+
+        .accordion-header.active i {
+            transform: rotate(180deg);
+        }
+
+        .accordion-header.active {
+            color: var(--c-gold);
+        }
+
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .accordion-body p {
+            padding: 0 20px 20px 20px;
+            line-height: 1.6;
+            color: var(--c-light-beige);
+            opacity: 0.9;
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 900px) {
+            .faq-container {
+                flex-direction: column;
+                padding: 1rem;
+            }
+
+            .faq-sidebar {
+                width: 100%;
+                position: relative;
+                top: 0;
+                margin-bottom: 20px;
+            }
+
+            .category-list {
+                flex-direction: row;
+                overflow-x: auto;
+                padding-bottom: 10px;
+                gap: 10px;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .category-btn {
+                white-space: nowrap;
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+    <!-- JC AI Chatbot -->
+    <link rel="stylesheet" href="../LM/jc-chat.css">
+    <script defer src="../LM/jc-chat-data.js"></script>
+    <script defer src="../LM/jc-chat-quiz.js"></script>
+    <script defer src="../LM/jc-chat-engine.js"></script>
+    <script defer src="../LM/jc-chat-ui.js"></script>
+</head>
+
+<body>
+    <!-- Header placeholder - loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+        <div class="faq-container">
+            <!-- Sidebar Navigation -->
+            <aside class="faq-sidebar">
+                <h3 style="margin-bottom: 15px; color: var(--c-dark-blue); font-size: 1.2rem;" data-fr="Catégories"
+                    data-en="Categories">Catégories</h3>
+                <div class="category-list" id="categoryList">
+                    <!-- Categories injected by JS -->
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <section class="faq-content">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="faqSearch" class="search-input" placeholder="Rechercher / Search..."
+                        oninput="searchFAQ()">
+                </div>
+
+                <div id="faqResults">
+                    <!-- Questions injected by JS -->
+                </div>
+
+                <!-- Still have questions CTA -->
+                <div
+                    style="margin-top: 50px; padding: 30px; background: var(--c-dark-blue); border-radius: 12px; border: 1px solid var(--c-brown); text-align: center;">
+                    <h3 data-fr="Vous n'avez pas trouvé votre réponse ?" data-en="Didn't find your answer?"
+                        style="color: var(--c-gold); margin-bottom: 10px;">Vous n'avez pas trouvé votre réponse ?
+                    </h3>
+                    <p data-fr="Notre équipe est là pour vous aider à clarifier votre situation."
+                        data-en="Our team is here to help you clarify your situation."
+                        style="margin-bottom: 20px; color: var(--c-light-beige);">
+                        Notre équipe est là pour vous aider à clarifier votre situation.</p>
+                    <a href="../index.html#booking"
+                        style="background: var(--c-gold); color: var(--c-dark-blue); padding: 12px 25px; border-radius: 6px; font-weight: bold; text-decoration: none; display: inline-block;">
+                        <span data-fr="Prendre Rendez-vous" data-en="Book an Appointment">Prendre Rendez-vous</span>
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer placeholder - loaded dynamically -->
+    <div id="footer-placeholder"></div>
+
+    <script>
+        // --- DATA ---
+        const faqData = [
+            {
+                id: "about",
+                icon: "fa-building",
+                category: { fr: "À propos de JC Capital", en: "About JC Capital" },
+                items: [
+                    {
+                        q: { fr: "Quelle est la mission de JC Capital ?", en: "What is JC Capital's mission?" },
+                        a: { fr: "Notre mission est de propulser la croissance financière des entrepreneurs et des professionnels autonomes au Québec en offrant des stratégies intégrées de fiscalité et de gestion de patrimoine.", en: "Our mission is to propel the financial growth of entrepreneurs and self-employed professionals in Quebec by offering integrated tax and wealth management strategies." }
+                    },
+                    {
+                        q: { fr: "Quelles sont vos accréditations professionnelles ?", en: "What are your professional accreditations?" },
+                        a: { fr: "Nous sommes régis par l'Autorité des marchés financiers (AMF).", en: "We are regulated by the Autorité des marchés financiers (AMF)." }
+                    },
+                    {
+                        q: { fr: "Pourquoi choisir JC Capital plutôt qu'une banque ?", en: "Why choose JC Capital over a bank?" },
+                        a: { fr: "Les banques proposent souvent des solutions centrées sur leurs produits internes. De notre côté, nous adoptons une approche indépendante en architecture ouverte : grâce à nos accréditations et permis et à notre réseau de partenaires, nous avons accès à une vaste sélection de produits et de stratégies (placements, assurance, structure corporative, fiscalité). On analyse, on compare, puis on construit une architecture financière complète — personnalisée à ta réalité personnelle et corporative.", en: "Banks often offer solutions centered on their own internal products. On our side, we take an independent, open-architecture approach: thanks to our accreditations, licenses, and partner network, we have access to a wide selection of products and strategies (investments, insurance, corporate structure, taxation). We analyze, compare, and then build a complete financial architecture — tailored to your personal and corporate reality." }
+                    },
+                    {
+                        q: { fr: "Offrez-vous des consultations en personne ?", en: "Do you offer in-person consultations?" },
+                        a: { fr: "Oui. Nous recevons sur rendez-vous à nos bureaux de Québec et nous offrons des rencontres virtuelles partout au Québec. Pour les entrepreneurs, nous pouvons également nous déplacer dans votre entreprise afin de mieux comprendre votre réalité et bâtir une stratégie adaptée.", en: "Yes. We welcome clients by appointment at our Quebec City offices and offer virtual meetings across Quebec. For entrepreneurs, we can also visit your business to better understand your reality and build a tailored strategy." }
+                    }
+                ]
+            },
+            {
+                id: "fiscal",
+                icon: "fa-scale-balanced",
+                category: { fr: "Fiscalité & Structure", en: "Tax & Structure" },
+                items: [
+                    {
+                        q: { fr: "Devrais-je m'incorporer ou rester travailleur autonome ?", en: "Should I incorporate or remain self-employed?" },
+                        a: { fr: "L'incorporation n'est pas une « étape obligatoire » : c'est une décision stratégique. Elle peut aider à optimiser la rémunération, structurer l'entreprise et mieux planifier la fiscalité selon vos objectifs. Nous analysons votre contexte (revenus, dépenses, projets, risques, croissance) afin de recommander la structure la plus efficace et durable.", en: "Incorporation is not a mandatory step — it's a strategic decision. It can help optimize compensation, structure the business, and better plan taxation according to your goals. We analyze your context (income, expenses, projects, risks, growth) to recommend the most effective and sustainable structure." }
+                    },
+                    {
+                        q: { fr: "C'est quoi le Compte de Dividendes en Capital (CDC) ?", en: "What is the Capital Dividend Account (CDA)?" },
+                        a: { fr: "Le CDC est un compte fiscal qui permet de sortir des sommes de votre compagnie (comme la portion non imposable d'un gain en capital ou une prestation d'assurance vie) totalement libres d'impôt.", en: "The CDA is a tax account that allows you to withdraw funds from your company (such as the non-taxable portion of a capital gain or life insurance proceeds) completely tax-free." }
+                    },
+                    {
+                        q: { fr: "Comment optimiser le mix Salaire vs Dividendes ?", en: "How do I optimize the Salary vs. Dividend mix?" },
+                        a: { fr: "Le salaire permet de cotiser au RRQ et de créer de l'espace REER, tandis que les dividendes évitent les charges sociales. L'équilibre optimal dépend de vos objectifs de retraite et de vos besoins de financement hypothécaire.", en: "Salary allows you to contribute to the QPP and create RRSP room, while dividends avoid payroll taxes. The optimal balance depends on your retirement goals and mortgage financing needs." }
+                    },
+                    {
+                        q: { fr: "Qu'est-ce que le report d'impôt ?", en: "What is tax deferral?" },
+                        a: { fr: "C'est une stratégie permettant de ne payer l'impôt que plus tard, laissant l'argent fructifier davantage entre-temps.", en: "It is a strategy that allows you to pay taxes later, letting the money grow more in the meantime." }
+                    }
+                ]
+            },
+            {
+                id: "protection",
+                icon: "fa-shield-heart",
+                category: { fr: "Protection & Assurances", en: "Protection & Insurance" },
+                items: [
+                    {
+                        q: { fr: "Pourquoi l'assurance invalidité est-elle cruciale pour un entrepreneur ?", en: "Why is disability insurance crucial for an entrepreneur?" },
+                        a: { fr: "En tant qu'entrepreneur, vous n'avez souvent pas de chômage ou de CSST. Votre capacité à générer un revenu est votre plus gros actif. Si elle s'arrête, tout votre plan financier s'écroule.", en: "As an entrepreneur, you often don't have unemployment insurance or worker's comp. Your ability to generate income is your biggest asset. If it stops, your entire financial plan collapses." }
+                    },
+                    {
+                        q: { fr: "Quelle est la différence entre l'assurance vie Temporaire et Permanente ?", en: "What is the difference between Term and Permanent life insurance?" },
+                        a: { fr: "La temporaire couvre un besoin qui finira (ex: hypothèque). La permanente est un outil de succession et de stratégie fiscale pour couvrir les impôts au décès ou léguer un héritage net.", en: "Term covers a need that will eventually end (e.g., mortgage). Permanent is an estate and tax strategy tool to cover taxes at death or leave a net legacy." }
+                    },
+                    {
+                        q: { fr: "Puis-je faire payer mes assurances par ma compagnie ?", en: "Can I have my company pay for my insurance?" },
+                        a: { fr: "Oui, et c'est souvent une piste très intéressante pour les entrepreneurs. Dans certains cas, structurer une protection via la compagnie peut améliorer l'efficacité globale et soutenir la planification (protection, fiscalité, continuité d'entreprise). Par contre, des conditions importantes s'appliquent selon le type d'assurance et la structure. On valide votre situation et on met en place la bonne approche, de façon conforme.", en: "Yes, and it's often a very interesting avenue for entrepreneurs. In some cases, structuring protection through the company can improve overall efficiency and support planning (protection, taxation, business continuity). However, important conditions apply depending on the type of insurance and the structure. We validate your situation and implement the right approach, in full compliance." }
+                    },
+                    {
+                        q: { fr: "Quelle est la différence entre maladies graves et invalidité ?", en: "What's the difference between critical illness and disability?" },
+                        a: { fr: "L'invalidité remplace un revenu mensuel; la maladie grave verse un montant forfaitaire unique dès le diagnostic.", en: "Disability replaces monthly income; critical illness pays a one-time lump sum upon diagnosis." }
+                    }
+                ]
+            },
+            {
+                id: "invest",
+                icon: "fa-chart-line",
+                category: { fr: "Investissement Immobilier", en: "Real Estate Investment" },
+                items: [
+                    {
+                        q: { fr: "Comment analysez-vous la rentabilité d'un plex ?", en: "How do you analyze a plex's profitability?" },
+                        a: { fr: "Nous utilisons des outils propriétaires pour calculer le Cashflow net, le Revenu Net d'Opération (NOI) et le ratio de couverture de la dette pour assurer la viabilité bancaire du projet.", en: "We use proprietary tools to calculate Net Cashflow, Net Operating Income (NOI), and the debt coverage ratio to ensure the project's bankability." }
+                    },
+                    {
+                        q: { fr: "Devrais-je acheter un immeuble locatif en personnel ou en Inc ?", en: "Should I buy a rental property personally or through an Inc?" },
+                        a: { fr: "Ça dépend — et c'est justement là que se cachent les meilleurs gains. Selon votre profil, l'achat en personnel, en Inc, ou une structure combinée peut être plus avantageux fiscalement et stratégiquement. On analyse vos objectifs, votre fiscalité, votre capacité d'emprunt, votre plan d'acquisitions et votre stratégie de sortie pour recommander la structure la plus rentable et la plus flexible.", en: "It depends — and that's exactly where the biggest gains are hidden. Depending on your profile, purchasing personally, through an Inc, or a combined structure can be more advantageous from a tax and strategic standpoint. We analyze your goals, your tax situation, your borrowing capacity, your acquisition plan, and your exit strategy to recommend the most profitable and flexible structure." }
+                    },
+                    {
+                        q: { fr: "Quel est le cashflow minimum visé pour un plex ?", en: "What is the target minimum cashflow for a plex?" },
+                        a: { fr: "Généralement, on vise un cashflow positif après toutes dépenses, incluant une réserve pour entretien.", en: "Generally, we aim for positive cashflow after all expenses, including a maintenance reserve." }
+                    },
+                    {
+                        q: { fr: "Acheter ou louer : qu'est-ce qui est vraiment le mieux pour vous ?", en: "Buy or rent: what's really the best option for you?" },
+                        a: { fr: "Ce n'est pas seulement une question d'argent : c'est un choix de mode de vie. Selon votre situation (famille, stabilité, flexibilité, projets), la « bonne » réponse peut changer avec le temps. On vous aide à clarifier vos priorités et à bâtir un plan cohérent pour prendre une décision assumée — parce qu'au final, ce n'est pas la meilleure option sur papier qui compte, c'est celle qui vous ressemble.", en: "It's not just about money — it's a lifestyle choice. Depending on your situation (family, stability, flexibility, projects), the 'right' answer can change over time. We help you clarify your priorities and build a coherent plan to make a confident decision — because in the end, it's not the best option on paper that matters, it's the one that fits you." }
+                    }
+                ]
+            },
+            {
+                id: "estate",
+                icon: "fa-landmark",
+                category: { fr: "Succession & Actionnaires", en: "Estate & Shareholders" },
+                items: [
+                    {
+                        q: { fr: "Pourquoi financer une convention entre actionnaires ?", en: "Why fund a shareholders' agreement?" },
+                        a: { fr: "Sans financement (assurance), si un associé décède, vous pourriez vous retrouver associé avec son conjoint ou devoir liquider l'entreprise pour racheter ses parts.", en: "Without funding (insurance), if a partner dies, you could end up in business with their spouse or be forced to liquidate the company to buy out their shares." }
+                    },
+                    {
+                        q: { fr: "Qu'est-ce que l'assurance 'Homme-Clé' ?", en: "What is 'Key Person' insurance?" },
+                        a: { fr: "C'est une protection prise par l'entreprise sur la tête d'un employé ou dirigeant dont le départ ou le décès causerait une perte financière majeure à la société.", en: "It is protection taken by the company on an employee or executive whose departure or death would cause a major financial loss to the corporation." }
+                    }
+                ]
+            },
+            {
+                id: "tools",
+                icon: "fa-comments",
+                category: { fr: "Outils & Consultation", en: "Tools & Consultation" },
+                items: [
+                    {
+                        q: { fr: "Comment se déroule la première rencontre ?", en: "How does the first meeting work?" },
+                        a: { fr: "C'est une séance exploratoire sans frais où nous dressons votre portrait actuel et identifions vos objectifs prioritaires. Vous pouvez réserver directement via notre calendrier en ligne.", en: "It is a free exploratory session where we map out your current situation and identify your priority goals. You can book directly via our online calendar." }
+                    },
+                    {
+                        q: { fr: "Travaillez-vous avec des clients partout au Québec ?", en: "Do you work with clients all over Quebec?" },
+                        a: { fr: "Oui. Nous ne limitons pas notre clientèle à une région : nous accompagnons des clients partout au Québec, en rencontre virtuelle ou en personne selon les besoins.", en: "Yes. We don't limit our clientele to one region — we support clients across Quebec, through virtual or in-person meetings depending on the needs." }
+                    }
+                ]
+            }
+        ];
+
+        // --- STATE & LOGIC ---
+        let activeCategory = 'about';
+        let currentLang = document.documentElement.lang || 'fr';
+
+        // Listen for global lang change (JS event)
+        document.addEventListener('languageChanged', () => {
+            currentLang = document.documentElement.lang;
+            renderAll();
+        });
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            currentLang = document.documentElement.lang;
+            renderAll();
+        });
+
+        function renderAll() {
+            renderSidebar();
+            renderQuestions();
+        }
+
+        // 1. Sidebar Rendering
+        function renderSidebar() {
+            const container = document.getElementById('categoryList');
+            container.innerHTML = '';
+
+            faqData.forEach(cat => {
+                const label = currentLang === 'en' ? cat.category.en : cat.category.fr;
+                const isActive = cat.id === activeCategory ? 'active' : '';
+
+                const btn = document.createElement('div');
+                btn.className = `category-btn ${isActive}`;
+                btn.onclick = () => { setActiveCategory(cat.id) };
+                btn.innerHTML = `<span>${label}</span> <i class="fas ${cat.icon}"></i>`;
+
+                container.appendChild(btn);
+            });
+        }
+
+        function setActiveCategory(id) {
+            activeCategory = id;
+            renderAll();
+            // Clear search when changing category for better UX
+            document.getElementById('faqSearch').value = '';
+        }
+
+        // 2. Questions Rendering
+        function renderQuestions() {
+            const container = document.getElementById('faqResults');
+            const searchInput = document.getElementById('faqSearch').value.toLowerCase();
+            container.innerHTML = '';
+
+            let targetCategories = faqData;
+
+            // If Filter is active, valid questions come only from active category
+            // UNLESS user is searching, then better to show matches from ALL categories?
+            // Let's stick to the prompt: "Sidebar filters view". 
+            // So search only searches current view? OR Search overrides?
+            // User: "Live Search... hide questions that don't match."
+            // Let's follow sidebar logic: Show active category. Search filters within active category.
+            // OR Better UX: If search exists, search ALL. If no search, show active category.
+
+            let html = '';
+
+            if (searchInput.length > 2) {
+                // Search Mode - Search ALL
+                targetCategories.forEach(cat => {
+                    const catLabel = currentLang === 'en' ? cat.category.en : cat.category.fr;
+                    let hasMatch = false;
+                    let catHtml = `<h2 style="color:var(--c-gold); margin: 30px 0 15px 0;">${catLabel}</h2>`;
+
+                    cat.items.forEach((item, idx) => {
+                        const qRaw = currentLang === 'en' ? item.q.en : item.q.fr;
+                        const aRaw = currentLang === 'en' ? item.a.en : item.a.fr;
+
+                        if (qRaw.toLowerCase().includes(searchInput) || aRaw.toLowerCase().includes(searchInput)) {
+                            hasMatch = true;
+                            catHtml += createAccordion(idx, qRaw, aRaw);
+                        }
+                    });
+
+                    if (hasMatch) html += catHtml;
+                });
+
+                if (html === '') {
+                    html = `<div style="padding:20px; text-align:center; opacity:0.6;">No matches found / Aucun résultat</div>`;
+                }
+
+            } else {
+                // Category Mode
+                const cat = faqData.find(c => c.id === activeCategory);
+                if (cat) {
+                    const catLabel = currentLang === 'en' ? cat.category.en : cat.category.fr;
+                    html += `<h2 style="color:var(--c-gold); margin-bottom: 20px; font-size:1.8rem;">${catLabel}</h2>`;
+
+                    cat.items.forEach((item, idx) => {
+                        const q = currentLang === 'en' ? item.q.en : item.q.fr;
+                        const a = currentLang === 'en' ? item.a.en : item.a.fr;
+                        html += createAccordion(idx, q, a);
+                    });
+                }
+            }
+
+            container.innerHTML = html;
+        }
+
+        function createAccordion(id, question, answer) {
+            // Unique ID for each item's body
+            const uid = Math.random().toString(36).substr(2, 9);
+            return `
+            <div class="accordion-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                <button class="accordion-header" onclick="toggleAccordion('${uid}', this)">
+                    <h3 itemprop="name" style="margin:0; font-size:inherit; font-weight:inherit; color:inherit;">${question}</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div id="${uid}" class="accordion-body" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                    <p itemprop="text">${answer}</p>
+                </div>
+            </div>`;
+        }
+
+        // Global function for onclick
+        window.toggleAccordion = function (id, btn) {
+            const body = document.getElementById(id);
+            const isActive = btn.classList.contains('active');
+
+            // Close all others? (Optional, but cleaner)
+            // document.querySelectorAll('.accordion-header').forEach(b => b.classList.remove('active'));
+            // document.querySelectorAll('.accordion-body').forEach(b => b.style.maxHeight = 0);
+
+            if (!isActive) {
+                btn.classList.add('active');
+                body.style.maxHeight = body.scrollHeight + "px";
+            } else {
+                btn.classList.remove('active');
+                body.style.maxHeight = 0;
+            }
+        };
+
+        // Hook search input
+        window.searchFAQ = function () {
+            renderQuestions();
+        }
+
+    </script>
+</body>
+
+</html>

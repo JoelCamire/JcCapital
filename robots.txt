@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /construction/
+Disallow: /LM/
+
+Sitemap: https://jccapital.ca/sitemap.xml

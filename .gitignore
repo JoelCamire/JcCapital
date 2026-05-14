@@ -1,0 +1,11 @@
+# Local preview screenshots (generated)
+.preview_screenshots/
+
+# Local Claude Code settings (per-developer, not part of the site)
+.claude/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*~

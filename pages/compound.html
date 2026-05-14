@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculateur d'Intérêts Composés – JC Capital</title>
+    <meta name="description"
+        content="Calculateur d'intérêts composés gratuit. Simulez la croissance de votre patrimoine sur 20 ans avec des stratégies fiscales avancées." />
+    <!-- Favicon & Mobile Icons -->
+    <link rel="icon" type="image/png" href="../img/2nd_logo.png">
+    <link rel="apple-touch-icon" href="../img/2nd_logo.png">
+
+    <!-- Open Graph & Social sharing -->
+    <meta property="og:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <meta name="twitter:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Split -->
+    <link rel="stylesheet" href="../css/_tokens.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Translations -->
+    <script src="../js/translations.js"></script>
+    <!-- Component Loader -->
+    <script defer src="../js/components.js"></script>
+
+    <style>
+        .page-content {
+            padding-top: 120px;
+            min-height: 80vh;
+            background: transparent;
+        }
+
+        .tool-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+        }
+
+        .input-panel {
+            background: rgba(34, 51, 59, 0.6);
+            border: 1px solid var(--c-brown);
+            border-radius: 15px;
+            padding: 2rem;
+            height: fit-content;
+        }
+
+        .result-panel {
+            background: rgba(34, 51, 59, 0.6);
+            border: 1px solid var(--c-brown);
+            border-radius: 15px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--c-light-beige);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(10, 9, 8, 0.5);
+            border: 1px solid var(--c-brown);
+            padding: 12px;
+            border-radius: 8px;
+            color: var(--c-gold);
+            font-size: 1.1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: var(--c-gold);
+        }
+
+        .btn-calculate {
+            width: 100%;
+            padding: 1rem;
+            background: var(--c-gold);
+            color: var(--c-dark-blue);
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 1rem;
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+        }
+
+        .result-value {
+            font-size: 2.5rem;
+            color: var(--c-gold);
+            font-weight: 700;
+            text-align: center;
+            margin: 1rem 0;
+            text-shadow: 0 0 15px rgba(198, 172, 143, 0.2);
+        }
+
+        .result-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .breakdown-card {
+            background: rgba(10, 9, 8, 0.4);
+            border: 1px solid rgba(198, 172, 143, 0.15);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .breakdown-label {
+            color: var(--c-light-beige);
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 0.3rem;
+        }
+
+        .breakdown-value {
+            color: var(--c-gold);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .breakdown-value.green {
+            color: #6fcf97;
+        }
+
+        .calc-method-note {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--c-light-beige);
+            opacity: 0.5;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 900px) {
+            .tool-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+    </style>
+  <!-- JC AI Chatbot -->
+  <link rel="stylesheet" href="../LM/jc-chat.css">
+  <script defer src="../LM/jc-chat-data.js"></script>
+  <script defer src="../LM/jc-chat-quiz.js"></script>
+  <script defer src="../LM/jc-chat-engine.js"></script>
+  <script defer src="../LM/jc-chat-ui.js"></script>
+</head>
+
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="page-content">
+        <div class="tool-container">
+            <!-- Left: Inputs -->
+            <div class="input-panel">
+                <h1 style="color:var(--c-gold); margin-bottom: 0.5rem; font-size: 2rem;"
+                    data-fr="Calculateur d'Intérêts Composés" data-en="Compound Interest Calculator">Calculateur
+                    d'Intérêts Composés</h1>
+
+                <p style="color: var(--c-light-beige); margin-bottom: 2rem; opacity: 0.9; line-height: 1.6;"
+                    data-fr="Visualisez la puissance des intérêts composés sur votre patrimoine. Simulez vos contributions et découvrez comment le temps et le rendement accélèrent votre liberté financière."
+                    data-en="Visualize the power of compound interest on your wealth. Simulate your contributions and discover how time and returns accelerate your financial freedom.">
+                    Visualisez la puissance des intérêts composés sur votre patrimoine. Simulez vos contributions et
+                    découvrez comment le temps et le rendement accélèrent votre liberté financière.
+                </p>
+
+                <div class="form-group">
+                    <label class="form-label" data-fr="Montant Initial ($)" data-en="Initial Amount ($)">Montant Initial
+                        ($)</label>
+                    <input type="number" id="initial" class="form-input" value="10000">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" data-fr="Contribution Mensuelle ($)"
+                        data-en="Monthly Contribution ($)">Contribution Mensuelle ($)</label>
+                    <input type="number" id="monthly" class="form-input" value="500">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" data-fr="Taux de Rendement Annuel (%)"
+                        data-en="Annual Return Rate (%)">Taux de Rendement Annuel (%)</label>
+                    <input type="number" id="rate" class="form-input" value="7" step="0.1">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" data-fr="Durée (Années)" data-en="Duration (Years)">Durée (Années)</label>
+                    <input type="number" id="years" class="form-input" value="20">
+                </div>
+
+                <button class="btn-calculate" onclick="calculateCompound()" data-fr="Calculer"
+                    data-en="Calculate">Calculer</button>
+            </div>
+
+            <!-- Right: Results & Chart -->
+            <div class="result-panel">
+                <h2 style="color:var(--c-light-beige); text-align:center;" data-fr="Valeur Future Estimée"
+                    data-en="Estimated Future Value">Valeur Future Estimée</h2>
+
+                <div id="finalValue" class="result-value">$0</div>
+
+                <!-- Breakdown cards -->
+                <div class="result-breakdown">
+                    <div class="breakdown-card">
+                        <div class="breakdown-label" data-fr="Total Investi" data-en="Total Invested">Total Investi
+                        </div>
+                        <div class="breakdown-value" id="totalInvested">$0</div>
+                    </div>
+                    <div class="breakdown-card">
+                        <div class="breakdown-label" data-fr="Intérêts Gagnés" data-en="Interest Earned">Intérêts Gagnés
+                        </div>
+                        <div class="breakdown-value green" id="totalInterest">$0</div>
+                    </div>
+                </div>
+
+                <div style="height: 300px; width: 100%;">
+                    <canvas id="compoundChart"></canvas>
+                </div>
+
+                <div class="calc-method-note"
+                    data-fr="Calcul exact (BigInt) · Composé annuellement · Rente ordinaire (fin d'année)"
+                    data-en="Exact calculation (BigInt) · Compounded annually · Ordinary annuity (end of year)">
+                    Calcul exact (BigInt) · Composé annuellement · Rente ordinaire (fin d'année)
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script>
+        /**
+         * ================================================================
+         *  EXACT DECIMAL ARITHMETIC USING BigInt SCALING
+         * ================================================================
+         *  Model: Annual Compounding + Ordinary Annuity (end-of-year deposits)
+         *
+         *  FV = P × (1+r)^n  +  PMT_annual × [((1+r)^n − 1) / r]
+         *
+         *  All values stored as integer BigInt = real_value × SCALE
+         *  (1+r)^n computed with exact rational exponentiation
+         * ================================================================
+         */
+
+        const SCALE = 10n ** 24n; // 24 decimal places internal precision
+
+        /** Parse a decimal string like "1500", "700", "0.35" into scaled BigInt */
+        function parseDecimalToScaledBigInt(str) {
+            const s = String(str).trim().replace(/\s+/g, '').replace(',', '.');
+            if (!/^-?\d+(\.\d+)?$/.test(s)) throw new Error(`Invalid number: ${str}`);
+
+            const neg = s.startsWith('-');
+            const t = neg ? s.slice(1) : s;
+            const [intPart, fracPartRaw = ''] = t.split('.');
+            const fracPart = fracPartRaw.slice(0, 24).padEnd(24, '0');
+
+            const bi = BigInt(intPart || '0') * SCALE + BigInt(fracPart || '0');
+            return neg ? -bi : bi;
+        }
+
+        /** Convert scaled BigInt back to a Number (for chart data & display) */
+        function scaledBigIntToNumber(xScaled) {
+            const intPart = xScaled / SCALE;
+            const frac = xScaled % SCALE;
+            // Convert to float with enough precision for display
+            return Number(intPart) + Number(frac) / Number(SCALE);
+        }
+
+        /** Convert scaled BigInt to formatted currency string */
+        function scaledBigIntToCurrency(xScaled) {
+            const num = scaledBigIntToNumber(xScaled);
+            return new Intl.NumberFormat('fr-CA', {
+                style: 'currency',
+                currency: 'CAD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(num);
+        }
+
+        /** GCD for fraction reduction */
+        function gcd(a, b) {
+            a = a < 0n ? -a : a;
+            b = b < 0n ? -b : b;
+            while (b !== 0n) {
+                const t = a % b;
+                a = b;
+                b = t;
+            }
+            return a;
+        }
+
+        /** Reduce a fraction num/den */
+        function reduceFrac(num, den) {
+            const g = gcd(num, den);
+            return [num / g, den / g];
+        }
+
+        /**
+         * Compute (num/den)^n as a scaled BigInt
+         * Uses exponentiation by squaring on rationals for exactness
+         */
+        function powRationalToScaled(num, den, n) {
+            if (n < 0) throw new Error('n must be >= 0');
+            let nNum = BigInt(num);
+            let nDen = BigInt(den);
+
+            let rNum = 1n;
+            let rDen = 1n;
+            let e = BigInt(n);
+
+            while (e > 0n) {
+                if (e & 1n) {
+                    rNum *= nNum;
+                    rDen *= nDen;
+                }
+                e >>= 1n;
+                if (e > 0n) {
+                    nNum *= nNum;
+                    nDen *= nDen;
+                }
+            }
+
+            // Convert rational rNum/rDen to scaled BigInt with rounding
+            return (rNum * SCALE + rDen / 2n) / rDen;
+        }
+
+        /**
+         * Main calculator — exact annual compounding, ordinary annuity
+         *
+         * @param {string} principalStr   — e.g. "1500"
+         * @param {string} monthlyStr     — e.g. "700"
+         * @param {string} annualRateStr  — decimal rate, e.g. "0.35" for 35%
+         * @param {number} years          — e.g. 30
+         * @returns {object} all values as scaled BigInt
+         */
+        function futureValueExact({ principalStr, monthlyStr, annualRateStr, years }) {
+            const P = parseDecimalToScaledBigInt(principalStr);
+            const PMT_m = parseDecimalToScaledBigInt(monthlyStr);
+            const r = parseDecimalToScaledBigInt(annualRateStr);
+            const n = Number(years);
+
+            if (!Number.isInteger(n) || n < 0) throw new Error('years must be integer >= 0');
+
+            // PMT_annual = monthly × 12
+            const PMT_a = PMT_m * 12n;
+
+            // Build exact rational for (1+r)
+            let onePlusNum = SCALE + r;   // numerator
+            let onePlusDen = SCALE;       // denominator
+            [onePlusNum, onePlusDen] = reduceFrac(onePlusNum, onePlusDen);
+
+            // A = (1+r)^n as scaled BigInt
+            const A = powRationalToScaled(onePlusNum, onePlusDen, n);
+
+            // FV_initial = P × A / SCALE (result is still scaled)
+            const FV_initial = (P * A + SCALE / 2n) / SCALE;
+
+            // Handle r = 0 edge case
+            if (r === 0n) {
+                const FV = P + PMT_a * BigInt(n);
+                return {
+                    FV_total: FV,
+                    FV_initial: P,
+                    FV_contrib: PMT_a * BigInt(n),
+                    A: SCALE, // (1+0)^n = 1
+                    totalInvested: P + PMT_a * BigInt(n)
+                };
+            }
+
+            // FV_contrib = PMT_a × ((A − 1) / r)
+            // In scaled math: PMT_a × (A − SCALE) / r  (result is scaled)
+            const FV_contrib = (PMT_a * (A - SCALE) + (r / 2n)) / r;
+
+            const FV_total = FV_initial + FV_contrib;
+            const totalInvested = P + PMT_a * BigInt(n);
+
+            return { FV_total, FV_initial, FV_contrib, A, totalInvested };
+        }
+
+        /**
+         * Compute year-by-year data for chart (also exact)
+         * Returns array of { year, balance (scaled BigInt) }
+         */
+        function computeYearlyData({ principalStr, monthlyStr, annualRateStr, years }) {
+            const points = [];
+            const n = Number(years);
+
+            for (let y = 0; y <= n; y++) {
+                const result = futureValueExact({
+                    principalStr,
+                    monthlyStr,
+                    annualRateStr,
+                    years: y
+                });
+                points.push({
+                    year: y,
+                    balance: result.FV_total,
+                    invested: result.totalInvested
+                });
+            }
+
+            return points;
+        }
+
+        // ================================================================
+        //  CHART & UI
+        // ================================================================
+
+        let myChart = null;
+
+        function calculateCompound() {
+            const initialVal = document.getElementById('initial').value || '0';
+            const monthlyVal = document.getElementById('monthly').value || '0';
+            const ratePercent = parseFloat(document.getElementById('rate').value) || 0;
+            const yearsVal = parseInt(document.getElementById('years').value) || 0;
+
+            // Convert rate from percentage to decimal string for BigInt parser
+            // e.g. 35 => "0.35",  7 => "0.07",  7.5 => "0.075"
+            const rateDecimalStr = (ratePercent / 100).toFixed(15);
+
+            // Compute exact final result
+            const finalResult = futureValueExact({
+                principalStr: initialVal,
+                monthlyStr: monthlyVal,
+                annualRateStr: rateDecimalStr,
+                years: yearsVal
+            });
+
+            // Display final value
+            document.getElementById('finalValue').innerText =
+                scaledBigIntToCurrency(finalResult.FV_total);
+
+            // Display breakdown
+            document.getElementById('totalInvested').innerText =
+                scaledBigIntToCurrency(finalResult.totalInvested);
+
+            const interestEarned = finalResult.FV_total - finalResult.totalInvested;
+            document.getElementById('totalInterest').innerText =
+                scaledBigIntToCurrency(interestEarned);
+
+            // Compute year-by-year for chart
+            const yearlyData = computeYearlyData({
+                principalStr: initialVal,
+                monthlyStr: monthlyVal,
+                annualRateStr: rateDecimalStr,
+                years: yearsVal
+            });
+
+            const labels = yearlyData.map(d => d.year);
+            const balanceData = yearlyData.map(d => scaledBigIntToNumber(d.balance));
+            const investedData = yearlyData.map(d => scaledBigIntToNumber(d.invested));
+
+            // Chart
+            const ctx = document.getElementById('compoundChart').getContext('2d');
+
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: (document.documentElement.lang === 'en') ? 'Portfolio Value' : 'Valeur du Portefeuille',
+                            data: balanceData,
+                            borderColor: '#C6AC8F',
+                            backgroundColor: 'rgba(198, 172, 143, 0.15)',
+                            borderWidth: 2.5,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: yearsVal <= 30 ? 3 : 0,
+                            pointBackgroundColor: '#C6AC8F'
+                        },
+                        {
+                            label: (document.documentElement.lang === 'en') ? 'Total Invested' : 'Total Investi',
+                            data: investedData,
+                            borderColor: 'rgba(255, 255, 255, 0.35)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                            borderWidth: 1.5,
+                            borderDash: [6, 4],
+                            fill: true,
+                            tension: 0,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#EAE0D5',
+                                font: { size: 11 },
+                                boxWidth: 20
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const val = context.parsed.y;
+                                    return context.dataset.label + ': ' +
+                                        new Intl.NumberFormat('fr-CA', {
+                                            style: 'currency',
+                                            currency: 'CAD',
+                                            maximumFractionDigits: 0
+                                        }).format(val);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                color: '#EAE0D5',
+                                callback: function (value) {
+                                    if (value >= 1e9) return (value / 1e9).toFixed(1) + ' G$';
+                                    if (value >= 1e6) return (value / 1e6).toFixed(1) + ' M$';
+                                    if (value >= 1e3) return (value / 1e3).toFixed(0) + ' k$';
+                                    return value + ' $';
+                                }
+                            },
+                            grid: { color: 'rgba(94, 80, 63, 0.2)' }
+                        },
+                        x: {
+                            ticks: { color: '#EAE0D5' },
+                            grid: { color: 'rgba(94, 80, 63, 0.2)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Init on page load
+        document.addEventListener('DOMContentLoaded', calculateCompound);
+    </script>
+</body>
+
+</html>

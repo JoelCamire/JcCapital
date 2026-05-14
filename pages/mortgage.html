@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payer ou Investir? – JC Capital</title>
+    <meta name="description"
+        content="Payer son hypothèque ou investir ? Utilisez notre simulateur pour comparer les deux stratégies et optimiser votre valeur nette." />
+    <!-- Favicon & Mobile Icons -->
+    <link rel="icon" type="image/png" href="../img/2nd_logo.png">
+    <link rel="apple-touch-icon" href="../img/2nd_logo.png">
+
+    <!-- Open Graph & Social sharing -->
+    <meta property="og:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <meta name="twitter:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Split -->
+    <link rel="stylesheet" href="../css/_tokens.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Translations -->
+    <script src="../js/translations.js"></script>
+    <!-- Component Loader -->
+    <script defer src="../js/components.js"></script>
+
+    <style>
+        .page-content {
+            padding-top: 120px;
+            min-height: 80vh;
+            background: transparent;
+        }
+
+        .tool-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 3rem;
+        }
+
+        .input-panel {
+            background: rgba(34, 51, 59, 0.6);
+            border: 1px solid var(--c-brown);
+            border-radius: 15px;
+            padding: 2rem;
+            height: fit-content;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--c-light-beige);
+            margin-bottom: 0.4rem;
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(10, 9, 8, 0.5);
+            border: 1px solid var(--c-brown);
+            padding: 12px;
+            border-radius: 8px;
+            color: var(--c-gold);
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .form-input:focus {
+            border-color: var(--c-gold);
+        }
+
+        .result-panel {
+            background: rgba(34, 51, 59, 0.6);
+            border: 1px solid var(--c-brown);
+            border-radius: 15px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .btn-sim {
+            background: var(--c-gold);
+            color: var(--c-dark-blue);
+            width: 100%;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 1rem;
+            cursor: pointer;
+            font-size: 1.1rem;
+            border: none;
+            transition: opacity 0.2s;
+        }
+
+        .btn-sim:hover {
+            opacity: 0.9;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .result-card {
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .result-card h4 {
+            color: var(--c-light-beige);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .result-card .value {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .result-card .sub {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 0.3rem;
+            color: var(--c-light-beige);
+        }
+
+        .card-invest {
+            background: rgba(198, 172, 143, 0.15);
+            border-color: rgba(198, 172, 143, 0.4);
+        }
+
+        .card-invest .value {
+            color: #C6AC8F;
+        }
+
+        .card-mortgage {
+            background: rgba(81, 207, 102, 0.1);
+            border-color: rgba(81, 207, 102, 0.3);
+        }
+
+        .card-mortgage .value {
+            color: #51cf66;
+        }
+
+        .card-savings {
+            background: rgba(220, 53, 69, 0.1);
+            border-color: rgba(220, 53, 69, 0.3);
+        }
+
+        .card-savings .value {
+            color: #ff6b6b;
+        }
+
+        .card-highlight {
+            background: rgba(198, 172, 143, 0.1);
+            border-color: var(--c-gold);
+        }
+
+        .card-highlight .value {
+            color: var(--c-gold);
+        }
+
+        .winner-banner {
+            background: var(--c-dark-blue);
+            padding: 1.2rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 1.5rem;
+            border: 1px solid var(--c-gold);
+            color: var(--c-gold);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .chart-tab {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            background: rgba(10, 9, 8, 0.3);
+            color: var(--c-light-beige);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .chart-tab.active {
+            background: var(--c-gold);
+            color: var(--c-dark-blue);
+            border-color: var(--c-gold);
+            font-weight: 600;
+        }
+
+        .section-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 1.5rem 0;
+        }
+
+        .amort-table-wrap {
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .amort-table-wrap::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .amort-table-wrap::-webkit-scrollbar-thumb {
+            background: var(--c-brown);
+            border-radius: 3px;
+        }
+
+        .amort-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .amort-table th {
+            position: sticky;
+            top: 0;
+            background: rgba(34, 51, 59, 0.95);
+            color: var(--c-gold);
+            padding: 0.6rem 0.5rem;
+            text-align: right;
+            border-bottom: 1px solid var(--c-brown);
+        }
+
+        .amort-table th:first-child {
+            text-align: center;
+        }
+
+        .amort-table td {
+            padding: 0.5rem;
+            text-align: right;
+            color: var(--c-light-beige);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .amort-table td:first-child {
+            text-align: center;
+        }
+
+        .amort-table tr:hover td {
+            background: rgba(198, 172, 143, 0.05);
+        }
+
+        .input-hint {
+            font-size: 0.75rem;
+            color: var(--c-light-beige);
+            opacity: 0.5;
+            margin-top: 0.2rem;
+        }
+
+        @media (max-width: 900px) {
+            .tool-container {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+  <!-- JC AI Chatbot -->
+  <link rel="stylesheet" href="../LM/jc-chat.css">
+  <script defer src="../LM/jc-chat-data.js"></script>
+  <script defer src="../LM/jc-chat-quiz.js"></script>
+  <script defer src="../LM/jc-chat-engine.js"></script>
+  <script defer src="../LM/jc-chat-ui.js"></script>
+</head>
+
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="page-content">
+        <div class="tool-container">
+            <!-- Inputs -->
+            <div class="input-panel">
+                <h1 style="color:var(--c-gold); margin-bottom: 0.5rem; font-size: 1.8rem;"
+                    data-fr="Hypothèque vs Investir" data-en="Mortgage vs Invest">Hypothèque vs Investir</h1>
+
+                <p style="color: var(--c-light-beige); margin-bottom: 1.5rem; opacity: 0.9; line-height: 1.6; font-size: 0.95rem;"
+                    data-fr="Devriez-vous rembourser votre hypothèque plus rapidement ou investir vos surplus ? Ce simulateur compare les deux stratégies en détail."
+                    data-en="Should you pay off your mortgage faster or invest your surplus? This simulator compares both strategies in detail.">
+                    Devriez-vous rembourser votre hypothèque plus rapidement ou investir vos surplus ? Ce simulateur
+                    compare les deux stratégies en détail.
+                </p>
+
+                <div class="form-group">
+                    <label class="form-label" data-fr="Montant Restant ($)" data-en="Remaining Balance ($)">Montant
+                        Restant ($)</label>
+                    <input type="number" id="balance" class="form-input" value="300000" min="0" step="1000">
+                    <p class="input-hint" data-fr="Solde hypothécaire actuel"
+                        data-en="Current mortgage balance">Solde hypothécaire actuel</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" data-fr="Taux Hypothécaire (%)" data-en="Mortgage Rate (%)">Taux
+                        Hypothécaire (%)</label>
+                    <input type="number" id="mortgageRate" class="form-input" value="5.0" step="0.05" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" data-fr="Années Restantes" data-en="Remaining Years">Années
+                        Restantes</label>
+                    <input type="number" id="years" class="form-input" value="20" min="1" max="40">
+                    <p class="input-hint" data-fr="Durée restante de l'amortissement"
+                        data-en="Remaining amortization period">Durée restante de l'amortissement</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" data-fr="Surplus Mensuel ($)" data-en="Monthly Surplus ($)">Surplus
+                        Mensuel ($)</label>
+                    <input type="number" id="surplus" class="form-input" value="500" min="0" step="50">
+                    <p class="input-hint" data-fr="Montant supplémentaire disponible chaque mois"
+                        data-en="Extra amount available each month">Montant supplémentaire disponible chaque mois</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" data-fr="Rendement de Placements (%)"
+                        data-en="Investment Return (%)">Rendement de Placements (%)</label>
+                    <input type="number" id="investRate" class="form-input" value="7.0" step="0.1" min="0">
+                    <p class="input-hint" data-fr="Rendement annuel espéré sur vos investissements"
+                        data-en="Expected annual return on investments">Rendement annuel espéré sur vos investissements
+                    </p>
+                </div>
+
+                <button class="btn-sim" onclick="calculateSim()" data-fr="Simuler" data-en="Simulate">Simuler</button>
+            </div>
+
+            <!-- Results -->
+            <div class="result-panel">
+                <h2 style="color:var(--c-light-beige); text-align: center; margin-bottom: 1rem;"
+                    data-fr="Résultats de la Simulation" data-en="Simulation Results">Résultats de la Simulation</h2>
+
+                <!-- Chart Tabs -->
+                <div class="chart-tabs">
+                    <button class="chart-tab active" onclick="switchChart('net')" id="tabNet"
+                        data-fr="Valeur Nette" data-en="Net Worth">Valeur Nette</button>
+                    <button class="chart-tab" onclick="switchChart('breakdown')" id="tabBreakdown"
+                        data-fr="Répartition" data-en="Breakdown">Répartition</button>
+                </div>
+
+                <div style="height: 350px; width: 100%; position: relative;">
+                    <canvas id="simChart"></canvas>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="results-grid" id="resultsGrid" style="display:none;">
+                    <div class="result-card card-mortgage">
+                        <h4 data-fr="Paiement Mensuel (base)" data-en="Monthly Payment (base)">Paiement Mensuel (base)
+                        </h4>
+                        <div class="value" id="monthlyPayment">$0</div>
+                        <div class="sub" data-fr="Capital + Intérêts" data-en="Principal + Interest">Capital + Intérêts
+                        </div>
+                    </div>
+                    <div class="result-card card-savings">
+                        <h4 data-fr="Intérêts Totaux (sans surplus)" data-en="Total Interest (no surplus)">Intérêts
+                            Totaux (sans surplus)</h4>
+                        <div class="value" id="totalInterestBase">$0</div>
+                    </div>
+                    <div class="result-card card-mortgage">
+                        <h4 data-fr="Intérêts Économisés (avec surplus)" data-en="Interest Saved (with surplus)">
+                            Intérêts Économisés (avec surplus)</h4>
+                        <div class="value" id="interestSaved">$0</div>
+                        <div class="sub" id="yearsAccelerated"></div>
+                    </div>
+                    <div class="result-card card-invest">
+                        <h4 data-fr="Valeur du Portefeuille" data-en="Portfolio Value">Valeur du Portefeuille</h4>
+                        <div class="value" id="portfolioValue">$0</div>
+                        <div class="sub" id="portfolioGain"></div>
+                    </div>
+                </div>
+
+                <!-- Winner -->
+                <div id="winnerDisplay" class="winner-banner" style="display:none;"></div>
+
+                <!-- Amortization Table -->
+                <hr class="section-divider" id="tableDivider" style="display:none;">
+                <h3 style="color:var(--c-gold); font-size: 1rem; margin-bottom: 0.5rem; display:none;" id="tableTitle"
+                    data-fr="Tableau d'Amortissement Comparatif" data-en="Comparative Amortization Table">Tableau
+                    d'Amortissement Comparatif</h3>
+                <div class="amort-table-wrap" id="amortWrap" style="display:none;">
+                    <table class="amort-table">
+                        <thead>
+                            <tr>
+                                <th data-fr="Année" data-en="Year">Année</th>
+                                <th data-fr="Solde (sans surplus)" data-en="Balance (no surplus)">Solde (sans surplus)
+                                </th>
+                                <th data-fr="Solde (avec surplus)" data-en="Balance (with surplus)">Solde (avec surplus)
+                                </th>
+                                <th data-fr="Placement cumulé" data-en="Investment cumul.">Placement cumulé</th>
+                                <th data-fr="Valeur nette (Rembourser)" data-en="Net Worth (Pay Off)">VN (Rembourser)
+                                </th>
+                                <th data-fr="Valeur nette (Investir)" data-en="Net Worth (Invest)">VN (Investir)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="amortBody"></tbody>
+                    </table>
+                </div>
+
+                <p style="margin-top: 1rem; font-size: 0.75rem; opacity: 0.5; color: var(--c-light-beige);"
+                    data-fr="*Simulation simplifiée à titre indicatif. Ne constitue pas un conseil financier. Consultez un professionnel."
+                    data-en="*Simplified simulation for illustration only. Not financial advice. Consult a professional.">
+                    *Simulation simplifiée à titre indicatif. Ne constitue pas un conseil financier. Consultez un
+                    professionnel.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script>
+        let chartNet = null;
+        let chartBreakdown = null;
+        let currentChart = 'net';
+        let simData = null;
+
+        const fmt = new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 });
+
+        function calcMonthlyPayment(principal, annualRate, totalMonths) {
+            if (annualRate === 0) return principal / totalMonths;
+            const r = annualRate / 12;
+            return principal * (r * Math.pow(1 + r, totalMonths)) / (Math.pow(1 + r, totalMonths) - 1);
+        }
+
+        function calculateSim() {
+            const balance = parseFloat(document.getElementById('balance').value) || 0;
+            const mRate = (parseFloat(document.getElementById('mortgageRate').value) || 0) / 100;
+            const years = parseInt(document.getElementById('years').value) || 1;
+            const surplus = parseFloat(document.getElementById('surplus').value) || 0;
+            const iRate = (parseFloat(document.getElementById('investRate').value) || 0) / 100;
+
+            const totalMonths = years * 12;
+            const monthlyPmt = calcMonthlyPayment(balance, mRate, totalMonths);
+
+            // -- Strategy A: Pay minimum on mortgage, invest surplus --
+            let balA = balance;         // mortgage balance (pay minimum)
+            let investA = 0;            // investment portfolio
+
+            // -- Strategy B: Put surplus toward mortgage (accelerated payoff) --
+            let balB = balance;         // mortgage balance (accelerated)
+            let investB = 0;            // investment after mortgage paid off
+
+            let balBPaidOff = false;
+            let balBPaidOffMonth = totalMonths;
+
+            // Tracking arrays (yearly)
+            const labels = [];
+            const netWorthInvest = [];   // Strategy A net worth
+            const netWorthPayoff = [];   // Strategy B net worth
+            const balanceBase = [];      // Balance without surplus (just minimum payments)
+            const balanceAccel = [];     // Balance with surplus payments
+            const investmentValues = []; // Investment portfolio (Strategy A)
+
+            // Also track base balance (no surplus at all)
+            let balBase = balance;
+
+            // Yearly amortization data
+            const amortRows = [];
+
+            let totalInterestBase = 0;
+            let totalInterestAccel = 0;
+
+            for (let year = 0; year <= years; year++) {
+                labels.push(year);
+
+                // Net worth: home equity gained + investments - remaining debt offset
+                // Strategy A: invest surplus -> net worth = (original balance - balA) + investA
+                // Strategy B: pay off faster -> net worth = (original balance - balB) + investB
+                const nwA = (balance - balA) + investA;
+                const nwB = (balance - balB) + investB;
+
+                netWorthInvest.push(nwA);
+                netWorthPayoff.push(nwB);
+                balanceBase.push(Math.max(0, balBase));
+                balanceAccel.push(Math.max(0, balB));
+                investmentValues.push(investA);
+
+                amortRows.push({
+                    year: year,
+                    balBase: Math.max(0, balBase),
+                    balAccel: Math.max(0, balB),
+                    invest: investA,
+                    nwPayoff: nwB,
+                    nwInvest: nwA
+                });
+
+                if (year === years) break;
+
+                // Monthly loop for this year
+                for (let m = 0; m < 12; m++) {
+                    // --- Base balance (no surplus) ---
+                    if (balBase > 0) {
+                        const intBase = balBase * mRate / 12;
+                        totalInterestBase += intBase;
+                        const princBase = Math.min(monthlyPmt - intBase, balBase);
+                        balBase = Math.max(0, balBase - princBase);
+                    }
+
+                    // --- Strategy A: Pay minimum mortgage, invest surplus ---
+                    if (balA > 0) {
+                        const intA = balA * mRate / 12;
+                        const princA = Math.min(monthlyPmt - intA, balA);
+                        balA = Math.max(0, balA - princA);
+                    }
+                    // Invest the surplus
+                    investA = investA * (1 + iRate / 12) + surplus;
+
+                    // --- Strategy B: Put surplus on mortgage first ---
+                    if (balB > 0) {
+                        const intB = balB * mRate / 12;
+                        totalInterestAccel += intB;
+                        const totalPmtB = monthlyPmt + surplus;
+                        const princB = Math.min(totalPmtB - intB, balB);
+                        balB = Math.max(0, balB - princB);
+
+                        if (balB === 0 && !balBPaidOff) {
+                            balBPaidOff = true;
+                            balBPaidOffMonth = year * 12 + m + 1;
+                        }
+                    } else {
+                        // Mortgage paid off: invest both the old payment + surplus
+                        investB = investB * (1 + iRate / 12) + monthlyPmt + surplus;
+                    }
+                }
+            }
+
+            const interestSaved = totalInterestBase - totalInterestAccel;
+            const yearsAccel = balBPaidOff ? (totalMonths - balBPaidOffMonth) / 12 : 0;
+
+            // Final values
+            const finalNwInvest = netWorthInvest[netWorthInvest.length - 1];
+            const finalNwPayoff = netWorthPayoff[netWorthPayoff.length - 1];
+            const diff = finalNwInvest - finalNwPayoff;
+
+            // Store for chart switching
+            simData = {
+                labels, netWorthInvest, netWorthPayoff,
+                balanceBase, balanceAccel, investmentValues,
+                amortRows
+            };
+
+            // Update display
+            document.getElementById('monthlyPayment').innerText = fmt.format(monthlyPmt);
+            document.getElementById('totalInterestBase').innerText = fmt.format(totalInterestBase);
+            document.getElementById('interestSaved').innerText = fmt.format(interestSaved);
+
+            const lang = document.documentElement.lang || 'fr';
+
+            const yearsAccelEl = document.getElementById('yearsAccelerated');
+            if (balBPaidOff) {
+                const yrs = Math.floor(yearsAccel);
+                const mos = Math.round((yearsAccel - yrs) * 12);
+                if (lang === 'en') {
+                    yearsAccelEl.innerText = `Mortgage paid off ${yrs} yr${yrs !== 1 ? 's' : ''} ${mos} mo earlier`;
+                } else {
+                    yearsAccelEl.innerText = `Hypothèque remboursée ${yrs} an${yrs !== 1 ? 's' : ''} ${mos} mois plus tôt`;
+                }
+            } else {
+                yearsAccelEl.innerText = '';
+            }
+
+            document.getElementById('portfolioValue').innerText = fmt.format(investA);
+            const totalContrib = surplus * totalMonths;
+            const gain = investA - totalContrib;
+            document.getElementById('portfolioGain').innerText = (gain >= 0 ? '+' : '') + fmt.format(gain) + (lang === 'en' ? ' in returns' : ' en rendement');
+
+            // Winner
+            const el = document.getElementById('winnerDisplay');
+            if (diff > 0) {
+                if (lang === 'en') {
+                    el.innerText = `Investing gives you ${fmt.format(diff)} more in net worth after ${years} years.`;
+                } else {
+                    el.innerText = `Investir vous donne ${fmt.format(diff)} de plus en valeur nette après ${years} ans.`;
+                }
+                el.style.borderColor = '#C6AC8F';
+                el.style.color = '#C6AC8F';
+            } else if (diff < 0) {
+                if (lang === 'en') {
+                    el.innerText = `Paying off the mortgage gives you ${fmt.format(Math.abs(diff))} more in net worth after ${years} years.`;
+                } else {
+                    el.innerText = `Rembourser l'hypothèque vous donne ${fmt.format(Math.abs(diff))} de plus en valeur nette après ${years} ans.`;
+                }
+                el.style.borderColor = '#51cf66';
+                el.style.color = '#51cf66';
+            } else {
+                el.innerText = lang === 'en' ? 'Both strategies are equivalent.' : 'Les deux stratégies sont équivalentes.';
+                el.style.borderColor = 'var(--c-gold)';
+                el.style.color = 'var(--c-gold)';
+            }
+
+            // Show elements
+            document.getElementById('resultsGrid').style.display = 'grid';
+            document.getElementById('winnerDisplay').style.display = 'block';
+            document.getElementById('tableDivider').style.display = 'block';
+            document.getElementById('tableTitle').style.display = 'block';
+            document.getElementById('amortWrap').style.display = 'block';
+
+            // Build amortization table
+            const tbody = document.getElementById('amortBody');
+            tbody.innerHTML = '';
+            for (const row of amortRows) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.year}</td>
+                    <td>${fmt.format(row.balBase)}</td>
+                    <td>${fmt.format(row.balAccel)}</td>
+                    <td>${fmt.format(row.invest)}</td>
+                    <td>${fmt.format(row.nwPayoff)}</td>
+                    <td>${fmt.format(row.nwInvest)}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            // Draw chart
+            drawChart(currentChart);
+        }
+
+        function drawChart(type) {
+            if (!simData) return;
+
+            const ctx = document.getElementById('simChart').getContext('2d');
+            if (chartNet) { chartNet.destroy(); chartNet = null; }
+
+            if (type === 'net') {
+                chartNet = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: simData.labels,
+                        datasets: [
+                            {
+                                label: 'Investir (VN)',
+                                data: simData.netWorthInvest,
+                                borderColor: '#C6AC8F',
+                                backgroundColor: 'rgba(198, 172, 143, 0.1)',
+                                fill: true,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'Rembourser (VN)',
+                                data: simData.netWorthPayoff,
+                                borderColor: '#51cf66',
+                                backgroundColor: 'rgba(81, 207, 102, 0.05)',
+                                fill: true,
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    color: '#EAE0D5',
+                                    callback: function (v) { return fmt.format(v); }
+                                },
+                                grid: { color: 'rgba(255,255,255,0.05)' }
+                            },
+                            x: {
+                                ticks: { color: '#EAE0D5' },
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                title: { display: true, text: 'Années', color: '#EAE0D5' }
+                            }
+                        },
+                        plugins: {
+                            legend: { labels: { color: '#EAE0D5' } },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) { return ctx.dataset.label + ': ' + fmt.format(ctx.parsed.y); }
+                                }
+                            }
+                        }
+                    }
+                });
+            } else {
+                chartNet = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: simData.labels,
+                        datasets: [
+                            {
+                                label: 'Solde hypothécaire (sans surplus)',
+                                data: simData.balanceBase,
+                                borderColor: '#ff6b6b',
+                                borderDash: [5, 5],
+                                fill: false,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'Solde hypothécaire (avec surplus)',
+                                data: simData.balanceAccel,
+                                borderColor: '#51cf66',
+                                fill: false,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'Portefeuille d\'investissement',
+                                data: simData.investmentValues,
+                                borderColor: '#C6AC8F',
+                                backgroundColor: 'rgba(198, 172, 143, 0.1)',
+                                fill: true,
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    color: '#EAE0D5',
+                                    callback: function (v) { return fmt.format(v); }
+                                },
+                                grid: { color: 'rgba(255,255,255,0.05)' }
+                            },
+                            x: {
+                                ticks: { color: '#EAE0D5' },
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                title: { display: true, text: 'Années', color: '#EAE0D5' }
+                            }
+                        },
+                        plugins: {
+                            legend: { labels: { color: '#EAE0D5' } },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) { return ctx.dataset.label + ': ' + fmt.format(ctx.parsed.y); }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function switchChart(type) {
+            currentChart = type;
+            document.getElementById('tabNet').classList.toggle('active', type === 'net');
+            document.getElementById('tabBreakdown').classList.toggle('active', type === 'breakdown');
+            drawChart(type);
+        }
+
+        document.addEventListener('DOMContentLoaded', calculateSim);
+    </script>
+</body>
+
+</html>
