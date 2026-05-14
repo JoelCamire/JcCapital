@@ -2,5 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /construction/
 Disallow: /LM/
+Disallow: /README.md
+Disallow: /improvement.md
 
 Sitemap: https://jccapital.ca/sitemap.xml
