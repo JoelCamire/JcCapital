@@ -1,8 +1,84 @@
+# JC Capital — robots.txt
+# Cabinet de services financiers, fiscaux et assurance à Québec
+# https://jccapital.ca
+
+# Default: allow all crawlers
 User-agent: *
 Allow: /
 Disallow: /construction/
 Disallow: /LM/
 Disallow: /README.md
 Disallow: /improvement.md
+Disallow: /.preview_screenshots/
+Disallow: /.claude/
+
+# Explicit allow for major AI crawlers (search + content discovery)
+User-agent: GPTBot
+Allow: /
+Disallow: /construction/
+Disallow: /LM/
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /construction/
+Disallow: /LM/
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: GoogleOther
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Yandex
+Allow: /
 
 Sitemap: https://jccapital.ca/sitemap.xml
+Host: https://jccapital.ca
