@@ -1,0 +1,409 @@
+<!--
+  ============================================================================
+  TEMPLATE — Article de blog JC Capital
+  ----------------------------------------------------------------------------
+  Pour créer un nouvel article :
+    1. Copier ce fichier vers blog/<slug>.html
+    2. Remplacer toutes les balises {{ ... }} par le contenu désiré
+    3. Mettre à jour le JSON-LD (titre, description, datePublished, dateModified)
+    4. Ajouter une carte d'aperçu dans blog/index.html
+    5. Ajouter l'URL dans sitemap.xml
+  ============================================================================
+-->
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{TITRE_ARTICLE}} – JC Capital</title>
+    <meta name="description" content="{{META_DESCRIPTION_155-160_CARACTERES}}" />
+    <meta name="keywords" content="{{MOTS-CLES}}" />
+    <meta name="author" content="Joël Camiré — JC Capital">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../img/2nd_logo.png">
+    <link rel="apple-touch-icon" href="../img/2nd_logo.png">
+
+    <!-- Canonical & Hreflang -->
+    <link rel="canonical" href="https://jccapital.ca/blog/{{SLUG}}.html">
+    <link rel="alternate" hreflang="fr" href="https://jccapital.ca/blog/{{SLUG}}.html" />
+    <link rel="alternate" hreflang="en" href="https://jccapital.ca/blog/{{SLUG}}.html?lang=en" />
+    <link rel="alternate" hreflang="x-default" href="https://jccapital.ca/blog/{{SLUG}}.html" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="{{TITRE_ARTICLE}}">
+    <meta property="og:description" content="{{META_DESCRIPTION_155-160_CARACTERES}}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://jccapital.ca/blog/{{SLUG}}.html">
+    <meta property="og:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <meta property="og:locale" content="fr_CA">
+    <meta property="og:site_name" content="JC Capital">
+    <meta property="article:published_time" content="2026-05-21">
+    <meta property="article:author" content="Joël Camiré">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{TITRE_ARTICLE}}">
+    <meta name="twitter:description" content="{{META_DESCRIPTION_155-160_CARACTERES}}">
+    <meta name="twitter:image" content="https://jccapital.ca/img/2nd_logo.png">
+
+    <!-- Schema.org BlogPosting JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "@id": "https://jccapital.ca/blog/{{SLUG}}.html#article",
+      "headline": "{{TITRE_ARTICLE}}",
+      "description": "{{META_DESCRIPTION_155-160_CARACTERES}}",
+      "datePublished": "2026-05-21",
+      "dateModified": "2026-05-21",
+      "inLanguage": "fr-CA",
+      "url": "https://jccapital.ca/blog/{{SLUG}}.html",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://jccapital.ca/blog/{{SLUG}}.html"
+      },
+      "image": {
+        "@type": "ImageObject",
+        "url": "https://jccapital.ca/img/2nd_logo.png",
+        "width": 1200,
+        "height": 630
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Joël Camiré",
+        "jobTitle": "Conseiller en sécurité financière",
+        "url": "https://jccapital.ca/pages/team.html",
+        "worksFor": {
+          "@type": "Organization",
+          "name": "JC Capital",
+          "url": "https://jccapital.ca"
+        }
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "JC Capital",
+        "url": "https://jccapital.ca",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://jccapital.ca/img/2nd_logo.png",
+          "width": 600,
+          "height": 600
+        }
+      }
+    }
+    </script>
+
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/_tokens.css">
+    <link rel="stylesheet" href="../css/style.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script src="../js/translations.js"></script>
+
+    <!-- Blog-aware component loader -->
+    <script>
+        (function () {
+            async function loadBlogComponent(componentPath, targetId) {
+                try {
+                    const response = await fetch('../' + componentPath);
+                    if (!response.ok) throw new Error('Failed to load ' + componentPath);
+                    let html = await response.text();
+                    html = html.replace(/href="index\.html/g, 'href="../index.html');
+                    html = html.replace(/href="pages\//g, 'href="../pages/');
+                    html = html.replace(/href="blog\//g, 'href="');
+                    html = html.replace(/src="img\//g, 'src="../img/');
+                    const target = document.getElementById(targetId);
+                    if (target) target.innerHTML = html;
+                } catch (e) {
+                    console.error('Blog component error:', e);
+                }
+            }
+            document.addEventListener('DOMContentLoaded', async () => {
+                await loadBlogComponent('components/header.html', 'header-placeholder');
+                await loadBlogComponent('components/footer.html', 'footer-placeholder');
+                if (typeof initBackToTop === 'function') initBackToTop();
+                const savedLang = localStorage.getItem('jc_pref_lang');
+                if (savedLang === 'en' && document.documentElement.lang === 'fr') {
+                    if (typeof window.toggleLanguage === 'function') window.toggleLanguage();
+                }
+            });
+        })();
+    </script>
+
+    <script defer src="../js/components.js"></script>
+
+    <style>
+        .article-hero {
+            padding: 140px 5% 40px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(34, 51, 59, 0.5) 0%, transparent 100%);
+        }
+
+        .article-breadcrumb {
+            font-size: 0.9rem;
+            color: var(--c-brown);
+            margin-bottom: 1rem;
+        }
+
+        .article-breadcrumb a {
+            color: var(--c-gold);
+            text-decoration: none;
+        }
+
+        .article-breadcrumb a:hover { text-decoration: underline; }
+
+        .article-tag {
+            display: inline-block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--c-gold);
+            background: rgba(198, 172, 143, 0.1);
+            border: 1px solid rgba(198, 172, 143, 0.3);
+            padding: 5px 14px;
+            border-radius: 20px;
+            margin-bottom: 1.25rem;
+            font-weight: 600;
+        }
+
+        .article-hero h1 {
+            font-size: clamp(1.8rem, 4vw, 2.75rem);
+            color: var(--c-light-beige);
+            font-weight: 700;
+            line-height: 1.25;
+            max-width: 920px;
+            margin: 0 auto 1.25rem;
+            letter-spacing: -0.01em;
+        }
+
+        .article-meta {
+            color: var(--c-brown);
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .article-meta strong { color: var(--c-gold); font-weight: 600; }
+
+        .article-content {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 2rem 5% 4rem;
+            color: var(--c-light-beige);
+            line-height: 1.8;
+            font-size: 1.075rem;
+        }
+
+        .article-content h2 {
+            color: var(--c-gold);
+            font-size: 1.7rem;
+            margin: 2.5rem 0 1rem;
+            font-weight: 700;
+            letter-spacing: -0.005em;
+        }
+
+        .article-content h3 {
+            color: var(--c-light-beige);
+            font-size: 1.25rem;
+            margin: 1.75rem 0 0.75rem;
+            font-weight: 600;
+        }
+
+        .article-content p { margin-bottom: 1.25rem; }
+
+        .article-content ul, .article-content ol {
+            margin: 1rem 0 1.5rem 1.5rem;
+        }
+
+        .article-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .article-content strong { color: var(--c-gold); font-weight: 600; }
+
+        .article-content a {
+            color: var(--c-gold);
+            text-decoration: underline;
+            text-decoration-color: rgba(198, 172, 143, 0.4);
+        }
+
+        .article-content a:hover {
+            text-decoration-color: var(--c-gold);
+        }
+
+        .callout {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-left: 4px solid var(--c-gold);
+            padding: 1.25rem 1.5rem;
+            border-radius: 10px;
+            margin: 2rem 0;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .callout h4 {
+            color: var(--c-gold);
+            font-size: 1.05rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .callout p:last-child { margin-bottom: 0; }
+
+        .callout.warning {
+            border-left-color: #e9a23b;
+        }
+
+        .callout.warning h4 { color: #e9a23b; }
+
+        .article-cta {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 2.5rem 2rem;
+            margin: 3rem 0 2rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .article-cta h3 {
+            color: var(--c-gold);
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .article-cta p {
+            color: var(--c-light-beige);
+            margin-bottom: 1.5rem;
+        }
+
+        .article-cta .btn-primary {
+            display: inline-block;
+            background: var(--c-gold);
+            color: var(--c-dark-blue);
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+
+        .article-cta .btn-primary:hover { transform: scale(1.04); }
+
+        .article-disclaimer {
+            font-size: 0.85rem;
+            color: var(--c-brown);
+            border-top: 1px solid rgba(94, 80, 63, 0.4);
+            padding-top: 1.5rem;
+            margin-top: 2rem;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        .article-back {
+            display: inline-block;
+            color: var(--c-gold);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .article-back:hover { transform: translateX(-3px); }
+
+        .table-comparison {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--glass-bg);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table-comparison th,
+        .table-comparison td {
+            padding: 0.85rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(94, 80, 63, 0.3);
+        }
+
+        .table-comparison th {
+            background: rgba(94, 80, 63, 0.3);
+            color: var(--c-gold);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .table-comparison td { font-size: 0.95rem; }
+    </style>
+</head>
+
+<body>
+    <div id="header-placeholder"></div>
+
+    <section class="article-hero">
+        <div class="article-breadcrumb">
+            <a href="../index.html" data-fr="Accueil" data-en="Home">Accueil</a> ›
+            <a href="index.html" data-fr="Blog" data-en="Blog">Blog</a>
+        </div>
+        <span class="article-tag" data-fr="{{TAG_FR}}" data-en="{{TAG_EN}}">{{TAG_FR}}</span>
+        <h1 data-fr="{{TITRE_FR}}" data-en="{{TITRE_EN}}">{{TITRE_FR}}</h1>
+        <div class="article-meta">
+            <span><strong data-fr="Par" data-en="By">Par</strong> Joël Camiré</span>
+            <span data-fr="Publié le 21 mai 2026" data-en="Published May 21, 2026">Publié le 21 mai 2026</span>
+            <span data-fr="{{LECTURE_MIN}} min de lecture" data-en="{{LECTURE_MIN}} min read">{{LECTURE_MIN}} min de lecture</span>
+        </div>
+    </section>
+
+    <main class="article-content">
+        <a href="index.html" class="article-back" data-fr="← Retour au blog" data-en="← Back to blog">← Retour au blog</a>
+
+        <!-- ==================== CORPS DE L'ARTICLE ==================== -->
+        <p data-fr="{{INTRO_FR}}" data-en="{{INTRO_EN}}">{{INTRO_FR}}</p>
+
+        <h2 data-fr="{{H2_1_FR}}" data-en="{{H2_1_EN}}">{{H2_1_FR}}</h2>
+        <p>...</p>
+        <!-- ============================================================ -->
+
+        <!-- CTA -->
+        <div class="article-cta">
+            <h3 data-fr="Discutez de votre situation avec Joël"
+                data-en="Discuss your situation with Joël">Discutez de votre situation avec Joël</h3>
+            <p data-fr="Une analyse personnalisée vaut mieux qu'un article général. Réservez 60 minutes avec Joël Camiré, conseiller en sécurité financière inscrit à l'AMF."
+                data-en="A personalized analysis is worth more than a general article. Book 60 minutes with Joël Camiré, financial security advisor registered with the AMF.">
+                Une analyse personnalisée vaut mieux qu'un article général. Réservez 60 minutes avec Joël Camiré,
+                conseiller en sécurité financière inscrit à l'AMF.
+            </p>
+            <a href="https://calendly.com/joelcamire-jccapital/consultation" target="_blank" rel="noopener"
+                class="btn-primary">
+                <span data-fr="Réserver une consultation" data-en="Book a consultation">Réserver une consultation</span>
+            </a>
+        </div>
+
+        <!-- Disclaimer -->
+        <p class="article-disclaimer"
+            data-fr="Cet article est à titre informatif et ne constitue pas un conseil financier personnalisé. Consultez un professionnel inscrit pour votre situation."
+            data-en="This article is for informational purposes only and does not constitute personalized financial advice. Consult a registered professional for your situation.">
+            Cet article est à titre informatif et ne constitue pas un conseil financier personnalisé. Consultez un
+            professionnel inscrit pour votre situation.
+        </p>
+    </main>
+
+    <div id="footer-placeholder"></div>
+</body>
+
+</html>

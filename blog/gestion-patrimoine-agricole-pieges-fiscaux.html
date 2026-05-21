@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestion de patrimoine agricole : les pièges fiscaux à éviter – JC Capital</title>
+    <meta name="description"
+        content="Gestion de patrimoine agricole au Québec : DGC majorée, transfert intergénérationnel, société agricole, risques d'audit et pièges fiscaux à éviter." />
+    <meta name="keywords"
+        content="patrimoine agricole Québec, fiscalité ferme, DGC bien agricole, transfert intergénérationnel ferme, société agricole, audit ARC agriculture, planification successorale agricole" />
+    <meta name="author" content="Joël Camiré — JC Capital">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+
+    <link rel="icon" type="image/png" href="../img/2nd_logo.png">
+    <link rel="apple-touch-icon" href="../img/2nd_logo.png">
+
+    <link rel="canonical" href="https://jccapital.ca/blog/gestion-patrimoine-agricole-pieges-fiscaux.html">
+    <link rel="alternate" hreflang="fr"
+        href="https://jccapital.ca/blog/gestion-patrimoine-agricole-pieges-fiscaux.html" />
+    <link rel="alternate" hreflang="en"
+        href="https://jccapital.ca/blog/gestion-patrimoine-agricole-pieges-fiscaux.html?lang=en" />
+    <link rel="alternate" hreflang="x-default"
+        href="https://jccapital.ca/blog/gestion-patrimoine-agricole-pieges-fiscaux.html" />
+
+    <meta property="og:title" content="Gestion de patrimoine agricole : les pièges fiscaux à éviter">
+    <meta property="og:description"
+        content="DGC majorée, transfert intergénérationnel, société agricole, audit ARC : les pièges fiscaux à éviter en patrimoine agricole.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://jccapital.ca/blog/gestion-patrimoine-agricole-pieges-fiscaux.html">
+    <meta property="og:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <meta property="og:locale" content="fr_CA">
+    <meta property="og:site_name" content="JC Capital">
+    <meta property="article:published_time" content="2026-05-21">
+    <meta property="article:author" content="Joël Camiré">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Gestion de patrimoine agricole : les pièges fiscaux à éviter">
+    <meta name="twitter:description"
+        content="DGC majorée, transfert ferme, audits ARC : pièges fiscaux à éviter en patrimoine agricole québécois.">
+    <meta name="twitter:image" content="https://jccapital.ca/img/2nd_logo.png">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "@id": "https://jccapital.ca/blog/gestion-patrimoine-agricole-pieges-fiscaux.html#article",
+      "headline": "Gestion de patrimoine agricole : les pièges fiscaux à éviter",
+      "description": "Gestion de patrimoine agricole au Québec : DGC majorée, transfert intergénérationnel, société agricole, risques d'audit et pièges fiscaux à éviter.",
+      "datePublished": "2026-05-21",
+      "dateModified": "2026-05-21",
+      "inLanguage": "fr-CA",
+      "url": "https://jccapital.ca/blog/gestion-patrimoine-agricole-pieges-fiscaux.html",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://jccapital.ca/blog/gestion-patrimoine-agricole-pieges-fiscaux.html"
+      },
+      "image": {
+        "@type": "ImageObject",
+        "url": "https://jccapital.ca/img/2nd_logo.png",
+        "width": 1200,
+        "height": 630
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Joël Camiré",
+        "jobTitle": "Conseiller en sécurité financière",
+        "url": "https://jccapital.ca/pages/team.html",
+        "worksFor": {
+          "@type": "Organization",
+          "name": "JC Capital",
+          "url": "https://jccapital.ca"
+        }
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "JC Capital",
+        "url": "https://jccapital.ca",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://jccapital.ca/img/2nd_logo.png",
+          "width": 600,
+          "height": 600
+        }
+      },
+      "about": [
+        {"@type": "Thing", "name": "Patrimoine agricole"},
+        {"@type": "Thing", "name": "Fiscalité agricole"},
+        {"@type": "Thing", "name": "Transfert intergénérationnel"}
+      ]
+    }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/_tokens.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script src="../js/translations.js"></script>
+
+    <script>
+        (function () {
+            async function loadBlogComponent(componentPath, targetId) {
+                try {
+                    const response = await fetch('../' + componentPath);
+                    if (!response.ok) throw new Error('Failed to load ' + componentPath);
+                    let html = await response.text();
+                    html = html.replace(/href="index\.html/g, 'href="../index.html');
+                    html = html.replace(/href="pages\//g, 'href="../pages/');
+                    html = html.replace(/href="blog\//g, 'href="');
+                    html = html.replace(/src="img\//g, 'src="../img/');
+                    const target = document.getElementById(targetId);
+                    if (target) target.innerHTML = html;
+                } catch (e) { console.error('Blog component error:', e); }
+            }
+            document.addEventListener('DOMContentLoaded', async () => {
+                await loadBlogComponent('components/header.html', 'header-placeholder');
+                await loadBlogComponent('components/footer.html', 'footer-placeholder');
+                if (typeof initBackToTop === 'function') initBackToTop();
+                const savedLang = localStorage.getItem('jc_pref_lang');
+                if (savedLang === 'en' && document.documentElement.lang === 'fr') {
+                    if (typeof window.toggleLanguage === 'function') window.toggleLanguage();
+                }
+            });
+        })();
+    </script>
+
+    <script defer src="../js/components.js"></script>
+
+    <style>
+        .article-hero { padding: 140px 5% 40px; text-align: center; background: linear-gradient(180deg, rgba(34,51,59,0.5) 0%, transparent 100%); }
+        .article-breadcrumb { font-size: 0.9rem; color: var(--c-brown); margin-bottom: 1rem; }
+        .article-breadcrumb a { color: var(--c-gold); text-decoration: none; }
+        .article-breadcrumb a:hover { text-decoration: underline; }
+        .article-tag { display: inline-block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-gold); background: rgba(198,172,143,0.1); border: 1px solid rgba(198,172,143,0.3); padding: 5px 14px; border-radius: 20px; margin-bottom: 1.25rem; font-weight: 600; }
+        .article-hero h1 { font-size: clamp(1.8rem, 4vw, 2.75rem); color: var(--c-light-beige); font-weight: 700; line-height: 1.25; max-width: 920px; margin: 0 auto 1.25rem; letter-spacing: -0.01em; }
+        .article-meta { color: var(--c-brown); font-size: 0.95rem; display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
+        .article-meta strong { color: var(--c-gold); font-weight: 600; }
+        .article-content { max-width: 780px; margin: 0 auto; padding: 2rem 5% 4rem; color: var(--c-light-beige); line-height: 1.8; font-size: 1.075rem; }
+        .article-content h2 { color: var(--c-gold); font-size: 1.7rem; margin: 2.5rem 0 1rem; font-weight: 700; }
+        .article-content h3 { color: var(--c-light-beige); font-size: 1.25rem; margin: 1.75rem 0 0.75rem; font-weight: 600; }
+        .article-content p { margin-bottom: 1.25rem; }
+        .article-content ul, .article-content ol { margin: 1rem 0 1.5rem 1.5rem; }
+        .article-content li { margin-bottom: 0.5rem; }
+        .article-content strong { color: var(--c-gold); font-weight: 600; }
+        .article-content a { color: var(--c-gold); text-decoration: underline; text-decoration-color: rgba(198,172,143,0.4); }
+        .article-content a:hover { text-decoration-color: var(--c-gold); }
+        .callout { background: var(--glass-bg); border: 1px solid var(--glass-border); border-left: 4px solid var(--c-gold); padding: 1.25rem 1.5rem; border-radius: 10px; margin: 2rem 0; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+        .callout h4 { color: var(--c-gold); font-size: 1.05rem; margin-bottom: 0.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .callout p:last-child { margin-bottom: 0; }
+        .callout.warning { border-left-color: #e9a23b; }
+        .callout.warning h4 { color: #e9a23b; }
+        .article-cta { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 15px; padding: 2.5rem 2rem; margin: 3rem 0 2rem; text-align: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .article-cta h3 { color: var(--c-gold); font-size: 1.5rem; margin-bottom: 0.75rem; }
+        .article-cta p { color: var(--c-light-beige); margin-bottom: 1.5rem; }
+        .article-cta .btn-primary { display: inline-block; background: var(--c-gold); color: var(--c-dark-blue); padding: 14px 32px; border-radius: 8px; font-weight: 700; text-decoration: none; transition: transform 0.2s; }
+        .article-cta .btn-primary:hover { transform: scale(1.04); }
+        .article-disclaimer { font-size: 0.85rem; color: var(--c-brown); border-top: 1px solid rgba(94,80,63,0.4); padding-top: 1.5rem; margin-top: 2rem; line-height: 1.6; font-style: italic; }
+        .article-back { display: inline-block; color: var(--c-gold); text-decoration: none; margin-bottom: 2rem; font-weight: 600; }
+        .table-comparison { width: 100%; border-collapse: collapse; margin: 1.5rem 0; background: var(--glass-bg); border-radius: 10px; overflow: hidden; }
+        .table-comparison th, .table-comparison td { padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid rgba(94,80,63,0.3); }
+        .table-comparison th { background: rgba(94,80,63,0.3); color: var(--c-gold); font-weight: 600; font-size: 0.95rem; }
+        .table-comparison td { font-size: 0.95rem; }
+    </style>
+</head>
+
+<body>
+    <div id="header-placeholder"></div>
+
+    <section class="article-hero">
+        <div class="article-breadcrumb">
+            <a href="../index.html" data-fr="Accueil" data-en="Home">Accueil</a> ›
+            <a href="index.html" data-fr="Blog" data-en="Blog">Blog</a>
+        </div>
+        <span class="article-tag" data-fr="Patrimoine agricole" data-en="Farm wealth">Patrimoine agricole</span>
+        <h1 data-fr="Gestion de patrimoine agricole : les pièges fiscaux à éviter"
+            data-en="Farm wealth management: the tax pitfalls to avoid">
+            Gestion de patrimoine agricole : les pièges fiscaux à éviter
+        </h1>
+        <div class="article-meta">
+            <span><strong data-fr="Par" data-en="By">Par</strong> Joël Camiré</span>
+            <span data-fr="Publié le 21 mai 2026" data-en="Published May 21, 2026">Publié le 21 mai 2026</span>
+            <span data-fr="10 min de lecture" data-en="10 min read">10 min de lecture</span>
+        </div>
+    </section>
+
+    <main class="article-content">
+        <a href="index.html" class="article-back" data-fr="← Retour au blog" data-en="← Back to blog">← Retour au blog</a>
+
+        <p data-fr="Au Québec, le patrimoine agricole est un univers à part. Les règles fiscales y sont à la fois plus généreuses qu'ailleurs — pensez à la déduction pour gain en capital majorée — et plus complexes, avec des critères stricts d'admissibilité et un historique de transactions parfois étendu sur plusieurs décennies. Une décision mal documentée aujourd'hui peut coûter des centaines de milliers de dollars lors du transfert ou de la vente."
+            data-en="In Quebec, farm wealth is a world of its own. Tax rules there are both more generous than elsewhere — think of the enhanced capital gains deduction — and more complex, with strict eligibility criteria and a transaction history sometimes spanning several decades. A poorly documented decision today can cost hundreds of thousands of dollars when transferring or selling.">
+            Au Québec, le patrimoine agricole est un univers à part. Les règles fiscales y sont à la fois plus généreuses
+            qu'ailleurs — pensez à la déduction pour gain en capital majorée — et plus complexes, avec des critères
+            stricts d'admissibilité et un historique de transactions parfois étendu sur plusieurs décennies. Une décision
+            mal documentée aujourd'hui peut coûter des centaines de milliers de dollars lors du transfert ou de la vente.
+        </p>
+
+        <p data-fr="Cet article passe en revue les pièges fiscaux les plus fréquents en gestion de patrimoine agricole québécois, de la qualification du bien agricole admissible (BAA) jusqu'aux risques d'audit, en passant par le transfert intergénérationnel et le choix de la structure juridique."
+            data-en="This article reviews the most common tax pitfalls in Quebec farm wealth management, from qualified farm property (QFP) status to audit risks, through intergenerational transfer and choice of legal structure.">
+            Cet article passe en revue les pièges fiscaux les plus fréquents en gestion de patrimoine agricole québécois,
+            de la qualification du bien agricole admissible (BAA) jusqu'aux risques d'audit, en passant par le transfert
+            intergénérationnel et le choix de la structure juridique.
+        </p>
+
+        <h2 data-fr="Spécificités fiscales du milieu agricole"
+            data-en="Tax specifics of the farm sector">Spécificités fiscales du milieu agricole</h2>
+
+        <p data-fr="Le secteur agricole bénéficie de plusieurs traitements fiscaux particuliers que peu d'autres industries ont. C'est à la fois une force et un piège : les avantages existent, mais ils sont assortis de conditions précises qu'il faut respecter à la lettre."
+            data-en="The farm sector benefits from several specific tax treatments that few other industries enjoy. It's both a strength and a pitfall: the advantages exist, but they come with precise conditions that must be followed to the letter.">
+            Le secteur agricole bénéficie de plusieurs traitements fiscaux particuliers que peu d'autres industries ont.
+            C'est à la fois une force et un piège : les avantages existent, mais ils sont assortis de conditions précises
+            qu'il faut respecter à la lettre.
+        </p>
+
+        <p>Parmi les particularités à connaître :</p>
+
+        <ul>
+            <li data-fr="<strong>Comptabilité de caisse</strong> : permise pour les entreprises agricoles, contrairement à la majorité des entreprises commerciales qui doivent utiliser la comptabilité d'exercice. Utile pour lisser les revenus d'une année à l'autre."
+                data-en="<strong>Cash accounting</strong>: permitted for farm businesses, unlike most commercial businesses which must use accrual accounting. Useful for smoothing income from year to year.">
+                <strong>Comptabilité de caisse</strong> : permise pour les entreprises agricoles, contrairement à la
+                majorité des entreprises commerciales qui doivent utiliser la comptabilité d'exercice. Utile pour lisser
+                les revenus d'une année à l'autre.</li>
+            <li data-fr="<strong>Réserve de stock optionnelle</strong> : il est possible de déduire la valeur de l'inventaire en fin d'année pour réduire le revenu imposable, et de le réintégrer l'année suivante."
+                data-en="<strong>Optional inventory reserve</strong>: it's possible to deduct year-end inventory value to reduce taxable income, and add it back the following year.">
+                <strong>Réserve de stock optionnelle</strong> : il est possible de déduire la valeur de l'inventaire en
+                fin d'année pour réduire le revenu imposable, et de le réintégrer l'année suivante.</li>
+            <li data-fr="<strong>Roulement libre d'impôt entre conjoints et à un enfant</strong> : transfert d'un bien agricole admissible à valeur fiscale, sans déclenchement immédiat de gain en capital."
+                data-en="<strong>Tax-free rollover between spouses and to a child</strong>: transfer of qualified farm property at tax cost, without immediate capital gain trigger.">
+                <strong>Roulement libre d'impôt entre conjoints et à un enfant</strong> : transfert d'un bien agricole
+                admissible à valeur fiscale, sans déclenchement immédiat de gain en capital.</li>
+            <li data-fr="<strong>Programmes agricoles</strong> : Agri-stabilité, Agri-investissement, ASRA — chacun avec ses propres règles fiscales d'inclusion."
+                data-en="<strong>Farm programs</strong>: AgriStability, AgriInvest, ASRA — each with its own tax inclusion rules.">
+                <strong>Programmes agricoles</strong> : Agri-stabilité, Agri-investissement, ASRA — chacun avec ses
+                propres règles fiscales d'inclusion.</li>
+        </ul>
+
+        <p data-fr="Le premier piège est de présumer qu'on a droit à tous ces avantages sans vérifier les conditions. Le statut « d'agriculteur » au sens fiscal ne se résume pas à posséder une ferme : il faut démontrer une activité commerciale réelle, avec une attente raisonnable de profit, et une participation active du propriétaire."
+            data-en="The first pitfall is assuming you're entitled to all these benefits without verifying the conditions. « Farmer » status in the tax sense isn't just owning a farm: you must demonstrate a real commercial activity, with a reasonable expectation of profit, and active participation by the owner.">
+            Le premier piège est de présumer qu'on a droit à tous ces avantages sans vérifier les conditions. Le statut
+            « d'agriculteur » au sens fiscal ne se résume pas à posséder une ferme : il faut démontrer une activité
+            commerciale réelle, avec une attente raisonnable de profit, et une participation active du propriétaire.
+        </p>
+
+        <h2 data-fr="DGC majorée pour bien agricole : un avantage majeur à protéger"
+            data-en="Enhanced capital gains deduction for farm property: a major advantage to protect">DGC majorée pour
+            bien agricole : un avantage majeur à protéger</h2>
+
+        <p data-fr="La déduction pour gain en capital (DGC) sur un bien agricole ou de pêche admissible est l'un des plus puissants outils fiscaux au Canada. En 2026, le plafond cumulatif atteint approximativement <strong>1 016 836 $</strong> par personne (chiffre indexé annuellement), et il est même majoré au-delà de ce seuil pour les biens agricoles dans certaines situations."
+            data-en="The capital gains deduction (CGD) on qualified farm or fishing property is one of the most powerful tax tools in Canada. In 2026, the cumulative limit reaches approximately <strong>$1,016,836</strong> per person (indexed annually), and it's even enhanced beyond this threshold for farm property in certain situations.">
+            La déduction pour gain en capital (DGC) sur un bien agricole ou de pêche admissible est l'un des plus
+            puissants outils fiscaux au Canada. En 2026, le plafond cumulatif atteint approximativement <strong>1 016
+                836 $</strong> par personne (chiffre indexé annuellement), et il est même majoré au-delà de ce seuil pour
+            les biens agricoles dans certaines situations.
+        </p>
+
+        <p data-fr="Pour y avoir droit, le bien doit être un <strong>bien agricole admissible (BAA)</strong>. Les critères sont stricts :"
+            data-en="To qualify, the property must be <strong>qualified farm property (QFP)</strong>. The criteria are strict:">
+            Pour y avoir droit, le bien doit être un <strong>bien agricole admissible (BAA)</strong>. Les critères sont
+            stricts :
+        </p>
+
+        <ul>
+            <li data-fr="Le bien doit être utilisé principalement dans une entreprise agricole exploitée activement par le contribuable, son conjoint, un parent ou un enfant."
+                data-en="The property must be used primarily in a farm business actively operated by the taxpayer, spouse, parent or child.">
+                Le bien doit être utilisé principalement dans une entreprise agricole exploitée activement par le
+                contribuable, son conjoint, un parent ou un enfant.</li>
+            <li data-fr="Le revenu brut de l'agriculture doit dépasser tous les autres revenus pour au moins 2 années avant la vente (test du « principalement »)."
+                data-en="Gross farm income must exceed all other income for at least 2 years before the sale (the « principally » test).">
+                Le revenu brut de l'agriculture doit dépasser tous les autres revenus pour au moins 2 années avant la
+                vente (test du « principalement »).</li>
+            <li data-fr="Pour les biens acquis après le 17 juin 1987, le bien doit être détenu depuis au moins 24 mois et avoir produit des revenus agricoles significatifs."
+                data-en="For property acquired after June 17, 1987, the property must be held for at least 24 months and have produced significant farm income.">
+                Pour les biens acquis après le 17 juin 1987, le bien doit être détenu depuis au moins 24 mois et avoir
+                produit des revenus agricoles significatifs.</li>
+        </ul>
+
+        <div class="callout warning">
+            <h4 data-fr="Piège classique : la location à un tiers"
+                data-en="Classic pitfall: leasing to a third party">Piège classique : la location à un tiers</h4>
+            <p data-fr="Beaucoup de propriétaires terriens louent leurs terres à un voisin agriculteur en pensant garder leur statut. Erreur fréquente : si vous ne participez pas activement à l'exploitation et que les revenus de location sont du revenu passif, votre terre risque de perdre sa qualification de BAA au sens du gain en capital. Le test d'utilisation active est crucial."
+                data-en="Many landowners lease their land to a neighbouring farmer thinking they retain their status. Common mistake: if you don't actively participate in the operation and rental income is passive income, your land risks losing its QFP qualification for capital gains. The active use test is crucial.">
+                Beaucoup de propriétaires terriens louent leurs terres à un voisin agriculteur en pensant garder leur
+                statut. Erreur fréquente : si vous ne participez pas activement à l'exploitation et que les revenus de
+                location sont du revenu passif, votre terre risque de perdre sa qualification de BAA au sens du gain en
+                capital. Le test d'utilisation active est crucial.
+            </p>
+        </div>
+
+        <h2 data-fr="Transfert intergénérationnel d'une ferme : un terrain miné"
+            data-en="Intergenerational transfer of a farm: a minefield">Transfert intergénérationnel d'une ferme : un
+            terrain miné</h2>
+
+        <p data-fr="Le transfert d'une ferme à la génération suivante est probablement la décision financière la plus importante d'une carrière agricole. Mal préparé, il peut générer un impôt de plusieurs centaines de milliers de dollars, des chicanes familiales et même la vente forcée d'une partie des actifs pour payer le fisc."
+            data-en="Transferring a farm to the next generation is probably the most important financial decision of a farming career. Poorly prepared, it can generate hundreds of thousands of dollars in tax, family disputes, and even forced sale of some assets to pay the tax authorities.">
+            Le transfert d'une ferme à la génération suivante est probablement la décision financière la plus importante
+            d'une carrière agricole. Mal préparé, il peut générer un impôt de plusieurs centaines de milliers de
+            dollars, des chicanes familiales et même la vente forcée d'une partie des actifs pour payer le fisc.
+        </p>
+
+        <p data-fr="Trois leviers à connaître pour un transfert intergénérationnel :"
+            data-en="Three levers to know for an intergenerational transfer:">Trois leviers à connaître pour un transfert
+            intergénérationnel :</p>
+
+        <h3 data-fr="1. Le roulement à un enfant (art. 73(3) LIR)"
+            data-en="1. Rollover to a child (s. 73(3) ITA)">1. Le roulement à un enfant (art. 73(3) LIR)</h3>
+        <p data-fr="Permet de transférer un bien agricole à un enfant à sa valeur fiscale (PBR), sans déclencher de gain en capital immédiat. L'enfant hérite du PBR du parent et reportera l'impôt à sa propre disposition future."
+            data-en="Allows transferring farm property to a child at tax cost (ACB), without triggering immediate capital gain. The child inherits the parent's ACB and will defer tax to their own future disposition.">
+            Permet de transférer un bien agricole à un enfant à sa valeur fiscale (PBR), sans déclencher de gain en
+            capital immédiat. L'enfant hérite du PBR du parent et reportera l'impôt à sa propre disposition future.
+        </p>
+
+        <h3 data-fr="2. La cristallisation de la DGC" data-en="2. Crystallizing the CGD">2. La cristallisation de la DGC
+        </h3>
+        <p data-fr="Avant de transférer, on peut volontairement déclencher un gain en capital pour utiliser la DGC du parent. Cela hausse le PBR du bien, ce qui réduit le gain imposable futur de l'enfant. Très utile lorsque la DGC du parent risque de ne jamais être utilisée autrement."
+            data-en="Before transferring, one can voluntarily trigger a capital gain to use the parent's CGD. This raises the property's ACB, reducing the child's future taxable gain. Very useful when the parent's CGD risks never being used otherwise.">
+            Avant de transférer, on peut volontairement déclencher un gain en capital pour utiliser la DGC du parent.
+            Cela hausse le PBR du bien, ce qui réduit le gain imposable futur de l'enfant. Très utile lorsque la DGC du
+            parent risque de ne jamais être utilisée autrement.
+        </p>
+
+        <h3 data-fr="3. La vente avec balance de prix de vente"
+            data-en="3. Sale with vendor financing">3. La vente avec balance de prix de vente</h3>
+        <p data-fr="Permet d'étaler le gain en capital sur jusqu'à 10 ans pour un transfert à un enfant. C'est une exception agricole majeure (les autres entreprises sont limitées à 5 ans), qui peut faire baisser significativement la facture fiscale annuelle du parent vendeur."
+            data-en="Allows spreading the capital gain over up to 10 years for transfer to a child. This is a major farm exception (other businesses are limited to 5 years), which can significantly lower the selling parent's annual tax bill.">
+            Permet d'étaler le gain en capital sur jusqu'à 10 ans pour un transfert à un enfant. C'est une exception
+            agricole majeure (les autres entreprises sont limitées à 5 ans), qui peut faire baisser significativement la
+            facture fiscale annuelle du parent vendeur.
+        </p>
+
+        <p data-fr="Le piège classique : choisir le mauvais outil parce qu'on n'a pas projeté les impôts sur 15-20 ans. Parfois, un roulement à PBR semble idéal mais transfère un fardeau fiscal massif à l'enfant. Parfois, déclencher volontairement un gain pour utiliser la DGC est gagnant. La réponse dépend des chiffres précis de votre dossier."
+            data-en="The classic pitfall: choosing the wrong tool because tax was not projected over 15-20 years. Sometimes, a rollover at ACB seems ideal but transfers a massive tax burden to the child. Sometimes, voluntarily triggering a gain to use the CGD is a winner. The answer depends on the precise numbers in your file.">
+            Le piège classique : choisir le mauvais outil parce qu'on n'a pas projeté les impôts sur 15-20 ans. Parfois,
+            un roulement à PBR semble idéal mais transfère un fardeau fiscal massif à l'enfant. Parfois, déclencher
+            volontairement un gain pour utiliser la DGC est gagnant. La réponse dépend des chiffres précis de votre
+            dossier.
+        </p>
+
+        <h2 data-fr="Sociétés agricoles vs propriété personnelle"
+            data-en="Farm corporations vs personal ownership">Sociétés agricoles vs propriété personnelle</h2>
+
+        <p data-fr="Beaucoup de fermes québécoises sont encore détenues en propriété personnelle ou via une société de personnes. Pourtant, l'incorporation en société par actions agricole est souvent extrêmement avantageuse, sans pour autant être systématiquement la bonne réponse."
+            data-en="Many Quebec farms are still held in personal ownership or via a partnership. Yet, incorporation into a farm corporation is often extremely advantageous, without being systematically the right answer.">
+            Beaucoup de fermes québécoises sont encore détenues en propriété personnelle ou via une société de personnes.
+            Pourtant, l'incorporation en société par actions agricole est souvent extrêmement avantageuse, sans pour
+            autant être systématiquement la bonne réponse.
+        </p>
+
+        <table class="table-comparison">
+            <thead>
+                <tr>
+                    <th data-fr="Critère" data-en="Criterion">Critère</th>
+                    <th data-fr="Personnel / société de personnes" data-en="Personal / partnership">Personnel / société
+                        de personnes</th>
+                    <th data-fr="Société par actions" data-en="Corporation">Société par actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td data-fr="Taux d'impôt sur le revenu d'entreprise"
+                        data-en="Business income tax rate">Taux d'impôt sur le revenu d'entreprise</td>
+                    <td>Marginal personnel (jusqu'à ~ 53 %)</td>
+                    <td>~ 12 % sur le 1<sup>er</sup> 500 000 $</td>
+                </tr>
+                <tr>
+                    <td data-fr="Protection patrimoine personnel"
+                        data-en="Personal asset protection">Protection patrimoine personnel</td>
+                    <td data-fr="Limitée" data-en="Limited">Limitée</td>
+                    <td data-fr="Bonne" data-en="Good">Bonne</td>
+                </tr>
+                <tr>
+                    <td data-fr="Multiplication de la DGC" data-en="Multiplying CGD">Multiplication de la DGC</td>
+                    <td data-fr="1 par conjoint" data-en="1 per spouse">1 par conjoint</td>
+                    <td data-fr="Possible via fiducie familiale" data-en="Possible via family trust">Possible via
+                        fiducie familiale</td>
+                </tr>
+                <tr>
+                    <td data-fr="Complexité administrative" data-en="Administrative complexity">Complexité
+                        administrative</td>
+                    <td data-fr="Faible" data-en="Low">Faible</td>
+                    <td data-fr="Élevée" data-en="High">Élevée</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p data-fr="Le piège : choisir l'incorporation pour les mauvaises raisons (parce qu'un voisin l'a fait) ou la rejeter par peur des frais (sans calculer le report d'impôt). Pour une ferme générant approximativement 200 000 $ et plus de profit net, l'incorporation devient presque toujours pertinente — mais le moment et la structure (avec ou sans fiducie, avec ou sans société de gestion) doivent être personnalisés."
+            data-en="The pitfall: choosing incorporation for the wrong reasons (because a neighbour did it) or rejecting it out of fear of fees (without calculating tax deferral). For a farm generating approximately $200,000 or more in net profit, incorporation almost always becomes relevant — but the timing and structure (with or without trust, with or without holding company) must be personalized.">
+            Le piège : choisir l'incorporation pour les mauvaises raisons (parce qu'un voisin l'a fait) ou la rejeter par
+            peur des frais (sans calculer le report d'impôt). Pour une ferme générant approximativement 200 000 $ et plus
+            de profit net, l'incorporation devient presque toujours pertinente — mais le moment et la structure (avec
+            ou sans fiducie, avec ou sans société de gestion) doivent être personnalisés.
+        </p>
+
+        <h2 data-fr="Régime de rentes ferme et fonds de retraite individuels"
+            data-en="Farm pension plan and individual pension funds">Régime de rentes ferme et fonds de retraite
+            individuels</h2>
+
+        <p data-fr="Plusieurs agriculteurs ignorent qu'ils peuvent mettre en place un <strong>régime de retraite individuel (RRI / IPP)</strong> au sein de leur société agricole incorporée. C'est souvent un complément stratégique au REER, particulièrement après 45 ans, lorsque les cotisations REER deviennent insuffisantes pour rattraper le revenu salarial."
+            data-en="Several farmers are unaware they can set up an <strong>individual pension plan (IPP)</strong> within their incorporated farm corporation. It's often a strategic complement to the RRSP, particularly after age 45, when RRSP contributions become insufficient to catch up with salary income.">
+            Plusieurs agriculteurs ignorent qu'ils peuvent mettre en place un <strong>régime de retraite individuel (RRI
+                / IPP)</strong> au sein de leur société agricole incorporée. C'est souvent un complément stratégique au
+            REER, particulièrement après 45 ans, lorsque les cotisations REER deviennent insuffisantes pour rattraper le
+            revenu salarial.
+        </p>
+
+        <p data-fr="Les avantages : cotisations déductibles pour la société (donc plus élevées qu'un REER personnel), rachat d'années de service passées, et possibilité d'intégrer la rente dans la planification successorale. Le piège : ces régimes ont des frais d'actuaire annuels et conviennent surtout aux propriétaires de société qui se versent un salaire significatif (idéalement plus de 100 000 $/an)."
+            data-en="The advantages: deductible contributions for the corporation (so higher than a personal RRSP), buyback of past service years, and ability to integrate the pension into estate planning. The pitfall: these plans have annual actuary fees and are mainly suited to corporation owners paying themselves a significant salary (ideally over $100K/year).">
+            Les avantages : cotisations déductibles pour la société (donc plus élevées qu'un REER personnel), rachat
+            d'années de service passées, et possibilité d'intégrer la rente dans la planification successorale. Le
+            piège : ces régimes ont des frais d'actuaire annuels et conviennent surtout aux propriétaires de société qui
+            se versent un salaire significatif (idéalement plus de 100 000 $/an).
+        </p>
+
+        <h2 data-fr="Risques d'audit ARC et Revenu Québec"
+            data-en="CRA and Revenu Québec audit risks">Risques d'audit ARC et Revenu Québec</h2>
+
+        <p data-fr="Le secteur agricole est sous surveillance accrue depuis plusieurs années. Les autorités fiscales ciblent particulièrement quatre angles :"
+            data-en="The farm sector has been under increased scrutiny for several years. Tax authorities particularly target four angles:">
+            Le secteur agricole est sous surveillance accrue depuis plusieurs années. Les autorités fiscales ciblent
+            particulièrement quatre angles :
+        </p>
+
+        <ul>
+            <li data-fr="<strong>Les pertes agricoles restreintes</strong> : si l'agriculture n'est pas votre source principale de revenu, vos pertes sont limitées à approximativement 17 500 $ par année. Les exploitations « passe-temps » sont régulièrement contestées."
+                data-en="<strong>Restricted farm losses</strong>: if farming isn't your main income source, your losses are limited to approximately $17,500 per year. « Hobby » operations are regularly challenged.">
+                <strong>Les pertes agricoles restreintes</strong> : si l'agriculture n'est pas votre source principale de
+                revenu, vos pertes sont limitées à approximativement 17 500 $ par année. Les exploitations « passe-temps »
+                sont régulièrement contestées.</li>
+            <li data-fr="<strong>L'admissibilité à la DGC</strong> : à la vente, le vérificateur va examiner en détail l'usage agricole réel sur toute la période de détention."
+                data-en="<strong>CGD eligibility</strong>: at sale, the auditor will examine in detail the actual farm use over the entire holding period.">
+                <strong>L'admissibilité à la DGC</strong> : à la vente, le vérificateur va examiner en détail l'usage
+                agricole réel sur toute la période de détention.</li>
+            <li data-fr="<strong>Les dépenses de véhicule et de carburant</strong> : la part personnelle vs ferme est l'une des cibles favorites, surtout pour les exploitations familiales."
+                data-en="<strong>Vehicle and fuel expenses</strong>: the personal vs farm portion is a favourite target, especially for family operations.">
+                <strong>Les dépenses de véhicule et de carburant</strong> : la part personnelle vs ferme est l'une des
+                cibles favorites, surtout pour les exploitations familiales.</li>
+            <li data-fr="<strong>Les avances aux actionnaires</strong> : si vous retirez de l'argent de la société sans déclarer un salaire ou un dividende, vous risquez une cotisation pour avantage à un actionnaire."
+                data-en="<strong>Shareholder advances</strong>: if you withdraw money from the corporation without declaring salary or dividend, you risk an assessment for shareholder benefit.">
+                <strong>Les avances aux actionnaires</strong> : si vous retirez de l'argent de la société sans déclarer
+                un salaire ou un dividende, vous risquez une cotisation pour avantage à un actionnaire.</li>
+        </ul>
+
+        <div class="callout">
+            <h4 data-fr="Documentation : votre meilleure défense"
+                data-en="Documentation: your best defence">Documentation : votre meilleure défense</h4>
+            <p data-fr="Tenez un registre détaillé de votre temps consacré à l'exploitation, conservez vos factures de carburant et de réparations avec les kilométrages, et documentez les motifs commerciaux derrière chaque dépense. En cas d'audit, c'est cette documentation qui fait la différence entre une cotisation acceptée et une cotisation contestée avec succès."
+                data-en="Keep a detailed log of your time spent on the operation, retain fuel and repair invoices with mileages, and document the commercial reasons behind each expense. In case of audit, this documentation is what makes the difference between an accepted assessment and one successfully challenged.">
+                Tenez un registre détaillé de votre temps consacré à l'exploitation, conservez vos factures de carburant
+                et de réparations avec les kilométrages, et documentez les motifs commerciaux derrière chaque dépense.
+                En cas d'audit, c'est cette documentation qui fait la différence entre une cotisation acceptée et une
+                cotisation contestée avec succès.
+            </p>
+        </div>
+
+        <h2 data-fr="Les pièges les plus fréquents en patrimoine agricole"
+            data-en="The most common pitfalls in farm wealth">Les pièges les plus fréquents en patrimoine agricole</h2>
+
+        <p data-fr="Pour résumer, voici les erreurs les plus coûteuses que je rencontre régulièrement en consultation avec des familles agricoles :"
+            data-en="To summarize, here are the most costly errors I regularly encounter in consultation with farm families:">
+            Pour résumer, voici les erreurs les plus coûteuses que je rencontre régulièrement en consultation avec des
+            familles agricoles :
+        </p>
+
+        <ul>
+            <li data-fr="<strong>Attendre trop tard pour planifier le transfert</strong> : la transmission d'une ferme se planifie idéalement 10 à 15 ans avant le départ à la retraite."
+                data-en="<strong>Waiting too long to plan the transfer</strong>: farm transmission is ideally planned 10 to 15 years before retirement.">
+                <strong>Attendre trop tard pour planifier le transfert</strong> : la transmission d'une ferme se
+                planifie idéalement 10 à 15 ans avant le départ à la retraite.</li>
+            <li data-fr="<strong>Ne pas séparer les actifs personnels des actifs d'exploitation</strong> : le bâtiment résidentiel sur la ferme doit souvent être isolé pour préserver la qualification BAA."
+                data-en="<strong>Not separating personal assets from operating assets</strong>: the residential building on the farm often needs to be isolated to preserve QFP status.">
+                <strong>Ne pas séparer les actifs personnels des actifs d'exploitation</strong> : le bâtiment résidentiel
+                sur la ferme doit souvent être isolé pour préserver la qualification BAA.</li>
+            <li data-fr="<strong>Oublier les enfants non repreneurs</strong> : ne pas prévoir un mécanisme d'équité crée des conflits familiaux qui finissent souvent en démantèlement de la ferme."
+                data-en="<strong>Forgetting non-successor children</strong>: not planning an equity mechanism creates family conflicts that often end in farm dismantling.">
+                <strong>Oublier les enfants non repreneurs</strong> : ne pas prévoir un mécanisme d'équité crée des
+                conflits familiaux qui finissent souvent en démantèlement de la ferme.</li>
+            <li data-fr="<strong>Sous-estimer l'assurance vie</strong> : une assurance vie permanente sur le cédant peut financer l'impôt au décès et préserver le patrimoine pour la relève."
+                data-en="<strong>Underestimating life insurance</strong>: permanent life insurance on the transferor can fund death tax and preserve wealth for successors.">
+                <strong>Sous-estimer l'assurance vie</strong> : une assurance vie permanente sur le cédant peut financer
+                l'impôt au décès et préserver le patrimoine pour la relève.</li>
+            <li data-fr="<strong>Confondre transfert et donation</strong> : un transfert mal structuré peut être requalifié en disposition réputée et déclencher l'impôt immédiatement."
+                data-en="<strong>Confusing transfer and donation</strong>: a poorly structured transfer can be recharacterized as a deemed disposition and trigger tax immediately.">
+                <strong>Confondre transfert et donation</strong> : un transfert mal structuré peut être requalifié en
+                disposition réputée et déclencher l'impôt immédiatement.</li>
+        </ul>
+
+        <p data-fr="Le patrimoine agricole se construit sur 30 ou 40 ans. La fiscalité qui y est associée mérite la même rigueur. Chaque décision — louer, vendre, incorporer, transférer — laisse une empreinte fiscale qui peut être un cadeau ou un fardeau pour la génération suivante."
+            data-en="Farm wealth is built over 30 or 40 years. The taxation associated with it deserves the same rigour. Every decision — leasing, selling, incorporating, transferring — leaves a tax footprint that can be a gift or a burden for the next generation.">
+            Le patrimoine agricole se construit sur 30 ou 40 ans. La fiscalité qui y est associée mérite la même rigueur.
+            Chaque décision — louer, vendre, incorporer, transférer — laisse une empreinte fiscale qui peut être un
+            cadeau ou un fardeau pour la génération suivante.
+        </p>
+
+        <div class="article-cta">
+            <h3 data-fr="Discutez de votre patrimoine agricole avec Joël"
+                data-en="Discuss your farm wealth with Joël">Discutez de votre patrimoine agricole avec Joël</h3>
+            <p data-fr="Que ce soit pour préparer un transfert intergénérationnel, évaluer une incorporation ou structurer votre relève, une analyse personnalisée est essentielle. 60 minutes pour démêler votre situation."
+                data-en="Whether to prepare an intergenerational transfer, evaluate an incorporation or structure your succession, a personalized analysis is essential. 60 minutes to untangle your situation.">
+                Que ce soit pour préparer un transfert intergénérationnel, évaluer une incorporation ou structurer votre
+                relève, une analyse personnalisée est essentielle. 60 minutes pour démêler votre situation.
+            </p>
+            <a href="https://calendly.com/joelcamire-jccapital/consultation" target="_blank" rel="noopener"
+                class="btn-primary">
+                <span data-fr="Réserver une consultation" data-en="Book a consultation">Réserver une consultation</span>
+            </a>
+        </div>
+
+        <p class="article-disclaimer"
+            data-fr="Cet article est à titre informatif et ne constitue pas un conseil financier, fiscal ou juridique personnalisé. Les règles fiscales agricoles évoluent et certaines stratégies nécessitent l'intervention combinée d'un fiscaliste, d'un notaire et d'un conseiller en sécurité financière. Consultez les professionnels inscrits pour votre situation spécifique. Les chiffres présentés sont approximatifs et basés sur les paramètres 2026 estimés."
+            data-en="This article is for informational purposes only and does not constitute personalized financial, tax or legal advice. Farm tax rules evolve and certain strategies require the combined intervention of a tax specialist, notary and financial security advisor. Consult registered professionals for your specific situation. Figures shown are approximate and based on estimated 2026 parameters.">
+            Cet article est à titre informatif et ne constitue pas un conseil financier, fiscal ou juridique
+            personnalisé. Les règles fiscales agricoles évoluent et certaines stratégies nécessitent l'intervention
+            combinée d'un fiscaliste, d'un notaire et d'un conseiller en sécurité financière. Consultez les
+            professionnels inscrits pour votre situation spécifique. Les chiffres présentés sont approximatifs et basés
+            sur les paramètres 2026 estimés.
+        </p>
+    </main>
+
+    <div id="footer-placeholder"></div>
+</body>
+
+</html>

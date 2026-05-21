@@ -58,4 +58,73 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://jccapital.ca/blog/</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://jccapital.ca/blog/incorporation-quebec-2026-impots-economies.html</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://jccapital.ca/blog/incorporation-quebec-2026-impots-economies.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://jccapital.ca/blog/incorporation-quebec-2026-impots-economies.html?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jccapital.ca/blog/incorporation-quebec-2026-impots-economies.html" />
+  </url>
+  <url>
+    <loc>https://jccapital.ca/blog/reer-celi-celiapp-guide-complet-2026.html</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://jccapital.ca/blog/reer-celi-celiapp-guide-complet-2026.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://jccapital.ca/blog/reer-celi-celiapp-guide-complet-2026.html?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jccapital.ca/blog/reer-celi-celiapp-guide-complet-2026.html" />
+  </url>
+  <url>
+    <loc>https://jccapital.ca/blog/assurance-vie-entrepreneurs-combien-souscrire.html</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://jccapital.ca/blog/assurance-vie-entrepreneurs-combien-souscrire.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://jccapital.ca/blog/assurance-vie-entrepreneurs-combien-souscrire.html?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jccapital.ca/blog/assurance-vie-entrepreneurs-combien-souscrire.html" />
+  </url>
+  <url>
+    <loc>https://jccapital.ca/blog/transfert-entreprise-quebec-strategies-fiscales.html</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://jccapital.ca/blog/transfert-entreprise-quebec-strategies-fiscales.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://jccapital.ca/blog/transfert-entreprise-quebec-strategies-fiscales.html?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jccapital.ca/blog/transfert-entreprise-quebec-strategies-fiscales.html" />
+  </url>
+  <url>
+    <loc>https://jccapital.ca/blog/gestion-patrimoine-agricole-pieges-fiscaux.html</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://jccapital.ca/blog/gestion-patrimoine-agricole-pieges-fiscaux.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://jccapital.ca/blog/gestion-patrimoine-agricole-pieges-fiscaux.html?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jccapital.ca/blog/gestion-patrimoine-agricole-pieges-fiscaux.html" />
+  </url>
+  <url>
+    <loc>https://jccapital.ca/blog/erreurs-fiscales-travailleurs-autonomes-quebec.html</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://jccapital.ca/blog/erreurs-fiscales-travailleurs-autonomes-quebec.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://jccapital.ca/blog/erreurs-fiscales-travailleurs-autonomes-quebec.html?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jccapital.ca/blog/erreurs-fiscales-travailleurs-autonomes-quebec.html" />
+  </url>
+  <url>
+    <loc>https://jccapital.ca/blog/optimiser-reer-proprietaires-entreprise-quebec.html</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://jccapital.ca/blog/optimiser-reer-proprietaires-entreprise-quebec.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://jccapital.ca/blog/optimiser-reer-proprietaires-entreprise-quebec.html?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jccapital.ca/blog/optimiser-reer-proprietaires-entreprise-quebec.html" />
+  </url>
 </urlset>

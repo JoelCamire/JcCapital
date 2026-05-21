@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog – JC Capital | Stratégies financières et fiscales</title>
+    <meta name="description"
+        content="Articles, analyses et stratégies sur la fiscalité, l'incorporation, la planification de retraite et l'assurance — par JC Capital, cabinet financier à Québec." />
+    <meta name="keywords"
+        content="blog finance Québec, fiscalité Québec, incorporation Québec, REER CELI, assurance vie entrepreneur, transfert d'entreprise, patrimoine agricole, travailleur autonome Québec" />
+    <meta name="author" content="Joël Camiré — JC Capital">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+
+    <!-- Favicon & Mobile Icons -->
+    <link rel="icon" type="image/png" href="../img/2nd_logo.png">
+    <link rel="apple-touch-icon" href="../img/2nd_logo.png">
+
+    <!-- Canonical & Hreflang -->
+    <link rel="canonical" href="https://jccapital.ca/blog/">
+    <link rel="alternate" hreflang="fr" href="https://jccapital.ca/blog/" />
+    <link rel="alternate" hreflang="en" href="https://jccapital.ca/blog/?lang=en" />
+    <link rel="alternate" hreflang="x-default" href="https://jccapital.ca/blog/" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Blog – JC Capital | Stratégies financières et fiscales">
+    <meta property="og:description"
+        content="Articles, analyses et stratégies sur la fiscalité, l'incorporation, la planification de retraite et l'assurance.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://jccapital.ca/blog/">
+    <meta property="og:image" content="https://jccapital.ca/img/2nd_logo.png">
+    <meta property="og:locale" content="fr_CA">
+    <meta property="og:site_name" content="JC Capital">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Blog – JC Capital">
+    <meta name="twitter:description"
+        content="Articles, analyses et stratégies sur la fiscalité, l'incorporation, la planification de retraite et l'assurance.">
+    <meta name="twitter:image" content="https://jccapital.ca/img/2nd_logo.png">
+
+    <!-- Schema.org Blog Markup -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "@id": "https://jccapital.ca/blog/#blog",
+      "name": "Blog JC Capital",
+      "description": "Stratégies financières et fiscales pour entrepreneurs, travailleurs autonomes et familles ambitieuses au Québec.",
+      "url": "https://jccapital.ca/blog/",
+      "inLanguage": ["fr-CA", "en-CA"],
+      "publisher": {
+        "@type": "Organization",
+        "name": "JC Capital",
+        "url": "https://jccapital.ca",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://jccapital.ca/img/2nd_logo.png"
+        }
+      }
+    }
+    </script>
+
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Split -->
+    <link rel="stylesheet" href="../css/_tokens.css">
+    <link rel="stylesheet" href="../css/style.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Translations -->
+    <script src="../js/translations.js"></script>
+
+    <!-- Blog-aware component loader (handles /blog/ subdirectory) -->
+    <script>
+        (function () {
+            async function loadBlogComponent(componentPath, targetId) {
+                try {
+                    const response = await fetch('../' + componentPath);
+                    if (!response.ok) throw new Error('Failed to load ' + componentPath);
+                    let html = await response.text();
+                    // Adjust relative paths for /blog/ subdirectory
+                    html = html.replace(/href="index\.html/g, 'href="../index.html');
+                    html = html.replace(/href="pages\//g, 'href="../pages/');
+                    html = html.replace(/href="blog\//g, 'href="');
+                    html = html.replace(/src="img\//g, 'src="../img/');
+                    const target = document.getElementById(targetId);
+                    if (target) target.innerHTML = html;
+                } catch (e) {
+                    console.error('Blog component error:', e);
+                }
+            }
+            document.addEventListener('DOMContentLoaded', async () => {
+                await loadBlogComponent('components/header.html', 'header-placeholder');
+                await loadBlogComponent('components/footer.html', 'footer-placeholder');
+                if (typeof initBackToTop === 'function') initBackToTop();
+                // Re-apply saved language preference
+                const savedLang = localStorage.getItem('jc_pref_lang');
+                if (savedLang === 'en' && document.documentElement.lang === 'fr') {
+                    if (typeof window.toggleLanguage === 'function') window.toggleLanguage();
+                }
+            });
+        })();
+    </script>
+
+    <!-- Component Loader (provides global helpers + handles support FAB) -->
+    <script defer src="../js/components.js"></script>
+
+    <style>
+        .blog-hero {
+            padding: 140px 5% 60px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(34, 51, 59, 0.4) 0%, transparent 100%);
+        }
+
+        .blog-hero h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            color: var(--c-gold);
+            margin-bottom: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .blog-hero p {
+            max-width: 720px;
+            margin: 0 auto;
+            color: var(--c-light-beige);
+            font-size: 1.15rem;
+            line-height: 1.7;
+            opacity: 0.95;
+        }
+
+        .blog-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 5% 5rem;
+        }
+
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .blog-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 1.75rem;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            color: var(--c-light-beige);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .blog-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--c-gold);
+            box-shadow: 0 14px 40px rgba(198, 172, 143, 0.15);
+        }
+
+        .blog-card-tag {
+            display: inline-block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--c-gold);
+            background: rgba(198, 172, 143, 0.1);
+            border: 1px solid rgba(198, 172, 143, 0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+            align-self: flex-start;
+            font-weight: 600;
+        }
+
+        .blog-card h2 {
+            font-size: 1.35rem;
+            color: var(--c-light-beige);
+            margin-bottom: 0.75rem;
+            line-height: 1.35;
+            font-weight: 600;
+        }
+
+        .blog-card p {
+            color: var(--c-light-beige);
+            opacity: 0.85;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .blog-card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--c-brown);
+            border-top: 1px solid rgba(94, 80, 63, 0.4);
+            padding-top: 1rem;
+            margin-top: auto;
+        }
+
+        .blog-card-meta .read-more {
+            color: var(--c-gold);
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .blog-card:hover .read-more {
+            transform: translateX(4px);
+        }
+
+        .blog-card-meta .read-more i {
+            margin-left: 4px;
+        }
+
+        .blog-intro {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            color: var(--c-light-beige);
+            line-height: 1.7;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .blog-intro h2 {
+            color: var(--c-gold);
+            margin-bottom: 0.75rem;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header placeholder - loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- HERO -->
+    <section class="blog-hero">
+        <h1 data-fr="Blog JC Capital" data-en="JC Capital Blog">Blog JC Capital</h1>
+        <p data-fr="Stratégies, analyses et explications claires sur la fiscalité, l'incorporation, le placement, l'assurance et la planification de retraite — adaptées à la réalité québécoise."
+            data-en="Strategies, analyses and clear explanations on taxation, incorporation, investing, insurance, and retirement planning — adapted to the Quebec reality.">
+            Stratégies, analyses et explications claires sur la fiscalité, l'incorporation, le placement,
+            l'assurance et la planification de retraite — adaptées à la réalité québécoise.
+        </p>
+    </section>
+
+    <!-- BLOG GRID -->
+    <main class="blog-container">
+
+        <div class="blog-intro">
+            <h2 data-fr="Pourquoi ce blog ?" data-en="Why this blog?">Pourquoi ce blog ?</h2>
+            <p data-fr="Trop de contenu financier au Québec se limite à des généralités importées d'ailleurs. Ce blog vise à offrir des analyses concrètes ancrées dans la fiscalité québécoise et canadienne, pour les entrepreneurs, travailleurs autonomes, propriétaires d'entreprise agricole et familles qui veulent prendre des décisions financières éclairées. Articles à titre informatif uniquement."
+                data-en="Too much financial content in Quebec is limited to generalities imported from elsewhere. This blog aims to provide concrete analyses anchored in Quebec and Canadian taxation, for entrepreneurs, self-employed workers, agricultural business owners and families who want to make informed financial decisions. Articles for informational purposes only.">
+                Trop de contenu financier au Québec se limite à des généralités importées d'ailleurs. Ce blog vise à
+                offrir des analyses concrètes ancrées dans la fiscalité québécoise et canadienne, pour les
+                entrepreneurs, travailleurs autonomes, propriétaires d'entreprise agricole et familles qui veulent
+                prendre des décisions financières éclairées. Articles à titre informatif uniquement.
+            </p>
+        </div>
+
+        <div class="blog-grid">
+
+            <!-- Article 1 : Incorporation -->
+            <a href="incorporation-quebec-2026-impots-economies.html" class="blog-card">
+                <span class="blog-card-tag" data-fr="Incorporation" data-en="Incorporation">Incorporation</span>
+                <h2 data-fr="Combien d'impôt vais-je économiser en m'incorporant au Québec en 2026 ?"
+                    data-en="How much tax will I save by incorporating in Quebec in 2026?">Combien d'impôt vais-je
+                    économiser en m'incorporant au Québec en 2026 ?</h2>
+                <p data-fr="Décortiquer les vraies économies fiscales de l'incorporation au Québec : taux d'imposition des sociétés, report d'impôt, salaire vs dividende, et seuils où l'incorporation devient avantageuse."
+                    data-en="Break down the real tax savings of incorporation in Quebec: corporate tax rates, tax deferral, salary vs dividends, and thresholds where incorporation becomes worthwhile.">
+                    Décortiquer les vraies économies fiscales de l'incorporation au Québec : taux d'imposition des
+                    sociétés, report d'impôt, salaire vs dividende, et seuils où l'incorporation devient avantageuse.
+                </p>
+                <div class="blog-card-meta">
+                    <span>21 mai 2026 · 9 min</span>
+                    <span class="read-more" data-fr="Lire" data-en="Read">Lire <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </a>
+
+            <!-- Article 2 : REER/CELI/CELIAPP -->
+            <a href="reer-celi-celiapp-guide-complet-2026.html" class="blog-card">
+                <span class="blog-card-tag" data-fr="Épargne &amp; Placement" data-en="Savings &amp; Investing">Épargne
+                    &amp; Placement</span>
+                <h2 data-fr="REER vs CELI vs CELIAPP : guide complet 2026 pour Québécois"
+                    data-en="RRSP vs TFSA vs FHSA: complete 2026 guide for Quebecers">REER vs CELI vs CELIAPP : guide
+                    complet 2026 pour Québécois</h2>
+                <p data-fr="Lequel choisir, dans quel ordre cotiser, et comment combiner les trois véhicules d'épargne préférés des Québécois. Plafonds 2026, retraits, transferts et erreurs à éviter."
+                    data-en="Which to choose, in what order to contribute, and how to combine the three savings vehicles preferred by Quebecers. 2026 limits, withdrawals, transfers and mistakes to avoid.">
+                    Lequel choisir, dans quel ordre cotiser, et comment combiner les trois véhicules d'épargne préférés
+                    des Québécois. Plafonds 2026, retraits, transferts et erreurs à éviter.
+                </p>
+                <div class="blog-card-meta">
+                    <span>21 mai 2026 · 10 min</span>
+                    <span class="read-more" data-fr="Lire" data-en="Read">Lire <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </a>
+
+            <!-- Article 3 : Assurance vie entrepreneurs -->
+            <a href="assurance-vie-entrepreneurs-combien-souscrire.html" class="blog-card">
+                <span class="blog-card-tag" data-fr="Assurance" data-en="Insurance">Assurance</span>
+                <h2 data-fr="Assurance vie pour entrepreneurs québécois : combien souscrire ?"
+                    data-en="Life insurance for Quebec entrepreneurs: how much coverage?">Assurance vie pour
+                    entrepreneurs québécois : combien souscrire ?</h2>
+                <p data-fr="Calculer ses besoins réels d'assurance vie quand on a une entreprise : besoins personnels, dettes corporatives, conventions entre actionnaires, et stratégie d'assurance détenue par la société."
+                    data-en="Calculate real life insurance needs when you own a business: personal needs, corporate debts, shareholder agreements, and corporate-owned insurance strategy.">
+                    Calculer ses besoins réels d'assurance vie quand on a une entreprise : besoins personnels, dettes
+                    corporatives, conventions entre actionnaires, et stratégie d'assurance détenue par la société.
+                </p>
+                <div class="blog-card-meta">
+                    <span>21 mai 2026 · 8 min</span>
+                    <span class="read-more" data-fr="Lire" data-en="Read">Lire <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </a>
+
+            <!-- Article 4 : Transfert d'entreprise -->
+            <a href="transfert-entreprise-quebec-strategies-fiscales.html" class="blog-card">
+                <span class="blog-card-tag" data-fr="Transfert d'entreprise"
+                    data-en="Business Transfer">Transfert</span>
+                <h2 data-fr="Transfert d'entreprise au Québec : 5 stratégies fiscales avancées"
+                    data-en="Business transfer in Quebec: 5 advanced tax strategies">Transfert d'entreprise au Québec :
+                    5 stratégies fiscales avancées</h2>
+                <p data-fr="Cristallisation, gel successoral, fiducie familiale, exonération de gain en capital et transfert intergénérationnel : comment vendre ou léguer son entreprise sans sacrifier la moitié à l'impôt."
+                    data-en="Crystallization, estate freeze, family trust, capital gains exemption, and intergenerational transfer: how to sell or pass on your business without losing half to taxes.">
+                    Cristallisation, gel successoral, fiducie familiale, exonération de gain en capital et transfert
+                    intergénérationnel : comment vendre ou léguer son entreprise sans sacrifier la moitié à l'impôt.
+                </p>
+                <div class="blog-card-meta">
+                    <span>21 mai 2026 · 11 min</span>
+                    <span class="read-more" data-fr="Lire" data-en="Read">Lire <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </a>
+
+            <!-- Article 5 : Patrimoine agricole -->
+            <a href="gestion-patrimoine-agricole-pieges-fiscaux.html" class="blog-card">
+                <span class="blog-card-tag" data-fr="Agriculture" data-en="Agriculture">Agriculture</span>
+                <h2 data-fr="Gestion de patrimoine agricole : les pièges fiscaux à éviter"
+                    data-en="Agricultural wealth management: tax pitfalls to avoid">Gestion de patrimoine agricole :
+                    les pièges fiscaux à éviter</h2>
+                <p data-fr="Bien agricole admissible, exonération bonifiée, transfert intergénérationnel, supplément fiscal québécois : les particularités du patrimoine agricole et les erreurs courantes qui coûtent cher."
+                    data-en="Qualified farm property, enhanced exemption, intergenerational transfer, Quebec tax supplement: the particularities of agricultural wealth and the common mistakes that cost dearly.">
+                    Bien agricole admissible, exonération bonifiée, transfert intergénérationnel, supplément fiscal
+                    québécois : les particularités du patrimoine agricole et les erreurs courantes qui coûtent cher.
+                </p>
+                <div class="blog-card-meta">
+                    <span>21 mai 2026 · 9 min</span>
+                    <span class="read-more" data-fr="Lire" data-en="Read">Lire <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </a>
+
+            <!-- Article 6 : Erreurs travailleurs autonomes -->
+            <a href="erreurs-fiscales-travailleurs-autonomes-quebec.html" class="blog-card">
+                <span class="blog-card-tag" data-fr="Travailleur autonome" data-en="Self-Employed">Travailleur
+                    autonome</span>
+                <h2 data-fr="10 erreurs fiscales que font les travailleurs autonomes québécois"
+                    data-en="10 tax mistakes self-employed Quebecers make">10 erreurs fiscales que font les
+                    travailleurs autonomes québécois</h2>
+                <p data-fr="TPS/TVQ mal gérées, dépenses sous-déclarées, REER ignoré, RRQ doublé, acomptes provisionnels oubliés... Les dix erreurs les plus coûteuses chez les travailleurs autonomes au Québec."
+                    data-en="Mismanaged GST/QST, under-declared expenses, ignored RRSP, doubled QPP, forgotten installments... The ten most costly mistakes for self-employed workers in Quebec.">
+                    TPS/TVQ mal gérées, dépenses sous-déclarées, REER ignoré, RRQ doublé, acomptes provisionnels
+                    oubliés... Les dix erreurs les plus coûteuses chez les travailleurs autonomes au Québec.
+                </p>
+                <div class="blog-card-meta">
+                    <span>21 mai 2026 · 9 min</span>
+                    <span class="read-more" data-fr="Lire" data-en="Read">Lire <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </a>
+
+            <!-- Article 7 : Optimiser REER propriétaires -->
+            <a href="optimiser-reer-proprietaires-entreprise-quebec.html" class="blog-card">
+                <span class="blog-card-tag" data-fr="Retraite" data-en="Retirement">Retraite</span>
+                <h2 data-fr="Comment optimiser ton REER si tu es propriétaire d'entreprise au Québec"
+                    data-en="How to optimize your RRSP as a business owner in Quebec">Comment optimiser ton REER si tu
+                    es propriétaire d'entreprise au Québec</h2>
+                <p data-fr="REER personnel, RPDB, RRI, dividendes ou salaire : comment structurer la rémunération et l'épargne-retraite quand on est actionnaire d'une société par actions au Québec."
+                    data-en="Personal RRSP, DPSP, IPP, dividends or salary: how to structure compensation and retirement savings when you're a shareholder of a Quebec corporation.">
+                    REER personnel, RPDB, RRI, dividendes ou salaire : comment structurer la rémunération et
+                    l'épargne-retraite quand on est actionnaire d'une société par actions au Québec.
+                </p>
+                <div class="blog-card-meta">
+                    <span>21 mai 2026 · 10 min</span>
+                    <span class="read-more" data-fr="Lire" data-en="Read">Lire <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </a>
+
+        </div>
+
+        <!-- CTA Block -->
+        <div class="blog-intro" style="margin-top: 4rem; text-align: center;">
+            <h2 data-fr="Une question sur votre situation ?" data-en="A question about your situation?">Une question
+                sur votre situation ?</h2>
+            <p data-fr="Les articles offrent un cadre général. Pour une analyse personnalisée tenant compte de votre réalité, prenez rendez-vous avec Joël Camiré, conseiller en sécurité financière inscrit à l'AMF."
+                data-en="Articles offer a general framework. For a personalized analysis taking into account your reality, book an appointment with Joël Camiré, financial security advisor registered with the AMF.">
+                Les articles offrent un cadre général. Pour une analyse personnalisée tenant compte de votre réalité,
+                prenez rendez-vous avec Joël Camiré, conseiller en sécurité financière inscrit à l'AMF.
+            </p>
+            <a href="https://calendly.com/joelcamire-jccapital/consultation" target="_blank" rel="noopener"
+                style="display: inline-block; margin-top: 1.25rem; background: var(--c-gold); color: var(--c-dark-blue); padding: 14px 32px; border-radius: 8px; font-weight: 700; text-decoration: none; transition: transform 0.2s;"
+                onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+                <span data-fr="Réserver une consultation" data-en="Book a consultation">Réserver une consultation</span>
+            </a>
+        </div>
+    </main>
+
+    <!-- Footer placeholder - loaded dynamically -->
+    <div id="footer-placeholder"></div>
+</body>
+
+</html>

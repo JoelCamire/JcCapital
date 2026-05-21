@@ -13,6 +13,10 @@
 
     <!-- Open Graph & Social sharing -->
     <link rel="canonical" href="https://jccapital.ca/pages/about.html">
+    <!-- Bilingual SEO (Hreflang) -->
+    <link rel="alternate" hreflang="fr" href="https://jccapital.ca/pages/about.html" />
+    <link rel="alternate" hreflang="en" href="https://jccapital.ca/pages/about.html?lang=en" />
+    <link rel="alternate" hreflang="x-default" href="https://jccapital.ca/pages/about.html" />
     <meta property="og:title" content="À propos – JC Capital">
     <meta property="og:description" content="Découvrez l'équipe JC Capital et notre mission de propulser votre croissance financière.">
     <meta property="og:type" content="website">
@@ -31,11 +35,50 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 
+    <!-- Schema.org Markup (JSON-LD) — AboutPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "AboutPage",
+          "@id": "https://jccapital.ca/pages/about.html#aboutpage",
+          "url": "https://jccapital.ca/pages/about.html",
+          "name": "À propos – JC Capital",
+          "headline": "À propos de JC Capital",
+          "description": "Découvrez la mission, l'approche et la philosophie de JC Capital, cabinet de services financiers, fiscaux et d'assurance à Québec, en partenariat avec SFL Gestion de patrimoine.",
+          "inLanguage": "fr-CA",
+          "isPartOf": { "@id": "https://jccapital.ca/#website" },
+          "publisher": { "@id": "https://jccapital.ca/#business" },
+          "about": { "@id": "https://jccapital.ca/#business" },
+          "mainEntity": { "@id": "https://jccapital.ca/#business" },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://jccapital.ca/img/2nd_logo.png",
+            "width": 600,
+            "height": 600
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://jccapital.ca/#organization",
+          "name": "JC Capital",
+          "url": "https://jccapital.ca",
+          "logo": "https://jccapital.ca/img/final_logo.png",
+          "founder": { "@id": "https://jccapital.ca/#joel" },
+          "memberOf": {
+            "@type": "Organization",
+            "name": "SFL Gestion de patrimoine",
+            "url": "https://www.sfl.ca/"
+          }
+        }
+      ]
+    }
+    </script>
+
     <!-- CSS Split -->
     <link rel="stylesheet" href="../css/_tokens.css">
     <link rel="stylesheet" href="../css/style.css">
-    <!-- Tailwind CSS (for consistent nav reset) -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <!-- Component Loader -->

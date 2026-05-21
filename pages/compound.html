@@ -13,6 +13,10 @@
 
     <!-- Open Graph & Social sharing -->
     <link rel="canonical" href="https://jccapital.ca/pages/compound.html">
+    <!-- Bilingual SEO (Hreflang) -->
+    <link rel="alternate" hreflang="fr" href="https://jccapital.ca/pages/compound.html" />
+    <link rel="alternate" hreflang="en" href="https://jccapital.ca/pages/compound.html?lang=en" />
+    <link rel="alternate" hreflang="x-default" href="https://jccapital.ca/pages/compound.html" />
     <meta property="og:title" content="Calculateur d'Intérêts Composés – JC Capital">
     <meta property="og:description" content="Calculateur d'intérêts composés gratuit. Simulez la croissance de votre patrimoine sur 20 ans avec des stratégies fiscales avancées.">
     <meta property="og:type" content="website">
@@ -31,15 +35,58 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 
+    <!-- Schema.org Markup (JSON-LD) — WebApplication (Compound Interest Calculator) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "https://jccapital.ca/pages/compound.html#app",
+          "name": "Calculateur d'Intérêts Composés JC Capital",
+          "alternateName": "Simulateur de croissance de patrimoine",
+          "url": "https://jccapital.ca/pages/compound.html",
+          "description": "Calculateur d'intérêts composés gratuit pour simuler la croissance de votre patrimoine sur plusieurs années en tenant compte des cotisations périodiques, du rendement, des frais et des stratégies fiscales (REER, CELI, comptes non enregistrés).",
+          "applicationCategory": "FinanceApplication",
+          "applicationSubCategory": "Calculateur financier",
+          "operatingSystem": "Tout navigateur web (Web)",
+          "browserRequirements": "Requires JavaScript. Requires HTML5.",
+          "inLanguage": ["fr-CA", "en-CA"],
+          "isAccessibleForFree": true,
+          "featureList": [
+            "Simulation d'intérêts composés sur plusieurs années",
+            "Cotisations initiales et périodiques personnalisables",
+            "Choix du taux de rendement annuel",
+            "Comparaison REER, CELI et compte non enregistré",
+            "Visualisation graphique de la croissance du capital (Chart.js)",
+            "Décomposition capital cotisé vs intérêts gagnés",
+            "Calcul en français et en anglais"
+          ],
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "CAD",
+            "availability": "https://schema.org/InStock"
+          },
+          "creator": { "@id": "https://jccapital.ca/#business" },
+          "publisher": { "@id": "https://jccapital.ca/#business" },
+          "isPartOf": { "@id": "https://jccapital.ca/#website" },
+          "audience": {
+            "@type": "Audience",
+            "audienceType": "Épargnants, investisseurs, entrepreneurs et travailleurs autonomes"
+          }
+        }
+      ]
+    }
+    </script>
+
     <!-- CSS Split -->
     <link rel="stylesheet" href="../css/_tokens.css">
     <link rel="stylesheet" href="../css/style.css">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Translations -->
     <script src="../js/translations.js"></script>
     <!-- Component Loader -->
