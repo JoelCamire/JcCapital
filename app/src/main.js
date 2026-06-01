@@ -29,6 +29,7 @@ import * as benefits from './ui/views/benefits.js';
 import * as business from './ui/views/business.js';
 import * as flowthrough from './ui/views/flowthrough.js';
 import * as insurancestrat from './ui/views/insurancestrat.js';
+import * as advstructures from './ui/views/advstructures.js';
 
 // title/sub are functions so they re-translate on language switch
 const ROUTES = {
@@ -41,6 +42,7 @@ const ROUTES = {
   business: { title: () => t('Entreprise & société', 'Business & corporation'), sub: () => t('Salaire vs dividende, impôt corporatif, vente', 'Salary vs dividend, corporate tax, sale'), icon: 'briefcase', view: business },
   flowthrough: { title: () => t('Actions accréditives & PearTree', 'Flow-through shares & PearTree'), sub: () => t('Actions minières d’exploration et don caritatif', 'Mining exploration shares & charitable gift'), icon: 'scale', view: flowthrough },
   insurancestrat: { title: () => t('Stratégies d’assurance', 'Insurance strategies'), sub: () => t('CDC, RRA, AFI, rachat, personne clé', 'CDA, IRP, IFA, buy-sell, key person'), icon: 'insurance', view: insurancestrat },
+  advstructures: { title: () => t('Structures avancées', 'Advanced structures'), sub: () => t('Holdco, fiducie familiale, RCA, prêt au taux prescrit', 'Holdco, family trust, RCA, prescribed-rate loan'), icon: 'estate', view: advstructures },
   portfolio: { title: () => t('Portefeuille', 'Portfolio'), sub: () => t('Répartition d\'actifs, frais et rééquilibrage', 'Asset allocation, fees & rebalancing'), icon: 'pie', view: portfolio },
   retirement: { title: () => t('Retraite', 'Retirement'), sub: () => t('Scénarios et décaissement', 'Scenarios & decumulation'), icon: 'retire', view: retirement },
   montecarlo: { title: () => t('Monte Carlo', 'Monte Carlo'), sub: () => t('Analyse de probabilité de succès', 'Probability of success analysis'), icon: 'monte', view: montecarlo },
@@ -59,7 +61,7 @@ const ROUTES = {
 
 const NAV = () => [
   { group: t('Planification', 'Planning'), items: ['dashboard', 'profile', 'client', 'networth', 'cashflow', 'debt'] },
-  { group: t('Entreprise', 'Business'), items: ['business', 'flowthrough', 'insurancestrat'] },
+  { group: t('Entreprise', 'Business'), items: ['business', 'flowthrough', 'insurancestrat', 'advstructures'] },
   { group: t('Placements & retraite', 'Investments & retirement'), items: ['portfolio', 'retirement', 'montecarlo', 'scenarios'] },
   { group: t('Optimisation', 'Optimization'), items: ['tax', 'optimize', 'benefits', 'insurance', 'estate'] },
   { group: t('Objectifs & vie', 'Goals & life'), items: ['goals', 'education', 'timeline'] },
