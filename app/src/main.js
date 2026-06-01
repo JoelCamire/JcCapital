@@ -18,6 +18,14 @@ import * as goals from './ui/views/goals.js';
 import * as insurance from './ui/views/insurance.js';
 import * as estate from './ui/views/estate.js';
 import * as settings from './ui/views/settings.js';
+import * as debt from './ui/views/debt.js';
+import * as portfolio from './ui/views/portfolio.js';
+import * as scenarios from './ui/views/scenarios.js';
+import * as optimize from './ui/views/optimize.js';
+import * as education from './ui/views/education.js';
+import * as timeline from './ui/views/timeline.js';
+import * as reports from './ui/views/reports.js';
+import * as benefits from './ui/views/benefits.js';
 
 // title/sub are functions so they re-translate on language switch
 const ROUTES = {
@@ -26,20 +34,29 @@ const ROUTES = {
   client: { title: () => t('Revenus & dépenses', 'Income & expenses'), sub: () => t('Flux du ménage', 'Household cash flows'), icon: 'cashflow', view: client },
   networth: { title: () => t('Bilan & valeur nette', 'Balance sheet & net worth'), sub: () => t('Actifs et passifs', 'Assets and liabilities'), icon: 'networth', view: networth },
   cashflow: { title: () => t('Flux de trésorerie', 'Cash flow'), sub: () => t('Projection annuelle détaillée', 'Detailed annual projection'), icon: 'cashflow', view: cashflow },
+  debt: { title: () => t('Dettes & hypothèque', 'Debt & mortgage'), sub: () => t('Amortissement et stratégies de remboursement', 'Amortization & payoff strategies'), icon: 'card', view: debt },
+  portfolio: { title: () => t('Portefeuille', 'Portfolio'), sub: () => t('Répartition d\'actifs, frais et rééquilibrage', 'Asset allocation, fees & rebalancing'), icon: 'pie', view: portfolio },
   retirement: { title: () => t('Retraite', 'Retirement'), sub: () => t('Scénarios et décaissement', 'Scenarios & decumulation'), icon: 'retire', view: retirement },
   montecarlo: { title: () => t('Monte Carlo', 'Monte Carlo'), sub: () => t('Analyse de probabilité de succès', 'Probability of success analysis'), icon: 'monte', view: montecarlo },
+  scenarios: { title: () => t('Scénarios & stress', 'Scenarios & stress'), sub: () => t('Tests de résistance et comparateur', 'Stress tests & comparator'), icon: 'flame', view: scenarios },
   tax: { title: () => t('Fiscalité', 'Taxation'), sub: () => t('Calculateur et optimisation d\'impôt', 'Tax calculator & optimization'), icon: 'tax', view: tax },
+  optimize: { title: () => t('Optimisation fiscale', 'Tax optimization'), sub: () => t('Fractionnement, emplacement d\'actifs, décaissement', 'Splitting, asset location, decumulation'), icon: 'scale', view: optimize },
+  benefits: { title: () => t('Prestations publiques', 'Government benefits'), sub: () => t('Âge de demande RRQ/PSV/Social Security', 'CPP/OAS/Social Security claiming age'), icon: 'gov', view: benefits },
   goals: { title: () => t('Objectifs', 'Goals'), sub: () => t('Suivi et suggestions', 'Tracking & suggestions'), icon: 'goals', view: goals },
+  education: { title: () => t('Études', 'Education'), sub: () => t('Financement des études des enfants', 'Children education funding'), icon: 'cap', view: education },
+  timeline: { title: () => t('Échéancier de vie', 'Life timeline'), sub: () => t('Étapes et milestones financiers', 'Financial milestones'), icon: 'timeline', view: timeline },
   insurance: { title: () => t('Assurance', 'Insurance'), sub: () => t('Analyse des besoins et polices', 'Needs analysis & policies'), icon: 'insurance', view: insurance },
   estate: { title: () => t('Succession', 'Estate'), sub: () => t('Transmission et fiscalité au décès', 'Transfer & tax at death'), icon: 'estate', view: estate },
+  reports: { title: () => t('Rapports', 'Reports'), sub: () => t('Rapport de plan financier imprimable', 'Printable financial plan report'), icon: 'report', view: reports },
   settings: { title: () => t('Paramètres', 'Settings'), sub: () => t('Juridiction, hypothèses et données', 'Jurisdiction, assumptions & data'), icon: 'settings', view: settings },
 };
 
 const NAV = () => [
-  { group: t('Planification', 'Planning'), items: ['dashboard', 'profile', 'client', 'networth', 'cashflow'] },
-  { group: t('Projections', 'Projections'), items: ['retirement', 'montecarlo', 'goals'] },
-  { group: t('Optimisation', 'Optimization'), items: ['tax', 'insurance', 'estate'] },
-  { group: t('Système', 'System'), items: ['settings'] },
+  { group: t('Planification', 'Planning'), items: ['dashboard', 'profile', 'client', 'networth', 'cashflow', 'debt'] },
+  { group: t('Placements & retraite', 'Investments & retirement'), items: ['portfolio', 'retirement', 'montecarlo', 'scenarios'] },
+  { group: t('Optimisation', 'Optimization'), items: ['tax', 'optimize', 'benefits', 'insurance', 'estate'] },
+  { group: t('Objectifs & vie', 'Goals & life'), items: ['goals', 'education', 'timeline'] },
+  { group: t('Documents', 'Documents'), items: ['reports', 'settings'] },
 ];
 
 function currentRoute() {
@@ -137,6 +154,11 @@ function render() {
 
   document.body.classList.remove('nav-open');
   clear(contentEl);
+  if (!r.view || typeof r.view.render !== 'function') {
+    contentEl.appendChild(h('div', { class: 'card empty' }, h('div', { class: 'big' }, '🔧'),
+      t('Module en cours de finalisation…', 'Module being finalized…')));
+    return;
+  }
   try {
     contentEl.appendChild(r.view.render({ store, client: c, jur, navigate }));
   } catch (e) {

@@ -35,6 +35,14 @@ Aucune étape de compilation. C'est une application web statique en modules ES.
 | **Objectifs** | Suivi du financement + **suggestions personnalisées** générées à partir du profil complet (fonds d'urgence, REEE par enfant, max CELI/REER, dettes, testament, assurance…), ajout en 1 clic |
 | **Assurance** | Analyse des besoins vie + invalidité, écart de couverture |
 | **Succession** | Impôts au décès estimés par juridiction, stratégies |
+| **Dettes & hypothèque** | Tableaux d'amortissement, stratégies avalanche/boule de neige, accélération hypothécaire |
+| **Portefeuille** | Répartition d'actifs vs cible, frais (MER) et drague sur 25 ans, rééquilibrage, questionnaire de tolérance au risque |
+| **Scénarios & stress** | Tests de résistance (krach, faibles rendements, inflation, longevité, décès, invalidité) + comparateur |
+| **Optimisation fiscale** | Fractionnement du revenu, REER vs CELI, emplacement d'actifs, ordre de décaissement, Roth/meltdown |
+| **Prestations publiques** | Analyse de l'âge de demande RRQ/PSV/Social Security (point mort), récupération de la PSV |
+| **Études** | Financement par enfant (coût futur, cotisation requise, subventions, progression) |
+| **Échéancier de vie** | Frise chronologique des étapes financières + agenda |
+| **Rapports** | Rapport de plan financier imprimable / PDF, bilingue |
 | **Paramètres** | Bascule juridiction, hypothèses économiques, import/export, dossiers |
 
 ## Multi-juridiction (le cœur du projet)

@@ -105,6 +105,16 @@ const I = {
   scale: 'M12 3v18M5 7h14M5 7l-3 7h6zM19 7l-3 7h6z',
   bank: 'M3 9l9-5 9 5M4 9h16v2H4zM6 11v7M10 11v7M14 11v7M18 11v7M3 21h18',
   globe: 'M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18',
+  pie: 'M12 3v9h9a9 9 0 00-9-9zM21 12a9 9 0 11-9-9',
+  card: 'M3 6h18v12H3zM3 10h18M7 15h4',
+  compare: 'M4 4h7v16H4zM13 4h7v16h-7z',
+  cap: 'M3 9l9-4 9 4-9 4zM7 11v4c0 1.2 2.2 2 5 2s5-.8 5-2v-4M21 9v5',
+  gov: 'M3 10l9-6 9 6M5 10v8M10 10v8M14 10v8M19 10v8M3 21h18M4 10h16',
+  refresh: 'M21 12a9 9 0 11-2.6-6.4M21 3v5h-5',
+  flame: 'M12 3c1.5 3.5 5 4.5 5 8.5a5 5 0 01-10 0c0-2 .8-3.2 2-4.2.2 1.8 1 2.7 3 2.7-.2-2.5-2-3.8 0-7z',
+  split: 'M7 4v5a3 3 0 003 3h7M17 12l-3-3M17 12l-3 3M7 4l-3 3M7 4l3 3',
+  report: 'M7 2h7l4 4v16H7zM14 2v4h4M9 12h6M9 16h6M9 8h2',
+  timeline: 'M4 4v16M4 8h6M4 14h10M4 20h4M12 8a2 2 0 100-.01M16 14a2 2 0 100-.01M10 20a2 2 0 100-.01',
 };
 export function icon(name, size = 18, extra = '') {
   const d = I[name] || I.doc;
