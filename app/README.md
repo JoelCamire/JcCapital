@@ -36,6 +36,8 @@ Aucune étape de compilation. C'est une application web statique en modules ES.
 | **Assurance** | Analyse des besoins vie + invalidité, écart de couverture |
 | **Succession** | Impôts au décès estimés par juridiction, stratégies |
 | **Entreprise & société** | **Cœur du métier** : salaire vs dividende (intégration CCPC), impôt corporatif (DPE, érosion par revenu passif, IMRTD), report d'impôt corp vs personnel, évaluation par multiples, **vente d'entreprise & exonération cumulative des gains en capital (EGC)**, stratégies (CDC, RRI, TOSI, gel successoral). Adapté US (société S / QBI / §1202) et UK (corp tax / dividendes / BADR) |
+| **Actions accréditives & PearTree** | Actions minières d'exploration : déduction FEC/CEE 100 %, CIEM/METC fédéral + provincial, et **méthode PearTree** (don d'actions accréditives : crédit de don + exonération du gain → coût net pouvant approcher zéro). Équivalents US (QOZ/§1202) et UK (EIS/SEIS) |
+| **Stratégies d'assurance** | **Assurance corporative & CDC** (sortie libre d'impôt), **Régime de retraite assuré (RRA/IRP)**, **Arrangement de financement immédiat (AFI/IFA)**, dimensionnement convention de rachat / personne clé / égalisation successorale |
 | **Dettes & hypothèque** | Tableaux d'amortissement, stratégies avalanche/boule de neige, accélération hypothécaire |
 | **Portefeuille** | Répartition d'actifs vs cible, frais (MER) et drague sur 25 ans, rééquilibrage, questionnaire de tolérance au risque |
 | **Scénarios & stress** | Tests de résistance (krach, faibles rendements, inflation, longevité, décès, invalidité) + comparateur |
