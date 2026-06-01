@@ -5,6 +5,7 @@
 # Default: allow all crawlers
 User-agent: *
 Allow: /
+Disallow: /app/
 Disallow: /construction/
 Disallow: /LM/
 Disallow: /README.md
@@ -15,6 +16,7 @@ Disallow: /.claude/
 # Explicit allow for major AI crawlers (search + content discovery)
 User-agent: GPTBot
 Allow: /
+Disallow: /app/
 Disallow: /construction/
 Disallow: /LM/
 
@@ -26,6 +28,7 @@ Allow: /
 
 User-agent: ClaudeBot
 Allow: /
+Disallow: /app/
 Disallow: /construction/
 Disallow: /LM/
 
