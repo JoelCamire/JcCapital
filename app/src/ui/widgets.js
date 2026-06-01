@@ -1,7 +1,7 @@
 // ============================================================
 // Reusable UI widgets
 // ============================================================
-import { h, icon, money } from './dom.js';
+import { h, icon, money, t } from './dom.js';
 import { sparkline } from './charts.js';
 
 export function kpi({ label, value, sub, delta, deltaDir, spark, iconName, accent }) {
@@ -42,8 +42,8 @@ export function slider({ label, value, min, max, step = 1, format, onInput }) {
 }
 
 /** Inline editable data table. cols:[{key,label,type,num,fmt,opts}] */
-export function dataTable({ rows, cols, onEdit, onDelete, empty = 'Aucune donnée' }) {
-  if (!rows.length) return h('div', { class: 'empty' }, h('div', { class: 'big' }, '∅'), empty);
+export function dataTable({ rows, cols, onEdit, onDelete, empty }) {
+  if (!rows.length) return h('div', { class: 'empty' }, h('div', { class: 'big' }, '∅'), empty || t('Aucune donnée', 'No data'));
   return h('div', { class: 'tbl-wrap' },
     h('table', { class: 'tbl' },
       h('thead', {}, h('tr', {}, ...cols.map(c => h('th', { class: c.num ? 'num' : '' }, c.label)),
@@ -85,6 +85,6 @@ export function bound(obj, key, { type = 'text', step, opts, transform } = {}) {
 
 export function badgeScore(rate) {
   const cls = rate >= 0.85 ? 'pos' : rate >= 0.6 ? 'warn' : 'neg';
-  const txt = rate >= 0.85 ? 'Solide' : rate >= 0.6 ? 'À surveiller' : 'À risque';
+  const txt = rate >= 0.85 ? t('Solide', 'Strong') : rate >= 0.6 ? t('À surveiller', 'Watch') : t('À risque', 'At risk');
   return h('span', { class: 'chip ' + cls }, txt);
 }

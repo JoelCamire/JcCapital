@@ -1,6 +1,5 @@
-import { h, money, pct, icon, toast } from '../dom.js';
+import { h, money, pct, icon, toast, t } from '../dom.js';
 import { kpi, card, dataTable, statList } from '../widgets.js';
-import { barChart, PALETTE } from '../charts.js';
 import { formModal } from '../editor.js';
 import { store } from '../../state/store.js';
 import { newInsurance } from '../../state/models.js';
@@ -11,57 +10,56 @@ export function render({ client, jur }) {
   const memberOpts = client.members.map(m => ({ value: m.id, label: m.name }));
   const nameOf = (id) => client.members.find(m => m.id === id)?.name || '—';
   const typeOpts = [
-    { value: 'life', label: 'Assurance vie' }, { value: 'di', label: 'Invalidité' },
-    { value: 'ci', label: 'Maladies graves' }, { value: 'ltc', label: 'Soins de longue durée' },
+    { value: 'life', label: t('Assurance vie', 'Life insurance') }, { value: 'di', label: t('Invalidité', 'Disability') },
+    { value: 'ci', label: t('Maladies graves', 'Critical illness') }, { value: 'ltc', label: t('Soins de longue durée', 'Long-term care') },
   ];
+  const typeLbl = v => (typeOpts.find(o => o.value === v) || {}).label || v;
 
-  // Needs analysis per member (life)
   const needsCards = client.members.map(m => {
     const n = lifeInsuranceNeeds(client, m.id);
     const di = disabilityNeeds(client, m.id);
     const covered = Math.min(1, n.existingCoverage / (n.need || 1));
-    return card(`${m.name}`, { sub: 'Analyse des besoins en assurance' },
+    return card(`${m.name}`, { sub: t('Analyse des besoins en assurance', 'Insurance needs analysis') },
       h('div', { class: 'flex between', style: { marginBottom: '5px' } },
-        h('span', { class: 'tiny muted' }, 'Couverture vie vs besoin'),
-        n.gap > 0 ? h('span', { class: 'chip neg' }, `Manque ${money(n.gap, { currency: cur, compact: true })}`)
-          : h('span', { class: 'chip pos' }, 'Couvert ✓')),
+        h('span', { class: 'tiny muted' }, t('Couverture vie vs besoin', 'Life coverage vs need')),
+        n.gap > 0 ? h('span', { class: 'chip neg' }, t(`Manque ${money(n.gap, { currency: cur, compact: true })}`, `Gap ${money(n.gap, { currency: cur, compact: true })}`))
+          : h('span', { class: 'chip pos' }, t('Couvert ✓', 'Covered ✓'))),
       h('div', { class: 'bar', style: { marginBottom: '14px' } }, h('span', { style: { width: pct(covered, 0), background: n.gap > 0 ? 'linear-gradient(90deg,var(--warn),var(--accent-2))' : 'linear-gradient(90deg,var(--brand-500),var(--accent))' } })),
       statList([
-        ['Remplacement de revenu', money(n.incomeReplacement, { currency: cur, compact: true })],
-        ['Remboursement des dettes', money(n.debt, { currency: cur, compact: true })],
-        ['Fonds études', money(n.education, { currency: cur, compact: true })],
-        ['(–) Actifs disponibles', money(-n.liquidAssets, { currency: cur, compact: true }), 'pos'],
-        ['= Besoin total', money(n.need, { currency: cur, compact: true })],
-        ['Couverture actuelle', money(n.existingCoverage, { currency: cur, compact: true })],
+        [t('Remplacement de revenu', 'Income replacement'), money(n.incomeReplacement, { currency: cur, compact: true })],
+        [t('Remboursement des dettes', 'Debt repayment'), money(n.debt, { currency: cur, compact: true })],
+        [t('Fonds études', 'Education fund'), money(n.education, { currency: cur, compact: true })],
+        [t('(–) Actifs disponibles', '(–) Available assets'), money(-n.liquidAssets, { currency: cur, compact: true }), 'pos'],
+        [t('= Besoin total', '= Total need'), money(n.need, { currency: cur, compact: true })],
+        [t('Couverture actuelle', 'Current coverage'), money(n.existingCoverage, { currency: cur, compact: true })],
       ]),
       h('div', { class: 'sep' }),
-      h('div', { class: 'flex between' }, h('span', { class: 'tiny muted' }, 'Invalidité — revenu mensuel'),
-        h('b', { class: di.gap > 0 ? '' : '', style: { color: di.gap > 0 ? 'var(--neg)' : 'var(--pos)' } },
+      h('div', { class: 'flex between' }, h('span', { class: 'tiny muted' }, t('Invalidité — revenu mensuel', 'Disability — monthly income')),
+        h('b', { style: { color: di.gap > 0 ? 'var(--neg)' : 'var(--pos)' } },
           `${money(di.existingMonthly, { currency: cur })} / ${money(di.monthlyNeed, { currency: cur })}`)),
     );
   });
 
-  // policies table
-  const polCard = card('Polices en vigueur', { class: 'span-full',
-    right: h('button', { class: 'btn primary sm', html: icon('plus', 14) + ' Police', onClick: () => edit(newInsurance({ insuredId: client.members[0].id }), true) }) },
+  const polCard = card(t('Polices en vigueur', 'Policies in force'), { class: 'span-full',
+    right: h('button', { class: 'btn primary sm', html: icon('plus', 14) + ' ' + t('Police', 'Policy'), onClick: () => edit(newInsurance({ insuredId: client.members[0].id }), true) }) },
     dataTable({
       rows: client.insurance,
       cols: [
-        { key: 'type', label: 'Type', fmt: v => typeOpts.find(o => o.value === v)?.label || v },
-        { key: 'insuredId', label: 'Assuré', fmt: nameOf },
-        { key: 'coverage', label: 'Couverture', num: true, fmt: v => money(v, { currency: cur }) },
-        { key: 'premium', label: 'Prime/an', num: true, fmt: v => money(v, { currency: cur }) },
+        { key: 'type', label: 'Type', fmt: typeLbl },
+        { key: 'insuredId', label: t('Assuré', 'Insured'), fmt: nameOf },
+        { key: 'coverage', label: t('Couverture', 'Coverage'), num: true, fmt: v => money(v, { currency: cur }) },
+        { key: 'premium', label: t('Prime/an', 'Premium/yr'), num: true, fmt: v => money(v, { currency: cur }) },
       ],
       onEdit: (r) => edit(r, false),
-      onDelete: (r) => { store.update(c => c.insurance = c.insurance.filter(i => i.id !== r.id)); toast('Police supprimée'); },
+      onDelete: (r) => { store.update(c => c.insurance = c.insurance.filter(i => i.id !== r.id)); toast(t('Police supprimée', 'Policy removed')); },
     }));
 
   const totalCov = client.insurance.filter(i => i.type === 'life').reduce((s, i) => s + i.coverage, 0);
   const totalPrem = client.insurance.reduce((s, i) => s + i.premium, 0);
   const kpis = h('div', { class: 'grid cols-3 span-full' },
-    kpi({ label: 'Couverture vie totale', value: money(totalCov, { currency: cur, compact: true }), iconName: 'insurance' }),
-    kpi({ label: 'Primes annuelles', value: money(totalPrem, { currency: cur }), sub: `${money(totalPrem / 12, { currency: cur })}/mois` }),
-    kpi({ label: 'Polices actives', value: client.insurance.length, iconName: 'doc' }),
+    kpi({ label: t('Couverture vie totale', 'Total life coverage'), value: money(totalCov, { currency: cur, compact: true }), iconName: 'insurance' }),
+    kpi({ label: t('Primes annuelles', 'Annual premiums'), value: money(totalPrem, { currency: cur }), sub: t(`${money(totalPrem / 12, { currency: cur })}/mois`, `${money(totalPrem / 12, { currency: cur })}/mo`) }),
+    kpi({ label: t('Polices actives', 'Active policies'), value: client.insurance.length, iconName: 'doc' }),
   );
 
   return h('div', { class: 'grid' },
@@ -71,12 +69,12 @@ export function render({ client, jur }) {
   );
 
   function edit(item, isNew) {
-    formModal({ title: isNew ? 'Nouvelle police' : 'Modifier la police', item,
+    formModal({ title: isNew ? t('Nouvelle police', 'New policy') : t('Modifier la police', 'Edit policy'), item,
       fields: [
         { key: 'type', label: 'Type', type: 'select', opts: typeOpts },
-        { key: 'insuredId', label: 'Assuré', type: 'select', opts: memberOpts },
-        { key: 'coverage', label: `Capital assuré (${cur})`, type: 'number', hint: 'Invalidité : montant annuel' },
-        { key: 'premium', label: `Prime annuelle (${cur})`, type: 'number' },
+        { key: 'insuredId', label: t('Assuré', 'Insured'), type: 'select', opts: memberOpts },
+        { key: 'coverage', label: t(`Capital assuré (${cur})`, `Coverage (${cur})`), type: 'number', hint: t('Invalidité : montant annuel', 'Disability: annual amount') },
+        { key: 'premium', label: t(`Prime annuelle (${cur})`, `Annual premium (${cur})`), type: 'number' },
       ],
       onSave: (d) => store.update(c => { if (isNew) c.insurance.push(d); else Object.assign(c.insurance.find(i => i.id === d.id), d); }),
     });

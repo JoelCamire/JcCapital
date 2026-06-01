@@ -6,10 +6,21 @@ import { seedClients, newClient } from './models.js';
 const KEY = 'jc_planner_v1';
 const THEME_KEY = 'jc_planner_theme';
 
+/** Ensure clients loaded from an older schema have all current fields. */
+function normalize(c) {
+  c.household = c.household || { address: '', city: '', region: c.jurisdiction?.region || '', postal: '', country: c.jurisdiction?.country || 'CA', maritalStatus: c.filingStatus || 'single', reviewDate: '', advisorNotes: '' };
+  c.dependents = c.dependents || [];
+  c.beneficiaries = c.beneficiaries || [];
+  c.documents = c.documents || [];
+  c.contacts = c.contacts || [];
+  c.updatedAt = c.updatedAt || c.createdAt || Date.now();
+  return c;
+}
+
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) { const s = JSON.parse(raw); (s.clients || []).forEach(normalize); return s; }
   } catch (e) { console.warn('Load failed', e); }
   const clients = seedClients();
   return { clients, activeId: clients[0].id };
@@ -38,7 +49,7 @@ export const store = {
   /** Mutate the active client via a function, then persist + notify. */
   update(mutator) {
     const c = this.activeClient();
-    mutator(c);
+    mutator(c); c.updatedAt = Date.now();
     persist(); notify();
   },
   /** Mutate the active client but DON'T re-render (live sliders / typing). */

@@ -3,15 +3,16 @@
 // ============================================================
 import { treatmentOf } from './projection.js';
 import { getJurisdiction } from '../jurisdictions/index.js';
+import { t } from '../i18n.js';
 
-const TREAT_LABEL = {
-  deferred: 'Régimes immobilisés / imposables au retrait',
-  taxfree: 'Comptes libres d’impôt',
-  taxable: 'Placements non enregistrés',
-  education: 'Épargne-études',
-  realestate: 'Immobilier',
-  corporate: 'Société',
-};
+const TREAT_LABEL = () => ({
+  deferred: t('Régimes imposables au retrait', 'Taxable-on-withdrawal plans'),
+  taxfree: t('Comptes libres d’impôt', 'Tax-free accounts'),
+  taxable: t('Placements non enregistrés', 'Non-registered investments'),
+  education: t('Épargne-études', 'Education savings'),
+  realestate: t('Immobilier', 'Real estate'),
+  corporate: t('Société', 'Corporation'),
+});
 
 export function netWorthBreakdown(client) {
   const byTreat = {}; const byType = {};
@@ -27,7 +28,7 @@ export function netWorthBreakdown(client) {
     .reduce((s, a) => s + a.value, 0);
   return {
     assets, liabilities, netWorth: assets - liabilities, liquid,
-    byTreat: Object.entries(byTreat).map(([k, v]) => ({ key: k, label: TREAT_LABEL[k] || k, value: v })),
+    byTreat: Object.entries(byTreat).map(([k, v]) => ({ key: k, label: (TREAT_LABEL()[k] || k), value: v })),
     byType,
     debtToAsset: assets > 0 ? liabilities / assets : 0,
   };

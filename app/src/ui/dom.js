@@ -1,6 +1,8 @@
 // ============================================================
 // DOM helpers, formatters, icons, toast & modal primitives
 // ============================================================
+import { t, locale, getLang } from '../i18n.js';
+export { t, locale, getLang } from '../i18n.js';
 
 /** Hyperscript element builder. */
 export function h(tag, props = {}, ...children) {
@@ -47,7 +49,7 @@ export function money(v, { currency = 'CAD', dp = 0, sign = false, compact = fal
     else if (abs >= 1e3) { abs /= 1e3; suffix = ' k'; dp = abs >= 100 ? 0 : 1; }
   }
   const s = CUR_SYMBOL[currency] || '$';
-  const body = abs.toLocaleString('fr-CA', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+  const body = abs.toLocaleString(locale(), { minimumFractionDigits: dp, maximumFractionDigits: dp });
   const out = `${s}${body}${suffix}`;
   if (neg) return `(${out})`;
   return sign ? `+${out}` : out;
@@ -55,11 +57,23 @@ export function money(v, { currency = 'CAD', dp = 0, sign = false, compact = fal
 
 export function pct(v, dp = 1) {
   if (v == null || isNaN(v)) return '—';
-  return `${(v * 100).toFixed(dp)} %`.replace('.', ',');
+  const s = `${(v * 100).toFixed(dp)} %`;
+  return getLang() === 'en' ? s : s.replace('.', ',');
 }
 export function num(v, dp = 0) {
   if (v == null || isNaN(v)) return '—';
-  return v.toLocaleString('fr-CA', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+  return v.toLocaleString(locale(), { minimumFractionDigits: dp, maximumFractionDigits: dp });
+}
+export function fmtDate(s) {
+  if (!s) return '—';
+  const d = new Date(s); if (isNaN(d)) return s;
+  return d.toLocaleDateString(locale(), { year: 'numeric', month: 'short', day: 'numeric' });
+}
+export function ageFromDob(dob) {
+  if (!dob) return null;
+  const d = new Date(dob); if (isNaN(d)) return null;
+  const diff = Date.now() - d.getTime();
+  return Math.floor(diff / (365.25 * 24 * 3600 * 1000));
 }
 
 // ---- Icons (inline SVG, stroke-based) ----

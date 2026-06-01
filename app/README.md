@@ -18,16 +18,21 @@ Aucune étape de compilation. C'est une application web statique en modules ES.
 
 ## Fonctionnalités
 
+> 🌐 **Bilingue FR / EN** — bascule instantanée via le sélecteur de langue
+> (barre latérale ou Paramètres). Toute l'interface, les recommandations et
+> les formats de nombres/dates s'adaptent.
+
 | Module | Description |
 |--------|-------------|
 | **Tableau de bord** | KPIs, projection de valeur nette, jauge de préparation, recommandations automatiques |
+| **Profil client (KYC)** | Infos personnelles complètes, personnes à charge, bénéficiaires, documents juridiques, professionnels, indice de complétude |
 | **Ménage** | Membres, revenus (emploi, rentes, prestations), dépenses avec facteur retraite |
 | **Bilan** | Actifs (selon les comptes de la juridiction), passifs, répartition fiscale |
 | **Flux de trésorerie** | Projection annuelle détaillée, composition des entrées/sorties |
 | **Retraite** | Scénario interactif (curseurs en direct), décaissement fiscalement optimisé |
 | **Monte Carlo** | 200–3000 trajectoires, bandes de percentiles, probabilité de succès |
 | **Fiscalité** | Calculateur d'impôt en temps réel, taux marginal/moyen, comparaison régionale |
-| **Objectifs** | Suivi du financement (retraite, études, achats) |
+| **Objectifs** | Suivi du financement + **suggestions personnalisées** générées à partir du profil complet (fonds d'urgence, REEE par enfant, max CELI/REER, dettes, testament, assurance…), ajout en 1 clic |
 | **Assurance** | Analyse des besoins vie + invalidité, écart de couverture |
 | **Succession** | Impôts au décès estimés par juridiction, stratégies |
 | **Paramètres** | Bascule juridiction, hypothèses économiques, import/export, dossiers |

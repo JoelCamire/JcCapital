@@ -3,9 +3,11 @@
 // ============================================================
 import { store } from './state/store.js';
 import { getJurisdiction, JURISDICTIONS, COUNTRY_LIST } from './jurisdictions/index.js';
-import { h, icon, clear, modal, toast, money } from './ui/dom.js';
+import { h, icon, clear, modal, toast, money, t, fmtDate } from './ui/dom.js';
+import { setLang, getLang, onLangChange } from './i18n.js';
 
 import * as dashboard from './ui/views/dashboard.js';
+import * as profile from './ui/views/profile.js';
 import * as client from './ui/views/client.js';
 import * as networth from './ui/views/networth.js';
 import * as cashflow from './ui/views/cashflow.js';
@@ -17,25 +19,27 @@ import * as insurance from './ui/views/insurance.js';
 import * as estate from './ui/views/estate.js';
 import * as settings from './ui/views/settings.js';
 
+// title/sub are functions so they re-translate on language switch
 const ROUTES = {
-  dashboard: { title: 'Tableau de bord', sub: 'Vue d\'ensemble du plan financier', icon: 'dashboard', view: dashboard },
-  client: { title: 'Ménage', sub: 'Membres, revenus et dépenses', icon: 'client', view: client },
-  networth: { title: 'Bilan & valeur nette', sub: 'Actifs et passifs', icon: 'networth', view: networth },
-  cashflow: { title: 'Flux de trésorerie', sub: 'Projection annuelle détaillée', icon: 'cashflow', view: cashflow },
-  retirement: { title: 'Retraite', sub: 'Scénarios et projection de décaissement', icon: 'retire', view: retirement },
-  montecarlo: { title: 'Monte Carlo', sub: 'Analyse de probabilité de succès', icon: 'monte', view: montecarlo },
-  tax: { title: 'Fiscalité', sub: 'Calculateur et optimisation d\'impôt', icon: 'tax', view: tax },
-  goals: { title: 'Objectifs', sub: 'Suivi du financement des projets', icon: 'goals', view: goals },
-  insurance: { title: 'Assurance', sub: 'Analyse des besoins et polices', icon: 'insurance', view: insurance },
-  estate: { title: 'Succession', sub: 'Transmission et fiscalité au décès', icon: 'estate', view: estate },
-  settings: { title: 'Paramètres', sub: 'Juridiction, hypothèses et données', icon: 'settings', view: settings },
+  dashboard: { title: () => t('Tableau de bord', 'Dashboard'), sub: () => t('Vue d\'ensemble du plan financier', 'Financial plan overview'), icon: 'dashboard', view: dashboard },
+  profile: { title: () => t('Profil client', 'Client profile'), sub: () => t('Informations personnelles, à charge, documents', 'Personal info, dependents, documents'), icon: 'client', view: profile },
+  client: { title: () => t('Revenus & dépenses', 'Income & expenses'), sub: () => t('Flux du ménage', 'Household cash flows'), icon: 'cashflow', view: client },
+  networth: { title: () => t('Bilan & valeur nette', 'Balance sheet & net worth'), sub: () => t('Actifs et passifs', 'Assets and liabilities'), icon: 'networth', view: networth },
+  cashflow: { title: () => t('Flux de trésorerie', 'Cash flow'), sub: () => t('Projection annuelle détaillée', 'Detailed annual projection'), icon: 'cashflow', view: cashflow },
+  retirement: { title: () => t('Retraite', 'Retirement'), sub: () => t('Scénarios et décaissement', 'Scenarios & decumulation'), icon: 'retire', view: retirement },
+  montecarlo: { title: () => t('Monte Carlo', 'Monte Carlo'), sub: () => t('Analyse de probabilité de succès', 'Probability of success analysis'), icon: 'monte', view: montecarlo },
+  tax: { title: () => t('Fiscalité', 'Taxation'), sub: () => t('Calculateur et optimisation d\'impôt', 'Tax calculator & optimization'), icon: 'tax', view: tax },
+  goals: { title: () => t('Objectifs', 'Goals'), sub: () => t('Suivi et suggestions', 'Tracking & suggestions'), icon: 'goals', view: goals },
+  insurance: { title: () => t('Assurance', 'Insurance'), sub: () => t('Analyse des besoins et polices', 'Needs analysis & policies'), icon: 'insurance', view: insurance },
+  estate: { title: () => t('Succession', 'Estate'), sub: () => t('Transmission et fiscalité au décès', 'Transfer & tax at death'), icon: 'estate', view: estate },
+  settings: { title: () => t('Paramètres', 'Settings'), sub: () => t('Juridiction, hypothèses et données', 'Jurisdiction, assumptions & data'), icon: 'settings', view: settings },
 };
 
-const NAV = [
-  { group: 'Planification', items: ['dashboard', 'client', 'networth', 'cashflow'] },
-  { group: 'Projections', items: ['retirement', 'montecarlo', 'goals'] },
-  { group: 'Optimisation', items: ['tax', 'insurance', 'estate'] },
-  { group: 'Système', items: ['settings'] },
+const NAV = () => [
+  { group: t('Planification', 'Planning'), items: ['dashboard', 'profile', 'client', 'networth', 'cashflow'] },
+  { group: t('Projections', 'Projections'), items: ['retirement', 'montecarlo', 'goals'] },
+  { group: t('Optimisation', 'Optimization'), items: ['tax', 'insurance', 'estate'] },
+  { group: t('Système', 'System'), items: ['settings'] },
 ];
 
 function currentRoute() {
@@ -43,22 +47,21 @@ function currentRoute() {
   return ROUTES[r] ? r : 'dashboard';
 }
 
-// ---------- Shell construction ----------
 let contentEl, titleEl, subEl, sidebarClientEl, navEls = {};
 
 function buildShell() {
   const app = document.getElementById('app');
   clear(app);
+  navEls = {};
 
-  // Sidebar
   sidebarClientEl = h('div', { class: 'sb-client', onClick: openClientSwitcher });
   const nav = h('nav', { class: 'sb-nav' });
-  NAV.forEach(g => {
+  NAV().forEach(g => {
     nav.appendChild(h('div', { class: 'nav-group' }, g.group));
     g.items.forEach(key => {
       const r = ROUTES[key];
       const item = h('a', { class: 'nav-item', href: '#' + key },
-        h('span', { class: 'ic', html: icon(r.icon, 18) }), h('span', {}, r.title));
+        h('span', { class: 'ic', html: icon(r.icon, 18) }), h('span', {}, r.title()));
       navEls[key] = item;
       nav.appendChild(item);
     });
@@ -71,26 +74,35 @@ function buildShell() {
     sidebarClientEl,
     nav,
     h('div', { class: 'sb-foot' },
-      h('div', { class: 'who' }, h('b', {}, 'Joel Camire'), h('span', {}, 'JC Capital — privé')),
-      h('button', { class: 'btn icon ghost', title: 'Thème', onClick: () => store.toggleTheme(),
+      h('div', { class: 'who' }, h('b', {}, 'Joel Camire'), h('span', {}, t('JC Capital — privé', 'JC Capital — private'))),
+      buildLangToggle(),
+      h('button', { class: 'btn icon ghost', title: t('Thème', 'Theme'), onClick: () => store.toggleTheme(),
         html: icon(store.state.theme === 'light' ? 'moon' : 'sun', 16) }),
     ),
   );
 
-  // Topbar
   titleEl = h('h1', {});
   subEl = h('div', { class: 'sub muted' });
-  const jurPill = buildJurisdictionPill();
   const topbar = h('div', { class: 'topbar' },
     h('button', { class: 'btn icon ghost menu-toggle', html: icon('menu', 18), onClick: () => document.body.classList.toggle('nav-open') }),
     h('div', {}, titleEl, subEl),
-    h('div', { class: 'topbar-actions' }, jurPill,
-      h('button', { class: 'btn sm', html: icon('download', 14) + ' Exporter', onClick: exportPdf })),
+    h('div', { class: 'topbar-actions' }, buildJurisdictionPill(),
+      h('button', { class: 'btn sm', html: icon('download', 14) + ' ' + t('Exporter', 'Export'), onClick: exportPdf })),
   );
 
   contentEl = h('main', { class: 'content' });
-  const main = h('div', { class: 'main' }, topbar, contentEl);
-  app.appendChild(h('div', { class: 'shell' }, sidebar, main));
+  app.appendChild(h('div', { class: 'shell' }, sidebar, h('div', { class: 'main' }, topbar, contentEl)));
+}
+
+function buildLangToggle() {
+  return h('div', { class: 'seg', style: { padding: '2px' } },
+    h('button', { onClick: () => setLang('fr'), style: langStyle(getLang() === 'fr') }, 'FR'),
+    h('button', { onClick: () => setLang('en'), style: langStyle(getLang() === 'en') }, 'EN'),
+  );
+}
+function langStyle(on) {
+  return { border: 'none', background: on ? 'var(--surface)' : 'transparent', color: on ? 'var(--text)' : 'var(--sidebar-text)',
+    padding: '4px 8px', borderRadius: '7px', fontWeight: 700, fontSize: '11px' };
 }
 
 function buildJurisdictionPill() {
@@ -100,43 +112,36 @@ function buildJurisdictionPill() {
     ...COUNTRY_LIST.map(x => h('option', { value: x.code, selected: x.code === c.jurisdiction.country }, `${x.flag} ${x.name}`)));
   const regionSel = h('select', { onChange: e => store.setJurisdiction(c.jurisdiction.country, e.target.value) },
     ...Object.entries(jur.regions).map(([k, v]) => h('option', { value: k, selected: k === c.jurisdiction.region }, v)));
-  return h('div', { class: 'juris-pill', title: 'Juridiction de planification' },
+  return h('div', { class: 'juris-pill', title: t('Juridiction de planification', 'Planning jurisdiction') },
     h('span', { class: 'flag' }, jur.flag), countrySel, h('span', { class: 'muted' }, '·'), regionSel);
 }
 
-// ---------- Render ----------
 function render() {
   const key = currentRoute();
   const r = ROUTES[key];
   const c = store.activeClient();
   const jur = getJurisdiction(c.jurisdiction.country, c.jurisdiction.region);
 
-  // sidebar client
   clear(sidebarClientEl).append(
-    h('div', { class: 'lbl' }, 'Dossier actif'),
+    h('div', { class: 'lbl' }, t('Dossier actif', 'Active file')),
     h('div', { class: 'nm' }, c.name, h('span', { html: icon('chevron', 15) })),
-    h('div', { class: 'meta' }, `${jur.flag} ${jur.name} · ${jur.regionName} · ${c.members.length} membre(s)`),
+    h('div', { class: 'meta' }, `${jur.flag} ${jur.name} · ${jur.regionName} · ${c.members.length} ${t('membre(s)', 'member(s)')}`),
   );
 
-  // nav active
   Object.entries(navEls).forEach(([k, el]) => el.classList.toggle('active', k === key));
 
-  // topbar
-  titleEl.textContent = r.title;
-  subEl.textContent = r.sub;
-  // rebuild jurisdiction pill (reflect current values)
+  titleEl.textContent = r.title();
+  subEl.textContent = r.sub();
   const pill = document.querySelector('.juris-pill');
   if (pill) pill.replaceWith(buildJurisdictionPill());
 
-  // content
   document.body.classList.remove('nav-open');
   clear(contentEl);
   try {
-    const node = r.view.render({ store, client: c, jur, navigate });
-    contentEl.appendChild(node);
+    contentEl.appendChild(r.view.render({ store, client: c, jur, navigate }));
   } catch (e) {
     console.error(e);
-    contentEl.appendChild(h('div', { class: 'card' }, h('h3', {}, 'Erreur de rendu'), h('pre', { style: { whiteSpace: 'pre-wrap', color: 'var(--neg)' } }, String(e && e.stack || e))));
+    contentEl.appendChild(h('div', { class: 'card' }, h('h3', {}, t('Erreur de rendu', 'Render error')), h('pre', { style: { whiteSpace: 'pre-wrap', color: 'var(--neg)' } }, String(e && e.stack || e))));
   }
   contentEl.scrollTop = 0;
 }
@@ -150,21 +155,22 @@ function openClientSwitcher() {
       onClick: () => { store.setActive(c.id); m.close(); } },
       h('div', {}, h('b', {}, c.name), h('div', { class: 'tiny muted' }, `${jur.flag} ${jur.name} · ${jur.regionName}`)),
       h('div', { class: 'inline', style: { flexWrap: 'nowrap' } },
-        h('button', { class: 'btn icon sm ghost', title: 'Dupliquer', html: icon('doc', 15), onClick: ev => { ev.stopPropagation(); store.duplicateClient(c.id); m.close(); toast('Dossier dupliqué'); } }),
-        store.state.clients.length > 1 ? h('button', { class: 'btn icon sm ghost', title: 'Supprimer', html: icon('trash', 15), onClick: ev => { ev.stopPropagation(); store.deleteClient(c.id); m.close(); toast('Dossier supprimé'); } }) : null,
+        h('button', { class: 'btn icon sm ghost', title: t('Dupliquer', 'Duplicate'), html: icon('doc', 15), onClick: ev => { ev.stopPropagation(); store.duplicateClient(c.id); m.close(); toast(t('Dossier dupliqué', 'File duplicated')); } }),
+        store.state.clients.length > 1 ? h('button', { class: 'btn icon sm ghost', title: t('Supprimer', 'Delete'), html: icon('trash', 15), onClick: ev => { ev.stopPropagation(); store.deleteClient(c.id); m.close(); toast(t('Dossier supprimé', 'File deleted')); } }) : null,
       ));
   });
-  const m = modal({ title: 'Changer de dossier', body: h('div', {}, ...list),
-    footer: [h('button', { class: 'btn primary', html: icon('plus', 14) + ' Nouveau dossier', onClick: () => { store.addClient(); m.close(); navigate('client'); } })] });
+  const m = modal({ title: t('Changer de dossier', 'Switch file'), body: h('div', {}, ...list),
+    footer: [h('button', { class: 'btn primary', html: icon('plus', 14) + ' ' + t('Nouveau dossier', 'New file'), onClick: () => { store.addClient(); m.close(); navigate('profile'); } })] });
 }
 
 function exportPdf() {
-  toast('Astuce : utilisez Imprimer → PDF du navigateur', 'info');
+  toast(t('Astuce : utilisez Imprimer → PDF du navigateur', 'Tip: use the browser Print → PDF'), 'info');
   setTimeout(() => window.print(), 400);
 }
 
-// ---------- Boot ----------
+// Boot
 buildShell();
 render();
 store.subscribe(() => render());
+onLangChange(() => { buildShell(); render(); });
 window.addEventListener('hashchange', render);
