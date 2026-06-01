@@ -17,6 +17,21 @@ const CA_FED = {
   capGainsInclusion: 0.50,
   eligibleDivGrossUp: 1.38,
   eligibleDivCredit: 0.150198, // federal credit on grossed-up
+  nonEligDivGrossUp: 1.15,
+  nonEligDivCredit: 0.090301, // federal credit on grossed-up non-eligible
+};
+
+// Corporate (CCPC) parameters, 2025. Combined rate = federal + provincial.
+const CORPORATE = {
+  sbdLimit: 500000,                 // small business deduction limit
+  passiveGrindStart: 50000,         // AAII threshold where SBD starts to grind
+  passiveGrindEnd: 150000,          // SBD fully eliminated
+  fedSB: 0.09, fedGeneral: 0.15,
+  passiveRate: 0.5017,              // investment income in a CCPC
+  refundableRate: 0.3067,           // RDTOH refunded on taxable dividend paid
+  cdaFraction: 0.50,                // non-taxable half of capital gains -> CDA (tax-free)
+  lcge: 1250000,                    // lifetime capital gains exemption (QSBC), 2025
+  // provincial corporate rates pulled from PROV (provSB / provGen)
 };
 
 // Province table: brackets, basic personal amount, credit rate, and notes.
@@ -31,7 +46,8 @@ const PROV = {
     ],
     bpa: 18571, bpaRate: 0.14,
     federalAbatement: 0.165, // Quebec abatement reduces federal tax
-    divCredit: 0.117,
+    divCredit: 0.117, divCreditNonElig: 0.0342,
+    provSB: 0.032, provGen: 0.115,
     payroll: 'QC',
   },
   ON: {
@@ -45,7 +61,8 @@ const PROV = {
     ],
     bpa: 12747, bpaRate: 0.0505,
     surtax: [{ over: 5710, rate: 0.20 }, { over: 7307, rate: 0.36 }],
-    divCredit: 0.10,
+    divCredit: 0.10, divCreditNonElig: 0.029863,
+    provSB: 0.032, provGen: 0.115,
     payroll: 'ROC',
   },
   BC: {
@@ -60,7 +77,8 @@ const PROV = {
       { upTo: null, rate: 0.205 },
     ],
     bpa: 12932, bpaRate: 0.0506,
-    divCredit: 0.12,
+    divCredit: 0.12, divCreditNonElig: 0.0196,
+    provSB: 0.020, provGen: 0.120,
     payroll: 'ROC',
   },
   AB: {
@@ -74,7 +92,8 @@ const PROV = {
       { upTo: null, rate: 0.15 },
     ],
     bpa: 22323, bpaRate: 0.08,
-    divCredit: 0.0812,
+    divCredit: 0.0812, divCreditNonElig: 0.0218,
+    provSB: 0.020, provGen: 0.080,
     payroll: 'ROC',
   },
 };
@@ -129,6 +148,7 @@ const CA = {
     oas: { name: 'PSV', maxAnnual: 8732, startAge: 65, clawbackStart: 93454, clawbackFull: 151668, clawbackRate: 0.15, defer: 0.072 },
   },
   fed: CA_FED, prov: PROV, payroll: PAYROLL, accounts: ACCOUNTS, rrifMin: RRIF_MIN,
+  corporate: CORPORATE,
 };
 
 export default CA;

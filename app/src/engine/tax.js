@@ -32,17 +32,19 @@ export function bracketMarginal(amount, brackets) {
 // ---------- Country-specific core (income tax + payroll) ----------
 
 function caCore(jur, inc) {
-  const { ordinary = 0, capGains = 0, eligibleDiv = 0, age = 45, employment = true, withPayroll = true } = inc;
+  const { ordinary = 0, capGains = 0, eligibleDiv = 0, nonEligibleDiv = 0, age = 45, employment = true, withPayroll = true } = inc;
   const F = jur.fed;
   const rd = jur.regionData || {};
   const grossedDiv = eligibleDiv * F.eligibleDivGrossUp;
+  const grossedNonElig = nonEligibleDiv * (F.nonEligDivGrossUp || 1.15);
   const inclGains = capGains * F.capGainsInclusion;
-  const taxableIncome = Math.max(0, ordinary + inclGains + grossedDiv);
+  const taxableIncome = Math.max(0, ordinary + inclGains + grossedDiv + grossedNonElig);
 
   // Federal
   let fed = bracketTax(taxableIncome, F.brackets);
   fed -= Math.min(F.bpa, taxableIncome) * F.bpaRate;                 // basic personal credit
-  fed -= grossedDiv * F.eligibleDivCredit;                            // dividend tax credit
+  fed -= grossedDiv * F.eligibleDivCredit;                            // eligible dividend tax credit
+  fed -= grossedNonElig * (F.nonEligDivCredit || 0.090301);          // non-eligible dividend tax credit
   fed = Math.max(0, fed);
   if (rd.federalAbatement) fed *= (1 - rd.federalAbatement);         // Quebec abatement
 
@@ -50,6 +52,7 @@ function caCore(jur, inc) {
   let prov = bracketTax(taxableIncome, rd.brackets || F.brackets);
   prov -= Math.min(rd.bpa || 0, taxableIncome) * (rd.bpaRate || 0);
   prov -= grossedDiv * (rd.divCredit || 0);
+  prov -= grossedNonElig * (rd.divCreditNonElig || 0);
   prov = Math.max(0, prov);
   if (rd.surtax) {                                                    // Ontario-style surtax
     let s = 0; for (const t of rd.surtax) if (prov > t.over) s += (prov - t.over) * t.rate;
@@ -149,7 +152,7 @@ function totalIncomeTax(jur, inc) {
 export function computeTax(jur, inc = {}) {
   const core = (CORES[jur.country] || caCore)(jur, inc);
   const total = core.federal + core.regional + core.payroll;
-  const base = (inc.ordinary || 0) + (inc.capGains || 0) + (inc.eligibleDiv || 0);
+  const base = (inc.ordinary || 0) + (inc.capGains || 0) + (inc.eligibleDiv || 0) + (inc.nonEligibleDiv || 0);
   // Numerical marginal rate on the next $1,000 of ordinary income
   const bump = totalIncomeTax(jur, { ...inc, ordinary: (inc.ordinary || 0) + 1000 });
   const marginalRate = Math.max(0, (bump - total) / 1000);

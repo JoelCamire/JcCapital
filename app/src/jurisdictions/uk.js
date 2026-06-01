@@ -44,5 +44,12 @@ const UK = {
     oas: { name: 'Pension Credit', maxAnnual: 0, startAge: 66 },
   },
   fed: UK_MAIN, prov: REGIONS, regionsData: REGIONS, accounts: ACCOUNTS, rrifMin: {},
+  corporate: {
+    structure: 'uk',
+    smallRate: 0.19, mainRate: 0.25,         // corporation tax
+    lowerLimit: 50000, upperLimit: 250000,   // marginal relief band
+    divAllowance: 500, divBasic: 0.0875, divHigher: 0.3375, divAdditional: 0.3935,
+    employerNI: 0.138,
+  },
 };
 export default UK;

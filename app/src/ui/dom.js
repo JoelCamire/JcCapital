@@ -115,6 +115,7 @@ const I = {
   split: 'M7 4v5a3 3 0 003 3h7M17 12l-3-3M17 12l-3 3M7 4l-3 3M7 4l3 3',
   report: 'M7 2h7l4 4v16H7zM14 2v4h4M9 12h6M9 16h6M9 8h2',
   timeline: 'M4 4v16M4 8h6M4 14h10M4 20h4M12 8a2 2 0 100-.01M16 14a2 2 0 100-.01M10 20a2 2 0 100-.01',
+  briefcase: 'M3 8h18v12H3zM8 8V6a2 2 0 012-2h4a2 2 0 012 2v2M3 13h18',
 };
 export function icon(name, size = 18, extra = '') {
   const d = I[name] || I.doc;

@@ -39,6 +39,16 @@ export function newDocument(over = {}) {
 export function newContact(over = {}) {
   return { id: uid(), name: 'Conseiller', role: 'accountant', firm: '', phone: '', email: '', ...over };
 }
+export function newBusiness(over = {}) {
+  return {
+    name: '', structure: 'incorporated', ownerId: null, fiscalYearEnd: '12-31',
+    activeIncome: 250000, passiveIncome: 30000, retainedEarnings: 200000, corpInvestments: 150000,
+    otherPersonalIncome: 0,
+    valuation: { ebitda: 0, ebitdaMultiple: 5, revenue: 0, revenueMultiple: 1 },
+    sale: { proceeds: 0, acb: 0, owners: 1 },
+    ...over,
+  };
+}
 export function newIncome(over = {}) {
   return { id: uid(), memberId: null, label: 'Revenu', type: 'employment', amount: 60000, growth: 0.025, startAge: null, endAge: null, taxable: true, ...over };
 }
@@ -75,6 +85,7 @@ export function newClient(name = 'Nouveau ménage', country = 'CA', region = 'QC
     beneficiaries: [],
     documents: [],
     contacts: [],
+    business: null,
     assumptions: defaultAssumptions(),
   };
 }
@@ -151,6 +162,13 @@ export function seedClients() {
       newContact({ name: 'Me Sophie Lavoie', role: 'notary', firm: 'Lavoie & Associés', phone: '418-555-0111', email: 'slavoie@notaire.qc.ca' }),
       newContact({ name: 'Pierre Gagnon, CPA', role: 'accountant', firm: 'Gagnon Comptables', phone: '418-555-0133', email: 'pgagnon@cpa.qc.ca' }),
     ],
+    business: newBusiness({
+      name: 'Tremblay Génie-Conseil inc.', structure: 'incorporated', ownerId: a, fiscalYearEnd: '12-31',
+      activeIncome: 285000, passiveIncome: 45000, retainedEarnings: 320000, corpInvestments: 280000,
+      otherPersonalIncome: 0,
+      valuation: { ebitda: 240000, ebitdaMultiple: 5, revenue: 1100000, revenueMultiple: 1.2 },
+      sale: { proceeds: 1300000, acb: 100000, owners: 2 },
+    }),
     assumptions: defaultAssumptions(),
   };
   return [joel];

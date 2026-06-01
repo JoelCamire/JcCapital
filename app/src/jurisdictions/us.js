@@ -89,6 +89,14 @@ const US = {
   },
   fed: US_FED, states: STATES, prov: STATES, payroll: PAYROLL, accounts: ACCOUNTS, rrifMin: RMD_MIN,
   filingStatusWidth: { single: 1, married: 2 },
+  corporate: {
+    structure: 'us',
+    fedCorp: 0.21,                 // C-corp federal flat rate
+    qbiDeduction: 0.20,            // 199A pass-through deduction
+    seTaxRate: 0.153,              // self-employment tax (SS+Medicare)
+    seWageBase: 176100,
+    stateCorp: { CA: 0.0884, NY: 0.0725, TX: 0, FL: 0.055, WA: 0 },
+  },
 };
 
 export default US;

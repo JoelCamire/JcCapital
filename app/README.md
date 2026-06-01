@@ -35,6 +35,7 @@ Aucune étape de compilation. C'est une application web statique en modules ES.
 | **Objectifs** | Suivi du financement + **suggestions personnalisées** générées à partir du profil complet (fonds d'urgence, REEE par enfant, max CELI/REER, dettes, testament, assurance…), ajout en 1 clic |
 | **Assurance** | Analyse des besoins vie + invalidité, écart de couverture |
 | **Succession** | Impôts au décès estimés par juridiction, stratégies |
+| **Entreprise & société** | **Cœur du métier** : salaire vs dividende (intégration CCPC), impôt corporatif (DPE, érosion par revenu passif, IMRTD), report d'impôt corp vs personnel, évaluation par multiples, **vente d'entreprise & exonération cumulative des gains en capital (EGC)**, stratégies (CDC, RRI, TOSI, gel successoral). Adapté US (société S / QBI / §1202) et UK (corp tax / dividendes / BADR) |
 | **Dettes & hypothèque** | Tableaux d'amortissement, stratégies avalanche/boule de neige, accélération hypothécaire |
 | **Portefeuille** | Répartition d'actifs vs cible, frais (MER) et drague sur 25 ans, rééquilibrage, questionnaire de tolérance au risque |
 | **Scénarios & stress** | Tests de résistance (krach, faibles rendements, inflation, longevité, décès, invalidité) + comparateur |
