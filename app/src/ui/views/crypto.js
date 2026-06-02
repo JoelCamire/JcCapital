@@ -19,7 +19,7 @@ const DEFAULT_HOLDINGS = [
 function typeOpts() {
   return [
     { value: 'crypto',      label: t('Cryptomonnaie', 'Cryptocurrency') },
-    { value: 'private',     label: t('Placement priv’', 'Private investment') },
+    { value: 'private',     label: t('Placement privé', 'Private investment') },
     { value: 'collectible', label: t('Collection', 'Collectible') },
     { value: 'commodity',   label: t('Matière première', 'Commodity') },
     { value: 'other',       label: t('Autre', 'Other') },
