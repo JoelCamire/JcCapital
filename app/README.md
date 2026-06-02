@@ -39,6 +39,11 @@ Aucune étape de compilation. C'est une application web statique en modules ES.
 | **Actions accréditives & PearTree** | Actions minières d'exploration : déduction FEC/CEE 100 %, CIEM/METC fédéral + provincial, et **méthode PearTree** (don d'actions accréditives : crédit de don + exonération du gain → coût net pouvant approcher zéro). Équivalents US (QOZ/§1202) et UK (EIS/SEIS) |
 | **Stratégies d'assurance** | **Assurance corporative & CDC** (sortie libre d'impôt), **Régime de retraite assuré (RRA/IRP)**, **Arrangement de financement immédiat (AFI/IFA)**, dimensionnement convention de rachat / personne clé / égalisation successorale |
 | **Structures avancées** | **Prêt au taux prescrit** (fractionnement), **gel successoral + fiducie familiale** (multiplication de l'EGC entre bénéficiaires), **Holdco à deux paliers** (purification AAPE, protection des créanciers), **RCA / convention de retraite**, + IPP, fiducie en faveur de soi-même, etc. |
+| **Rémunération en actions** | Options & UAR : SPCC (report + déduction 50 %), société publique, ISO (AMT)/NSO, EMI — impôt et net après impôt |
+| **Immobilier locatif** | Analyse d'immeuble : taux de capitalisation, rendement cash-on-cash, DSCR, levier, projection valeur/solde/avoir, récupération d'amortissement |
+| **Transfrontalier** | Snowbirds : test de présence importante (SPT) aux É.-U., jours de résidence, exposition à l'impôt successoral américain, CELI/PFIC/FBAR |
+| **Départ du Canada** | Impôt de départ (disposition réputée à la JVM), biens exclus, report par garantie, majoration à l'arrivée |
+| **Conformité & échéances** | Calendrier fiscal par juridiction (REER, T1/T2, acomptes, TFSA/ISA, RMD…) avec jours restants |
 | **Dettes & hypothèque** | Tableaux d'amortissement, stratégies avalanche/boule de neige, accélération hypothécaire |
 | **Portefeuille** | Répartition d'actifs vs cible, frais (MER) et drague sur 25 ans, rééquilibrage, questionnaire de tolérance au risque |
 | **Scénarios & stress** | Tests de résistance (krach, faibles rendements, inflation, longevité, décès, invalidité) + comparateur |
