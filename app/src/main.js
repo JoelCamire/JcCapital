@@ -35,6 +35,10 @@ import * as equity from './ui/views/equity.js';
 import * as emigration from './ui/views/emigration.js';
 import * as compliance from './ui/views/compliance.js';
 import * as crossborder from './ui/views/crossborder.js';
+import * as philanthropy from './ui/views/philanthropy.js';
+import * as rdsp from './ui/views/rdsp.js';
+import * as crypto from './ui/views/crypto.js';
+import * as strategycompare from './ui/views/strategycompare.js';
 
 // title/sub are functions so they re-translate on language switch
 const ROUTES = {
@@ -50,6 +54,8 @@ const ROUTES = {
   advstructures: { title: () => t('Structures avancées', 'Advanced structures'), sub: () => t('Holdco, fiducie familiale, RCA, prêt au taux prescrit', 'Holdco, family trust, RCA, prescribed-rate loan'), icon: 'estate', view: advstructures },
   portfolio: { title: () => t('Portefeuille', 'Portfolio'), sub: () => t('Répartition d\'actifs, frais et rééquilibrage', 'Asset allocation, fees & rebalancing'), icon: 'pie', view: portfolio },
   realestate: { title: () => t('Immobilier locatif', 'Rental real estate'), sub: () => t('Rendement, levier et flux d\'un immeuble', 'Yield, leverage & cash flow of a property'), icon: 'estate', view: realestate },
+  crypto: { title: () => t('Crypto & actifs alternatifs', 'Crypto & alternative assets'), sub: () => t('Suivi, fiscalité et répartition', 'Tracking, taxation & allocation'), icon: 'pie', view: crypto },
+  strategycompare: { title: () => t('Comparateur de stratégies', 'Strategy comparison'), sub: () => t('Valeur du conseil — avant / après', 'Value of advice — before / after'), icon: 'compare', view: strategycompare },
   equity: { title: () => t('Rémunération en actions', 'Equity compensation'), sub: () => t('Options, UAR, SPCC, ISO/NSO', 'Options, RSUs, CCPC, ISO/NSO'), icon: 'networth', view: equity },
   emigration: { title: () => t('Départ du Canada', 'Leaving Canada'), sub: () => t('Impôt de départ et disposition réputée', 'Departure tax & deemed disposition'), icon: 'globe', view: emigration },
   crossborder: { title: () => t('Transfrontalier', 'Cross-border'), sub: () => t('Snowbirds, présence aux É.-U., succession US', 'Snowbirds, US presence, US estate'), icon: 'globe', view: crossborder },
@@ -65,6 +71,8 @@ const ROUTES = {
   timeline: { title: () => t('Échéancier de vie', 'Life timeline'), sub: () => t('Étapes et milestones financiers', 'Financial milestones'), icon: 'timeline', view: timeline },
   insurance: { title: () => t('Assurance', 'Insurance'), sub: () => t('Analyse des besoins et polices', 'Needs analysis & policies'), icon: 'insurance', view: insurance },
   estate: { title: () => t('Succession', 'Estate'), sub: () => t('Transmission et fiscalité au décès', 'Transfer & tax at death'), icon: 'estate', view: estate },
+  philanthropy: { title: () => t('Philanthropie', 'Philanthropy'), sub: () => t('Dons de titres, DAF, fondation', 'Gifts of securities, DAF, foundation'), icon: 'goals', view: philanthropy },
+  rdsp: { title: () => t('REEI & invalidité', 'RDSP & disability'), sub: () => t('Subventions, bons et programmes pour proches', 'Grants, bonds & caregiver programs'), icon: 'client', view: rdsp },
   reports: { title: () => t('Rapports', 'Reports'), sub: () => t('Rapport de plan financier imprimable', 'Printable financial plan report'), icon: 'report', view: reports },
   settings: { title: () => t('Paramètres', 'Settings'), sub: () => t('Juridiction, hypothèses et données', 'Jurisdiction, assumptions & data'), icon: 'settings', view: settings },
 };
@@ -72,10 +80,10 @@ const ROUTES = {
 const NAV = () => [
   { group: t('Planification', 'Planning'), items: ['dashboard', 'profile', 'client', 'networth', 'cashflow', 'debt'] },
   { group: t('Entreprise', 'Business'), items: ['business', 'flowthrough', 'insurancestrat', 'advstructures'] },
-  { group: t('Placements & retraite', 'Investments & retirement'), items: ['portfolio', 'realestate', 'retirement', 'montecarlo', 'scenarios'] },
-  { group: t('Optimisation', 'Optimization'), items: ['tax', 'optimize', 'equity', 'benefits', 'insurance', 'estate'] },
+  { group: t('Placements & retraite', 'Investments & retirement'), items: ['portfolio', 'realestate', 'crypto', 'retirement', 'montecarlo', 'scenarios', 'strategycompare'] },
+  { group: t('Optimisation', 'Optimization'), items: ['tax', 'optimize', 'equity', 'benefits', 'insurance', 'estate', 'philanthropy'] },
   { group: t('International', 'International'), items: ['crossborder', 'emigration'] },
-  { group: t('Objectifs & vie', 'Goals & life'), items: ['goals', 'education', 'timeline'] },
+  { group: t('Objectifs & vie', 'Goals & life'), items: ['goals', 'education', 'rdsp', 'timeline'] },
   { group: t('Documents', 'Documents'), items: ['compliance', 'reports', 'settings'] },
 ];
 

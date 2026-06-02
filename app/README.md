@@ -44,6 +44,10 @@ Aucune étape de compilation. C'est une application web statique en modules ES.
 | **Transfrontalier** | Snowbirds : test de présence importante (SPT) aux É.-U., jours de résidence, exposition à l'impôt successoral américain, CELI/PFIC/FBAR |
 | **Départ du Canada** | Impôt de départ (disposition réputée à la JVM), biens exclus, report par garantie, majoration à l'arrivée |
 | **Conformité & échéances** | Calendrier fiscal par juridiction (REER, T1/T2, acomptes, TFSA/ISA, RMD…) avec jours restants |
+| **Comparateur de stratégies** | « Valeur du conseil » : impact combiné avant/après de stratégies activables (max CELI, fractionnement, report RRQ, réduction des dépenses…) sur valeur nette, impôt à vie et probabilité de succès |
+| **Crypto & actifs alternatifs** | Suivi des avoirs, répartition, fiscalité (gain en capital vs revenu d'entreprise CA, court/long terme US, pooling UK), impôt à la disposition |
+| **Philanthropie** | Don de titres cotés vs argent (élimination du gain en capital), regroupement (bunching), DAF vs fondation privée, don d'assurance/CDC |
+| **REEI & invalidité** | Subventions (SCEI jusqu'à 300 %) et bons (BCEI), projection, effet de levier gouvernemental, CIPH, fiducie Henson, comptes ABLE (US) |
 | **Dettes & hypothèque** | Tableaux d'amortissement, stratégies avalanche/boule de neige, accélération hypothécaire |
 | **Portefeuille** | Répartition d'actifs vs cible, frais (MER) et drague sur 25 ans, rééquilibrage, questionnaire de tolérance au risque |
 | **Scénarios & stress** | Tests de résistance (krach, faibles rendements, inflation, longevité, décès, invalidité) + comparateur |
