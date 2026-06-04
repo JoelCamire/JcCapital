@@ -25,6 +25,10 @@ Aucune étape de compilation. C'est une application web statique en modules ES.
 | Module | Description |
 |--------|-------------|
 | **Tableau de bord** | KPIs, projection de valeur nette, jauge de préparation, recommandations automatiques |
+| **Bilan de santé financière** | Revue automatisée de tout le dossier : pointage par domaine (retraite, fiscalité, protection, succession, dettes, entreprise), cote globale A–E et **plan d'action priorisé** |
+| **Décaissement optimal** | Comparateur d'ordres de retrait à la retraite (non-enr. d'abord, **fonte du REER**, préserver le CELI) modélisant les minimums FERR et la **récupération de la PSV** → impôt à vie et succession nette |
+| **Relève d'entreprise** | Voies de sortie (tiers, transfert familial avec EGC multipliée, MBO), mécanismes de transaction, liste de préparation |
+| **Avantages sociaux** | Coût total d'un employé, régimes collectifs (REER coll./RPDB vs RPA), compte de gestion santé, catégories d'avantages et traitement fiscal |
 | **Profil client (KYC)** | Infos personnelles complètes, personnes à charge, bénéficiaires, documents juridiques, professionnels, indice de complétude |
 | **Ménage** | Membres, revenus (emploi, rentes, prestations), dépenses avec facteur retraite |
 | **Bilan** | Actifs (selon les comptes de la juridiction), passifs, répartition fiscale |

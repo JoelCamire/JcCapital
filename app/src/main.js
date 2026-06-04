@@ -39,16 +39,23 @@ import * as philanthropy from './ui/views/philanthropy.js';
 import * as rdsp from './ui/views/rdsp.js';
 import * as crypto from './ui/views/crypto.js';
 import * as strategycompare from './ui/views/strategycompare.js';
+import * as decumulation from './ui/views/decumulation.js';
+import * as healthcheck from './ui/views/healthcheck.js';
+import * as empbenefits from './ui/views/empbenefits.js';
+import * as succession from './ui/views/succession.js';
 
 // title/sub are functions so they re-translate on language switch
 const ROUTES = {
   dashboard: { title: () => t('Tableau de bord', 'Dashboard'), sub: () => t('Vue d\'ensemble du plan financier', 'Financial plan overview'), icon: 'dashboard', view: dashboard },
+  healthcheck: { title: () => t('Bilan de santé financière', 'Financial health check'), sub: () => t('Pointage global et plan d\'action priorisé', 'Overall score & prioritized action plan'), icon: 'check', view: healthcheck },
   profile: { title: () => t('Profil client', 'Client profile'), sub: () => t('Informations personnelles, à charge, documents', 'Personal info, dependents, documents'), icon: 'client', view: profile },
   client: { title: () => t('Revenus & dépenses', 'Income & expenses'), sub: () => t('Flux du ménage', 'Household cash flows'), icon: 'cashflow', view: client },
   networth: { title: () => t('Bilan & valeur nette', 'Balance sheet & net worth'), sub: () => t('Actifs et passifs', 'Assets and liabilities'), icon: 'networth', view: networth },
   cashflow: { title: () => t('Flux de trésorerie', 'Cash flow'), sub: () => t('Projection annuelle détaillée', 'Detailed annual projection'), icon: 'cashflow', view: cashflow },
   debt: { title: () => t('Dettes & hypothèque', 'Debt & mortgage'), sub: () => t('Amortissement et stratégies de remboursement', 'Amortization & payoff strategies'), icon: 'card', view: debt },
   business: { title: () => t('Entreprise & société', 'Business & corporation'), sub: () => t('Salaire vs dividende, impôt corporatif, vente', 'Salary vs dividend, corporate tax, sale'), icon: 'briefcase', view: business },
+  succession: { title: () => t('Relève d’entreprise', 'Business succession'), sub: () => t('Voies de sortie, transfert familial, préparation', 'Exit routes, family transfer, readiness'), icon: 'briefcase', view: succession },
+  empbenefits: { title: () => t('Avantages sociaux', 'Employee benefits'), sub: () => t('Régimes collectifs et rémunération des employés', 'Group plans & employee compensation'), icon: 'client', view: empbenefits },
   flowthrough: { title: () => t('Actions accréditives & PearTree', 'Flow-through shares & PearTree'), sub: () => t('Actions minières d’exploration et don caritatif', 'Mining exploration shares & charitable gift'), icon: 'scale', view: flowthrough },
   insurancestrat: { title: () => t('Stratégies d’assurance', 'Insurance strategies'), sub: () => t('CDC, RRA, AFI, rachat, personne clé', 'CDA, IRP, IFA, buy-sell, key person'), icon: 'insurance', view: insurancestrat },
   advstructures: { title: () => t('Structures avancées', 'Advanced structures'), sub: () => t('Holdco, fiducie familiale, RCA, prêt au taux prescrit', 'Holdco, family trust, RCA, prescribed-rate loan'), icon: 'estate', view: advstructures },
@@ -61,6 +68,7 @@ const ROUTES = {
   crossborder: { title: () => t('Transfrontalier', 'Cross-border'), sub: () => t('Snowbirds, présence aux É.-U., succession US', 'Snowbirds, US presence, US estate'), icon: 'globe', view: crossborder },
   compliance: { title: () => t('Conformité & échéances', 'Compliance & deadlines'), sub: () => t('Calendrier fiscal et dates limites', 'Tax calendar & filing deadlines'), icon: 'report', view: compliance },
   retirement: { title: () => t('Retraite', 'Retirement'), sub: () => t('Scénarios et décaissement', 'Scenarios & decumulation'), icon: 'retire', view: retirement },
+  decumulation: { title: () => t('Décaissement optimal', 'Optimal decumulation'), sub: () => t('Ordre de retrait, fonte du REER, PSV', 'Withdrawal order, RRSP meltdown, OAS'), icon: 'scale', view: decumulation },
   montecarlo: { title: () => t('Monte Carlo', 'Monte Carlo'), sub: () => t('Analyse de probabilité de succès', 'Probability of success analysis'), icon: 'monte', view: montecarlo },
   scenarios: { title: () => t('Scénarios & stress', 'Scenarios & stress'), sub: () => t('Tests de résistance et comparateur', 'Stress tests & comparator'), icon: 'flame', view: scenarios },
   tax: { title: () => t('Fiscalité', 'Taxation'), sub: () => t('Calculateur et optimisation d\'impôt', 'Tax calculator & optimization'), icon: 'tax', view: tax },
@@ -78,9 +86,9 @@ const ROUTES = {
 };
 
 const NAV = () => [
-  { group: t('Planification', 'Planning'), items: ['dashboard', 'profile', 'client', 'networth', 'cashflow', 'debt'] },
-  { group: t('Entreprise', 'Business'), items: ['business', 'flowthrough', 'insurancestrat', 'advstructures'] },
-  { group: t('Placements & retraite', 'Investments & retirement'), items: ['portfolio', 'realestate', 'crypto', 'retirement', 'montecarlo', 'scenarios', 'strategycompare'] },
+  { group: t('Planification', 'Planning'), items: ['dashboard', 'healthcheck', 'profile', 'client', 'networth', 'cashflow', 'debt'] },
+  { group: t('Entreprise', 'Business'), items: ['business', 'succession', 'empbenefits', 'flowthrough', 'insurancestrat', 'advstructures'] },
+  { group: t('Placements & retraite', 'Investments & retirement'), items: ['portfolio', 'realestate', 'crypto', 'retirement', 'decumulation', 'montecarlo', 'scenarios', 'strategycompare'] },
   { group: t('Optimisation', 'Optimization'), items: ['tax', 'optimize', 'equity', 'benefits', 'insurance', 'estate', 'philanthropy'] },
   { group: t('International', 'International'), items: ['crossborder', 'emigration'] },
   { group: t('Objectifs & vie', 'Goals & life'), items: ['goals', 'education', 'rdsp', 'timeline'] },
