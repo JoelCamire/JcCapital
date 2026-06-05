@@ -33,7 +33,7 @@ export function render({ client, jur, navigate }) {
       ),
 
       // PearTree donation breakdown
-      card(t('Méthode PearTree — don d’actions accréditives', 'PearTree method — flow-through share donation'), { class: 'span-2',
+      card(t('Méthode PearTree — don d’actions accréditives', 'PearTree method — flow-through share donation'), {
         sub: t('Empile la déduction d’exploration, le CIEM, le crédit de don et l’exonération du gain', 'Stacks the exploration deduction, METC, donation credit and gains exemption') },
         h('div', { html: barChart({
           xLabels: [t('Don PearTree', 'PearTree gift'), t('Don en argent', 'Cash gift')],

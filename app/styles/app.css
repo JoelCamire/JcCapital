@@ -83,7 +83,7 @@ button { font-family: inherit; cursor: pointer; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 
 /* ---- Cards & grid ---- */
-.grid { display: grid; gap: 18px; }
+.grid { display: grid; gap: 18px; grid-template-columns: 1fr; }
 .cols-2 { grid-template-columns: repeat(2, 1fr); }
 .cols-3 { grid-template-columns: repeat(3, 1fr); }
 .cols-4 { grid-template-columns: repeat(4, 1fr); }
@@ -104,7 +104,7 @@ button { font-family: inherit; cursor: pointer; }
 .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 18px 20px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
 .kpi::after { content:''; position: absolute; right: -20px; top: -20px; width: 90px; height: 90px; border-radius: 50%; background: var(--accent); opacity: .06; }
 .kpi .label { color: var(--text-2); font-size: 12px; font-weight: 600; letter-spacing: .02em; display: flex; align-items: center; gap: 7px; }
-.kpi .value { font-family: var(--font-display); font-size: 27px; font-weight: 800; margin-top: 8px; letter-spacing: -.6px; }
+.kpi .value { font-family: var(--font-display); font-size: 24px; font-weight: 800; margin-top: 8px; letter-spacing: -.4px; white-space: nowrap; }
 .kpi .delta { font-size: 12px; font-weight: 600; margin-top: 6px; display: inline-flex; align-items: center; gap: 5px; }
 .delta.up { color: var(--pos); } .delta.down { color: var(--neg); }
 .kpi .spark { position: absolute; right: 14px; bottom: 12px; opacity: .85; }

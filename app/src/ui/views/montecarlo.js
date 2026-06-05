@@ -21,7 +21,7 @@ export function render({ client, jur }) {
         kpi({ label: t('Pessimiste (P10)', 'Pessimistic (P10)'), value: money(mc.p10Final, { currency: cur, compact: true }), accent: mc.p10Final <= 0 ? 'var(--neg)' : '' }),
         kpi({ label: t('Optimiste (P90)', 'Optimistic (P90)'), value: money(mc.p90Final, { currency: cur, compact: true }), accent: 'var(--pos)' }),
       ),
-      card(t('Éventail des trajectoires de patrimoine', 'Range of wealth paths'), { class: 'span-3',
+      card(t('Éventail des trajectoires de patrimoine', 'Range of wealth paths'), {
         sub: t('Bandes de percentiles P10–P90, médiane en gras', 'Percentile bands P10–P90, median in bold'),
         right: legend([{ color: 'var(--brand-400)', label: 'P10–P90' }, { color: 'var(--brand-600)', label: t('Médiane', 'Median') }]) },
         h('div', { html: fanChart({ bands: mc.bands }) })),
