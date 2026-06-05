@@ -55,6 +55,9 @@ Aucune étape de compilation. C'est une application web statique en modules ES.
 | **Budget mensuel** | Règle 50/30/20, répartition des dépenses, simulateur d'équilibre, gestion de trésorerie |
 | **Achat vs location** | Comparaison avoir net acheter vs louer-et-investir, point mort, sensibilité appréciation/rendement |
 | **Soins de longue durée** | Projection du coût des soins (domicile/résidence/CHSLD), longévité, auto-financement vs assurance SLD |
+| **Suivi du patrimoine** | Instantanés datés de la valeur nette, courbe d'évolution dans le temps |
+| **Comparateur d'assurance** | Temporaire vs vie entière vs T100, et « acheter temporaire et investir la différence » (BTID) |
+| **Boîte à outils** | Calculatrices rapides : intérêt composé, règle de 72, capacité hypothécaire, REER vs CELI, valeur actuelle/future, coût d'opportunité |
 | **Dettes & hypothèque** | Tableaux d'amortissement, stratégies avalanche/boule de neige, accélération hypothécaire |
 | **Portefeuille** | Répartition d'actifs vs cible, frais (MER) et drague sur 25 ans, rééquilibrage, questionnaire de tolérance au risque |
 | **Scénarios & stress** | Tests de résistance (krach, faibles rendements, inflation, longevité, décès, invalidité) + comparateur |

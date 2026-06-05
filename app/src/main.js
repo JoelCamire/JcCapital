@@ -46,6 +46,9 @@ import * as succession from './ui/views/succession.js';
 import * as budget from './ui/views/budget.js';
 import * as rentbuy from './ui/views/rentbuy.js';
 import * as ltc from './ui/views/ltc.js';
+import * as toolbox from './ui/views/toolbox.js';
+import * as insurancecompare from './ui/views/insurancecompare.js';
+import * as nwtracker from './ui/views/nwtracker.js';
 
 // title/sub are functions so they re-translate on language switch
 const ROUTES = {
@@ -54,6 +57,7 @@ const ROUTES = {
   profile: { title: () => t('Profil client', 'Client profile'), sub: () => t('Informations personnelles, à charge, documents', 'Personal info, dependents, documents'), icon: 'client', view: profile },
   client: { title: () => t('Revenus & dépenses', 'Income & expenses'), sub: () => t('Flux du ménage', 'Household cash flows'), icon: 'cashflow', view: client },
   networth: { title: () => t('Bilan & valeur nette', 'Balance sheet & net worth'), sub: () => t('Actifs et passifs', 'Assets and liabilities'), icon: 'networth', view: networth },
+  nwtracker: { title: () => t('Suivi du patrimoine', 'Net worth tracker'), sub: () => t('Évolution de la valeur nette dans le temps', 'Net worth over time'), icon: 'timeline', view: nwtracker },
   cashflow: { title: () => t('Flux de trésorerie', 'Cash flow'), sub: () => t('Projection annuelle détaillée', 'Detailed annual projection'), icon: 'cashflow', view: cashflow },
   budget: { title: () => t('Budget mensuel', 'Monthly budget'), sub: () => t('Règle 50/30/20 et gestion de trésorerie', '50/30/20 rule & cash management'), icon: 'cashflow', view: budget },
   debt: { title: () => t('Dettes & hypothèque', 'Debt & mortgage'), sub: () => t('Amortissement et stratégies de remboursement', 'Amortization & payoff strategies'), icon: 'card', view: debt },
@@ -83,22 +87,24 @@ const ROUTES = {
   education: { title: () => t('Études', 'Education'), sub: () => t('Financement des études des enfants', 'Children education funding'), icon: 'cap', view: education },
   timeline: { title: () => t('Échéancier de vie', 'Life timeline'), sub: () => t('Étapes et milestones financiers', 'Financial milestones'), icon: 'timeline', view: timeline },
   insurance: { title: () => t('Assurance', 'Insurance'), sub: () => t('Analyse des besoins et polices', 'Needs analysis & policies'), icon: 'insurance', view: insurance },
+  insurancecompare: { title: () => t('Comparateur d’assurance', 'Insurance comparator'), sub: () => t('Temporaire vs permanente, BTID', 'Term vs permanent, BTID'), icon: 'insurance', view: insurancecompare },
   estate: { title: () => t('Succession', 'Estate'), sub: () => t('Transmission et fiscalité au décès', 'Transfer & tax at death'), icon: 'estate', view: estate },
   philanthropy: { title: () => t('Philanthropie', 'Philanthropy'), sub: () => t('Dons de titres, DAF, fondation', 'Gifts of securities, DAF, foundation'), icon: 'goals', view: philanthropy },
   rdsp: { title: () => t('REEI & invalidité', 'RDSP & disability'), sub: () => t('Subventions, bons et programmes pour proches', 'Grants, bonds & caregiver programs'), icon: 'client', view: rdsp },
   ltc: { title: () => t('Soins de longue durée', 'Long-term care'), sub: () => t('Coût des soins, longévité et assurance SLD', 'Care costs, longevity & LTC insurance'), icon: 'insurance', view: ltc },
+  toolbox: { title: () => t('Boîte à outils', 'Toolbox'), sub: () => t('Calculatrices financières rapides', 'Quick financial calculators'), icon: 'scale', view: toolbox },
   reports: { title: () => t('Rapports', 'Reports'), sub: () => t('Rapport de plan financier imprimable', 'Printable financial plan report'), icon: 'report', view: reports },
   settings: { title: () => t('Paramètres', 'Settings'), sub: () => t('Juridiction, hypothèses et données', 'Jurisdiction, assumptions & data'), icon: 'settings', view: settings },
 };
 
 const NAV = () => [
-  { group: t('Planification', 'Planning'), items: ['dashboard', 'healthcheck', 'profile', 'client', 'networth', 'cashflow', 'budget', 'debt'] },
+  { group: t('Planification', 'Planning'), items: ['dashboard', 'healthcheck', 'profile', 'client', 'networth', 'nwtracker', 'cashflow', 'budget', 'debt'] },
   { group: t('Entreprise', 'Business'), items: ['business', 'succession', 'empbenefits', 'flowthrough', 'insurancestrat', 'advstructures'] },
   { group: t('Placements & retraite', 'Investments & retirement'), items: ['portfolio', 'realestate', 'rentbuy', 'crypto', 'retirement', 'decumulation', 'montecarlo', 'scenarios', 'strategycompare'] },
-  { group: t('Optimisation', 'Optimization'), items: ['tax', 'optimize', 'equity', 'benefits', 'insurance', 'estate', 'philanthropy'] },
+  { group: t('Optimisation', 'Optimization'), items: ['tax', 'optimize', 'equity', 'benefits', 'insurance', 'insurancecompare', 'estate', 'philanthropy'] },
   { group: t('International', 'International'), items: ['crossborder', 'emigration'] },
   { group: t('Objectifs & vie', 'Goals & life'), items: ['goals', 'education', 'rdsp', 'ltc', 'timeline'] },
-  { group: t('Documents', 'Documents'), items: ['compliance', 'reports', 'settings'] },
+  { group: t('Documents', 'Documents'), items: ['compliance', 'toolbox', 'reports', 'settings'] },
 ];
 
 function currentRoute() {

@@ -13,6 +13,7 @@ function normalize(c) {
   c.beneficiaries = c.beneficiaries || [];
   c.documents = c.documents || [];
   c.contacts = c.contacts || [];
+  c.snapshots = c.snapshots || [];
   c.updatedAt = c.updatedAt || c.createdAt || Date.now();
   return c;
 }
