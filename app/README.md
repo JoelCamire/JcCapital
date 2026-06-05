@@ -52,6 +52,9 @@ Aucune étape de compilation. C'est une application web statique en modules ES.
 | **Crypto & actifs alternatifs** | Suivi des avoirs, répartition, fiscalité (gain en capital vs revenu d'entreprise CA, court/long terme US, pooling UK), impôt à la disposition |
 | **Philanthropie** | Don de titres cotés vs argent (élimination du gain en capital), regroupement (bunching), DAF vs fondation privée, don d'assurance/CDC |
 | **REEI & invalidité** | Subventions (SCEI jusqu'à 300 %) et bons (BCEI), projection, effet de levier gouvernemental, CIPH, fiducie Henson, comptes ABLE (US) |
+| **Budget mensuel** | Règle 50/30/20, répartition des dépenses, simulateur d'équilibre, gestion de trésorerie |
+| **Achat vs location** | Comparaison avoir net acheter vs louer-et-investir, point mort, sensibilité appréciation/rendement |
+| **Soins de longue durée** | Projection du coût des soins (domicile/résidence/CHSLD), longévité, auto-financement vs assurance SLD |
 | **Dettes & hypothèque** | Tableaux d'amortissement, stratégies avalanche/boule de neige, accélération hypothécaire |
 | **Portefeuille** | Répartition d'actifs vs cible, frais (MER) et drague sur 25 ans, rééquilibrage, questionnaire de tolérance au risque |
 | **Scénarios & stress** | Tests de résistance (krach, faibles rendements, inflation, longevité, décès, invalidité) + comparateur |
