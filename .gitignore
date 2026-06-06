@@ -9,3 +9,8 @@
 Thumbs.db
 *.swp
 *~
+
+# Node deps (only installed transiently for tests/screenshots)
+node_modules/
+app/package.json
+app/package-lock.json
