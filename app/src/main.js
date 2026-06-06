@@ -49,6 +49,8 @@ import * as ltc from './ui/views/ltc.js';
 import * as toolbox from './ui/views/toolbox.js';
 import * as insurancecompare from './ui/views/insurancecompare.js';
 import * as nwtracker from './ui/views/nwtracker.js';
+import * as multitax from './ui/views/multitax.js';
+import * as feecompare from './ui/views/feecompare.js';
 
 // title/sub are functions so they re-translate on language switch
 const ROUTES = {
@@ -68,6 +70,7 @@ const ROUTES = {
   insurancestrat: { title: () => t('Stratégies d’assurance', 'Insurance strategies'), sub: () => t('CDC, RRA, AFI, rachat, personne clé', 'CDA, IRP, IFA, buy-sell, key person'), icon: 'insurance', view: insurancestrat },
   advstructures: { title: () => t('Structures avancées', 'Advanced structures'), sub: () => t('Holdco, fiducie familiale, RCA, prêt au taux prescrit', 'Holdco, family trust, RCA, prescribed-rate loan'), icon: 'estate', view: advstructures },
   portfolio: { title: () => t('Portefeuille', 'Portfolio'), sub: () => t('Répartition d\'actifs, frais et rééquilibrage', 'Asset allocation, fees & rebalancing'), icon: 'pie', view: portfolio },
+  feecompare: { title: () => t('Comparateur de frais', 'Fee comparator'), sub: () => t('FNB vs fonds communs — impact des frais', 'ETF vs mutual funds — fee impact'), icon: 'pie', view: feecompare },
   realestate: { title: () => t('Immobilier locatif', 'Rental real estate'), sub: () => t('Rendement, levier et flux d\'un immeuble', 'Yield, leverage & cash flow of a property'), icon: 'estate', view: realestate },
   rentbuy: { title: () => t('Achat vs location', 'Rent vs buy'), sub: () => t('Comparer acheter une propriété ou louer et investir', 'Compare buying a home vs renting and investing'), icon: 'estate', view: rentbuy },
   crypto: { title: () => t('Crypto & actifs alternatifs', 'Crypto & alternative assets'), sub: () => t('Suivi, fiscalité et répartition', 'Tracking, taxation & allocation'), icon: 'pie', view: crypto },
@@ -82,6 +85,7 @@ const ROUTES = {
   scenarios: { title: () => t('Scénarios & stress', 'Scenarios & stress'), sub: () => t('Tests de résistance et comparateur', 'Stress tests & comparator'), icon: 'flame', view: scenarios },
   tax: { title: () => t('Fiscalité', 'Taxation'), sub: () => t('Calculateur et optimisation d\'impôt', 'Tax calculator & optimization'), icon: 'tax', view: tax },
   optimize: { title: () => t('Optimisation fiscale', 'Tax optimization'), sub: () => t('Fractionnement, emplacement d\'actifs, décaissement', 'Splitting, asset location, decumulation'), icon: 'scale', view: optimize },
+  multitax: { title: () => t('Lissage fiscal pluriannuel', 'Multi-year tax smoothing'), sub: () => t('Fenêtres pour réaliser ou reporter le revenu', 'Windows to realize or defer income'), icon: 'tax', view: multitax },
   benefits: { title: () => t('Prestations publiques', 'Government benefits'), sub: () => t('Âge de demande RRQ/PSV/Social Security', 'CPP/OAS/Social Security claiming age'), icon: 'gov', view: benefits },
   goals: { title: () => t('Objectifs', 'Goals'), sub: () => t('Suivi et suggestions', 'Tracking & suggestions'), icon: 'goals', view: goals },
   education: { title: () => t('Études', 'Education'), sub: () => t('Financement des études des enfants', 'Children education funding'), icon: 'cap', view: education },
@@ -100,8 +104,8 @@ const ROUTES = {
 const NAV = () => [
   { group: t('Planification', 'Planning'), items: ['dashboard', 'healthcheck', 'profile', 'client', 'networth', 'nwtracker', 'cashflow', 'budget', 'debt'] },
   { group: t('Entreprise', 'Business'), items: ['business', 'succession', 'empbenefits', 'flowthrough', 'insurancestrat', 'advstructures'] },
-  { group: t('Placements & retraite', 'Investments & retirement'), items: ['portfolio', 'realestate', 'rentbuy', 'crypto', 'retirement', 'decumulation', 'montecarlo', 'scenarios', 'strategycompare'] },
-  { group: t('Optimisation', 'Optimization'), items: ['tax', 'optimize', 'equity', 'benefits', 'insurance', 'insurancecompare', 'estate', 'philanthropy'] },
+  { group: t('Placements & retraite', 'Investments & retirement'), items: ['portfolio', 'feecompare', 'realestate', 'rentbuy', 'crypto', 'retirement', 'decumulation', 'montecarlo', 'scenarios', 'strategycompare'] },
+  { group: t('Optimisation', 'Optimization'), items: ['tax', 'multitax', 'optimize', 'equity', 'benefits', 'insurance', 'insurancecompare', 'estate', 'philanthropy'] },
   { group: t('International', 'International'), items: ['crossborder', 'emigration'] },
   { group: t('Objectifs & vie', 'Goals & life'), items: ['goals', 'education', 'rdsp', 'ltc', 'timeline'] },
   { group: t('Documents', 'Documents'), items: ['compliance', 'toolbox', 'reports', 'settings'] },

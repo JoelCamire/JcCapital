@@ -56,6 +56,8 @@ Aucune étape de compilation. C'est une application web statique en modules ES.
 | **Achat vs location** | Comparaison avoir net acheter vs louer-et-investir, point mort, sensibilité appréciation/rendement |
 | **Soins de longue durée** | Projection du coût des soins (domicile/résidence/CHSLD), longévité, auto-financement vs assurance SLD |
 | **Suivi du patrimoine** | Instantanés datés de la valeur nette, courbe d'évolution dans le temps |
+| **Lissage fiscal pluriannuel** | Lit la projection réelle pour repérer les fenêtres à faible/haut taux marginal (réaliser ou reporter le revenu) |
+| **Comparateur de frais** | FNB à faible coût vs fonds communs — impact composé des frais sur des décennies (puise dans le portefeuille) |
 | **Comparateur d'assurance** | Temporaire vs vie entière vs T100, et « acheter temporaire et investir la différence » (BTID) |
 | **Boîte à outils** | Calculatrices rapides : intérêt composé, règle de 72, capacité hypothécaire, REER vs CELI, valeur actuelle/future, coût d'opportunité |
 | **Dettes & hypothèque** | Tableaux d'amortissement, stratégies avalanche/boule de neige, accélération hypothécaire |
