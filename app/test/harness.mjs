@@ -33,7 +33,7 @@ const VIEWS = ['dashboard', 'healthcheck', 'profile', 'client', 'networth', 'nwt
   'rentbuy', 'crypto', 'portfolio', 'feecompare', 'retirement', 'decumulation', 'montecarlo', 'scenarios',
   'strategycompare', 'tax', 'multitax', 'optimize', 'benefits', 'insurance', 'insurancecompare', 'philanthropy',
   'crossborder', 'emigration', 'goals', 'education', 'rdsp', 'ltc', 'timeline', 'estate', 'compliance', 'toolbox',
-  'reports', 'settings'];
+  'incorporation', 'selfemployed', 'farm', 'sred', 'treasury', 'borrowing', 'reports', 'settings'];
 const viewMods = {};
 for (const v of VIEWS) viewMods[v] = await import(`../src/ui/views/${v}.js`);
 

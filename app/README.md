@@ -60,6 +60,12 @@ Aucune étape de compilation. C'est une application web statique en modules ES.
 | **Comparateur de frais** | FNB à faible coût vs fonds communs — impact composé des frais sur des décennies (puise dans le portefeuille) |
 | **Comparateur d'assurance** | Temporaire vs vie entière vs T100, et « acheter temporaire et investir la différence » (BTID) |
 | **Boîte à outils** | Calculatrices rapides : intérêt composé, règle de 72, capacité hypothécaire, REER vs CELI, valeur actuelle/future, coût d'opportunité |
+| **Décision d'incorporation** | Entreprise individuelle vs SPCC : report d'impôt, seuil de rentabilité, protection d'actifs |
+| **Travailleur autonome** | RRQ double cotisation, TPS/TVQ (méthode rapide), acomptes provisionnels, déductions véhicule/bureau |
+| **Planification agricole** | EGC biens agricoles (~1,25 M$), roulement intergénérationnel, AgriInvest, quotas, caisse vs exercice |
+| **Crédit RS&DE** | Crédit d'impôt R&D fédéral (35 % remboursable SPCC) + provincial |
+| **Trésorerie d'entreprise** | Fonds de roulement, runway de liquidités, réserve d'exploitation |
+| **Capacité d'emprunt** | Ratio de couverture du service de la dette (DSCR), prêt maximal |
 | **Dettes & hypothèque** | Tableaux d'amortissement, stratégies avalanche/boule de neige, accélération hypothécaire |
 | **Portefeuille** | Répartition d'actifs vs cible, frais (MER) et drague sur 25 ans, rééquilibrage, questionnaire de tolérance au risque |
 | **Scénarios & stress** | Tests de résistance (krach, faibles rendements, inflation, longevité, décès, invalidité) + comparateur |

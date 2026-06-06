@@ -51,6 +51,12 @@ import * as insurancecompare from './ui/views/insurancecompare.js';
 import * as nwtracker from './ui/views/nwtracker.js';
 import * as multitax from './ui/views/multitax.js';
 import * as feecompare from './ui/views/feecompare.js';
+import * as incorporation from './ui/views/incorporation.js';
+import * as selfemployed from './ui/views/selfemployed.js';
+import * as farm from './ui/views/farm.js';
+import * as sred from './ui/views/sred.js';
+import * as treasury from './ui/views/treasury.js';
+import * as borrowing from './ui/views/borrowing.js';
 
 // title/sub are functions so they re-translate on language switch
 const ROUTES = {
@@ -69,6 +75,12 @@ const ROUTES = {
   flowthrough: { title: () => t('Actions accréditives & PearTree', 'Flow-through shares & PearTree'), sub: () => t('Actions minières d’exploration et don caritatif', 'Mining exploration shares & charitable gift'), icon: 'scale', view: flowthrough },
   insurancestrat: { title: () => t('Stratégies d’assurance', 'Insurance strategies'), sub: () => t('CDC, RRA, AFI, rachat, personne clé', 'CDA, IRP, IFA, buy-sell, key person'), icon: 'insurance', view: insurancestrat },
   advstructures: { title: () => t('Structures avancées', 'Advanced structures'), sub: () => t('Holdco, fiducie familiale, RCA, prêt au taux prescrit', 'Holdco, family trust, RCA, prescribed-rate loan'), icon: 'estate', view: advstructures },
+  incorporation: { title: () => t('Décision d’incorporation', 'Incorporation decision'), sub: () => t('Entreprise individuelle vs société', 'Sole proprietor vs corporation'), icon: 'scale', view: incorporation },
+  selfemployed: { title: () => t('Travailleur autonome', 'Self-employed'), sub: () => t('RRQ, TPS/TVQ, acomptes, déductions', 'CPP, sales tax, installments, deductions'), icon: 'cashflow', view: selfemployed },
+  farm: { title: () => t('Planification agricole', 'Farm planning'), sub: () => t('EGC agricole, roulement, AgriInvest, quotas', 'Farm LCGE, rollover, AgriInvest, quota'), icon: 'estate', view: farm },
+  sred: { title: () => t('Crédit RS&DE', 'SR&ED credit'), sub: () => t('Crédit d’impôt pour la R&D', 'R&D tax credit'), icon: 'tax', view: sred },
+  treasury: { title: () => t('Trésorerie d’entreprise', 'Business treasury'), sub: () => t('Fonds de roulement et runway de liquidités', 'Working capital & cash runway'), icon: 'bank', view: treasury },
+  borrowing: { title: () => t('Capacité d’emprunt', 'Borrowing capacity'), sub: () => t('Couverture du service de la dette (DSCR)', 'Debt service coverage (DSCR)'), icon: 'card', view: borrowing },
   portfolio: { title: () => t('Portefeuille', 'Portfolio'), sub: () => t('Répartition d\'actifs, frais et rééquilibrage', 'Asset allocation, fees & rebalancing'), icon: 'pie', view: portfolio },
   feecompare: { title: () => t('Comparateur de frais', 'Fee comparator'), sub: () => t('FNB vs fonds communs — impact des frais', 'ETF vs mutual funds — fee impact'), icon: 'pie', view: feecompare },
   realestate: { title: () => t('Immobilier locatif', 'Rental real estate'), sub: () => t('Rendement, levier et flux d\'un immeuble', 'Yield, leverage & cash flow of a property'), icon: 'estate', view: realestate },
@@ -104,6 +116,7 @@ const ROUTES = {
 const NAV = () => [
   { group: t('Planification', 'Planning'), items: ['dashboard', 'healthcheck', 'profile', 'client', 'networth', 'nwtracker', 'cashflow', 'budget', 'debt'] },
   { group: t('Entreprise', 'Business'), items: ['business', 'succession', 'empbenefits', 'flowthrough', 'insurancestrat', 'advstructures'] },
+  { group: t('Entrepreneur & autonome', 'Entrepreneur & self-employed'), items: ['incorporation', 'selfemployed', 'farm', 'sred', 'treasury', 'borrowing'] },
   { group: t('Placements & retraite', 'Investments & retirement'), items: ['portfolio', 'feecompare', 'realestate', 'rentbuy', 'crypto', 'retirement', 'decumulation', 'montecarlo', 'scenarios', 'strategycompare'] },
   { group: t('Optimisation', 'Optimization'), items: ['tax', 'multitax', 'optimize', 'equity', 'benefits', 'insurance', 'insurancecompare', 'estate', 'philanthropy'] },
   { group: t('International', 'International'), items: ['crossborder', 'emigration'] },
