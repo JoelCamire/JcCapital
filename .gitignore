@@ -14,3 +14,6 @@ Thumbs.db
 node_modules/
 app/package.json
 app/package-lock.json
+
+# Transient test/screenshot scripts at app root (real tests live in app/test/)
+app/*.mjs
