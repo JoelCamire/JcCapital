@@ -92,17 +92,37 @@ export const store = {
   },
 
   exportJSON() {
-    return JSON.stringify({ version: 1, exported: new Date().toISOString(), clients: state.clients }, null, 2);
+    return JSON.stringify({ version: 1, exported: new Date().toISOString(), savedAt: this.latestUpdatedAt(), clients: state.clients }, null, 2);
   },
   importJSON(text) {
     const data = JSON.parse(text);
     if (Array.isArray(data.clients)) {
+      data.clients.forEach(normalize);
       state.clients = data.clients;
-      state.activeId = data.clients[0]?.id;
+      if (!state.clients.find(c => c.id === state.activeId)) state.activeId = data.clients[0]?.id;
       persist(); notify();
       return true;
     }
     return false;
+  },
+  /** Most recent updatedAt across all clients (used as a dataset version stamp). */
+  latestUpdatedAt() { return state.clients.reduce((m, c) => Math.max(m, c.updatedAt || c.createdAt || 0), 0); },
+  /** Merge a remote dataset into local by client id, keeping the newest version of each. */
+  mergeJSON(text) {
+    const data = JSON.parse(text);
+    if (!Array.isArray(data.clients)) return false;
+    const byId = new Map(state.clients.map(c => [c.id, c]));
+    let added = 0, updated = 0;
+    for (const r of data.clients) {
+      normalize(r);
+      const local = byId.get(r.id);
+      if (!local) { byId.set(r.id, r); added++; }
+      else if ((r.updatedAt || 0) > (local.updatedAt || 0)) { byId.set(r.id, r); updated++; }
+    }
+    state.clients = [...byId.values()];
+    if (!state.clients.find(c => c.id === state.activeId)) state.activeId = state.clients[0]?.id;
+    persist(); notify();
+    return { added, updated, total: state.clients.length };
   },
 };
 

@@ -1,8 +1,74 @@
 import { h, money, pct, icon, toast, modal, fmtDate, t } from '../dom.js';
 import { card } from '../widgets.js';
 import { store } from '../../state/store.js';
+import { sync } from '../../sync.js';
 import { getJurisdiction, JURISDICTIONS, COUNTRY_LIST } from '../../jurisdictions/index.js';
 import { netWorthBreakdown } from '../../engine/analysis.js';
+
+function syncErr(e) {
+  const m = (e && e.message) || '';
+  if (m === 'bad-token') return t('Jeton invalide ou sans la portée « gist ».', 'Invalid token or missing “gist” scope.');
+  if (m === 'no-token') return t('Aucun jeton configuré.', 'No token configured.');
+  return t('Échec de connexion au nuage (réseau ?).', 'Cloud connection failed (network?).');
+}
+
+function buildSyncCard() {
+  const box = h('div', {});
+  const status = h('div', { class: 'tiny muted', style: { marginTop: '8px' } });
+  function setStatus(msg) { status.textContent = msg; }
+
+  function paint() {
+    if (!sync.configured) {
+      const tokenInput = h('input', { type: 'password', placeholder: t('Collez votre jeton GitHub (portée « gist »)', 'Paste your GitHub token (scope “gist”)'), style: { width: '320px' } });
+      box.replaceChildren(
+        h('p', { class: 'tiny muted', style: { marginTop: 0 } },
+          t('Synchronisez vos dossiers entre tous vos appareils, gratuitement, via un gist privé GitHub. Étapes : 1) créez un jeton (un seul clic ci-dessous, cochez uniquement « gist »), 2) collez-le ici, 3) Connecter.',
+            'Sync your files across all your devices, free, via a private GitHub gist. Steps: 1) create a token (one click below, check only “gist”), 2) paste it here, 3) Connect.')),
+        h('div', { class: 'inline' },
+          h('a', { class: 'btn sm', href: 'https://github.com/settings/tokens/new?scopes=gist&description=JC%20Planner', target: '_blank', rel: 'noopener', html: icon('globe', 14) + ' ' + t('Créer un jeton', 'Create a token') }),
+          tokenInput,
+          h('button', { class: 'btn primary sm', html: icon('check', 14) + ' ' + t('Connecter', 'Connect'), onClick: async () => {
+            sync.setToken(tokenInput.value);
+            setStatus(t('Vérification…', 'Verifying…'));
+            try {
+              await sync.test();
+              const remote = await sync.pull();
+              if (remote) {
+                const r = store.mergeJSON(remote);
+                toast(t('Connecté ✓ Dossiers fusionnés', 'Connected ✓ Files merged'));
+              } else {
+                await sync.push(store.exportJSON());
+                toast(t('Connecté ✓ Dossiers envoyés au nuage', 'Connected ✓ Files pushed to cloud'));
+              }
+              sync.setAuto(true);
+              paint();
+            } catch (e) { sync.setToken(''); setStatus(syncErr(e)); }
+          } }),
+        ),
+        status,
+      );
+    } else {
+      const autoChk = h('input', { type: 'checkbox', checked: sync.auto, style: { width: 'auto' }, onChange: e => { sync.setAuto(e.target.checked); toast(sync.auto ? t('Synchro auto activée', 'Auto-sync on') : t('Synchro auto désactivée', 'Auto-sync off')); } });
+      box.replaceChildren(
+        h('div', { class: 'flex between center', style: { flexWrap: 'wrap', gap: '10px' } },
+          h('div', { class: 'flex center gap-8' }, h('span', { class: 'chip pos' }, t('Connecté', 'Connected')),
+            h('span', { class: 'tiny muted' }, sync.gistId ? t('Gist privé : ', 'Private gist: ') + sync.gistId.slice(0, 8) + '…' : t('Prêt', 'Ready'))),
+          h('div', { class: 'inline' },
+            h('label', { class: 'inline', style: { gap: '6px' } }, autoChk, h('span', { class: 'tiny' }, t('Synchro automatique', 'Auto-sync'))),
+            h('button', { class: 'btn sm', html: icon('up', 14) + ' ' + t('Envoyer', 'Push'), onClick: async () => { setStatus(t('Envoi…', 'Pushing…')); try { await sync.push(store.exportJSON()); setStatus(t('Envoyé ✓ ' + new Date().toLocaleTimeString(), 'Pushed ✓ ' + new Date().toLocaleTimeString())); toast(t('Envoyé au nuage ✓', 'Pushed to cloud ✓')); } catch (e) { setStatus(syncErr(e)); } } }),
+            h('button', { class: 'btn sm', html: icon('down', 14) + ' ' + t('Recevoir', 'Pull'), onClick: async () => { setStatus(t('Réception…', 'Pulling…')); try { const r = await sync.pull(); if (r) { const m = store.mergeJSON(r); setStatus(t(`Reçu ✓ ${m.total} dossier(s)`, `Pulled ✓ ${m.total} file(s)`)); toast(t('Dossiers synchronisés ✓', 'Files synced ✓')); } else setStatus(t('Aucun dossier dans le nuage.', 'No files in the cloud.')); } catch (e) { setStatus(syncErr(e)); } } }),
+            h('button', { class: 'btn sm ghost danger', html: t('Déconnecter', 'Disconnect'), onClick: () => { sync.setToken(''); sync.setGistId(''); sync.setAuto(false); toast(t('Déconnecté', 'Disconnected')); paint(); } }),
+          )),
+        h('p', { class: 'tiny muted', style: { marginTop: '8px' } },
+          t('« Envoyer » téléverse vos dossiers; « Recevoir » fusionne ceux du nuage (la version la plus récente de chaque client gagne). Avec la synchro auto, l’envoi se fait à chaque modification et la réception au chargement.',
+            '“Push” uploads your files; “Pull” merges the cloud’s (newest version of each client wins). With auto-sync, push happens on every change and pull on load.')),
+        status,
+      );
+    }
+  }
+  paint();
+  return card(t('Synchronisation entre appareils', 'Sync across devices'), { sub: t('Gratuit, via un gist privé GitHub', 'Free, via a private GitHub gist'), class: 'span-full', right: h('span', { class: 'chip', html: icon('globe', 13) + ' GitHub' }) }, box);
+}
 
 export function render({ client, jur, navigate }) {
   let query = '';
@@ -109,6 +175,7 @@ export function render({ client, jur, navigate }) {
 
   wrap.appendChild(header);
   wrap.appendChild(grid);
+  wrap.appendChild(buildSyncCard());
   wrap.appendChild(tip);
   return wrap;
 

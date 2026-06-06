@@ -3,6 +3,7 @@
 > Outil **privé** à usage interne. Non relié au site public `jccapital.ca`
 > (exclu via `robots.txt` + balise `noindex`). Aucune donnée n'est transmise
 > à un serveur : tout est calculé dans le navigateur et stocké en `localStorage`.
+> Synchronisation multi-appareils optionnelle et gratuite via un **gist privé GitHub**.
 
 Une application de planification financière complète, multi-juridiction et
 ultra-visuelle, dans l'esprit d'Equisoft mais conçue pour combler ses lacunes :

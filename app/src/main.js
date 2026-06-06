@@ -5,6 +5,7 @@ import { store } from './state/store.js';
 import { getJurisdiction, JURISDICTIONS, COUNTRY_LIST } from './jurisdictions/index.js';
 import { h, icon, clear, modal, toast, money, t, fmtDate } from './ui/dom.js';
 import { setLang, getLang, onLangChange } from './i18n.js';
+import { sync } from './sync.js';
 
 import * as dashboard from './ui/views/dashboard.js';
 import * as clients from './ui/views/clients.js';
@@ -264,3 +265,17 @@ render();
 store.subscribe(() => render());
 onLangChange(() => { buildShell(); render(); });
 window.addEventListener('hashchange', render);
+
+// ---- Cloud auto-sync (GitHub gist) ----
+let _pushTimer = null;
+function scheduleAutoPush() {
+  if (!(sync.auto && sync.configured)) return;
+  clearTimeout(_pushTimer);
+  _pushTimer = setTimeout(() => { sync.push(store.exportJSON()).catch(() => {}); }, 4000);
+}
+store.subscribe(scheduleAutoPush);
+if (sync.auto && sync.configured) {
+  sync.pull().then(r => { if (r) { try { store.mergeJSON(r); toast(t('Dossiers synchronisés ✓', 'Files synced ✓')); } catch (e) {} } }).catch(() => {});
+}
+// Best-effort push when the tab is hidden so the last edits reach the cloud.
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && sync.auto && sync.configured) { sync.push(store.exportJSON()).catch(() => {}); } });
