@@ -7,6 +7,7 @@ import { h, icon, clear, modal, toast, money, t, fmtDate } from './ui/dom.js';
 import { setLang, getLang, onLangChange } from './i18n.js';
 
 import * as dashboard from './ui/views/dashboard.js';
+import * as clients from './ui/views/clients.js';
 import * as profile from './ui/views/profile.js';
 import * as client from './ui/views/client.js';
 import * as networth from './ui/views/networth.js';
@@ -60,6 +61,7 @@ import * as borrowing from './ui/views/borrowing.js';
 
 // title/sub are functions so they re-translate on language switch
 const ROUTES = {
+  clients: { title: () => t('Mes clients', 'My clients'), sub: () => t('Tous vos dossiers — créer, ouvrir, sauvegarder', 'All your files — create, open, back up'), icon: 'users', view: clients },
   dashboard: { title: () => t('Tableau de bord', 'Dashboard'), sub: () => t('Vue d\'ensemble du plan financier', 'Financial plan overview'), icon: 'dashboard', view: dashboard },
   healthcheck: { title: () => t('Bilan de santé financière', 'Financial health check'), sub: () => t('Pointage global et plan d\'action priorisé', 'Overall score & prioritized action plan'), icon: 'check', view: healthcheck },
   profile: { title: () => t('Profil client', 'Client profile'), sub: () => t('Informations personnelles, à charge, documents', 'Personal info, dependents, documents'), icon: 'client', view: profile },
@@ -114,6 +116,7 @@ const ROUTES = {
 };
 
 const NAV = () => [
+  { group: t('Clients', 'Clients'), items: ['clients'] },
   { group: t('Planification', 'Planning'), items: ['dashboard', 'healthcheck', 'profile', 'client', 'networth', 'nwtracker', 'cashflow', 'budget', 'debt'] },
   { group: t('Entreprise', 'Business'), items: ['business', 'succession', 'empbenefits', 'flowthrough', 'insurancestrat', 'advstructures'] },
   { group: t('Entrepreneur & autonome', 'Entrepreneur & self-employed'), items: ['incorporation', 'selfemployed', 'farm', 'sred', 'treasury', 'borrowing'] },
@@ -125,8 +128,8 @@ const NAV = () => [
 ];
 
 function currentRoute() {
-  const r = (location.hash || '#dashboard').slice(1);
-  return ROUTES[r] ? r : 'dashboard';
+  const r = (location.hash || '#clients').slice(1);
+  return ROUTES[r] ? r : 'clients';
 }
 
 let contentEl, titleEl, subEl, sidebarClientEl, navEls = {};

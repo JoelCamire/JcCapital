@@ -116,6 +116,7 @@ const I = {
   report: 'M7 2h7l4 4v16H7zM14 2v4h4M9 12h6M9 16h6M9 8h2',
   timeline: 'M4 4v16M4 8h6M4 14h10M4 20h4M12 8a2 2 0 100-.01M16 14a2 2 0 100-.01M10 20a2 2 0 100-.01',
   briefcase: 'M3 8h18v12H3zM8 8V6a2 2 0 012-2h4a2 2 0 012 2v2M3 13h18',
+  users: 'M8 11a3 3 0 100-6 3 3 0 000 6zM2 20c0-3.2 3-5 6-5s6 1.8 6 5M16 5.2a3 3 0 010 5.6M17 15.2c2.4.5 4 2 4 4.8',
 };
 export function icon(name, size = 18, extra = '') {
   const d = I[name] || I.doc;

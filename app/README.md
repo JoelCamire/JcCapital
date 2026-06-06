@@ -24,6 +24,7 @@ Aucune étape de compilation. C'est une application web statique en modules ES.
 
 | Module | Description |
 |--------|-------------|
+| **Mes clients** | Page d’accueil : galerie de tous les dossiers — créer/ouvrir/renommer/dupliquer/supprimer un client, recherche, sauvegarde et restauration (JSON) |
 | **Tableau de bord** | KPIs, projection de valeur nette, jauge de préparation, recommandations automatiques |
 | **Bilan de santé financière** | Revue automatisée de tout le dossier : pointage par domaine (retraite, fiscalité, protection, succession, dettes, entreprise), cote globale A–E et **plan d'action priorisé** |
 | **Décaissement optimal** | Comparateur d'ordres de retrait à la retraite (non-enr. d'abord, **fonte du REER**, préserver le CELI) modélisant les minimums FERR et la **récupération de la PSV** → impôt à vie et succession nette |
