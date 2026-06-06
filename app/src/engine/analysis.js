@@ -15,17 +15,18 @@ const TREAT_LABEL = () => ({
 });
 
 export function netWorthBreakdown(client) {
+  const fin = (v) => Number.isFinite(+v) ? +v : 0;
   const byTreat = {}; const byType = {};
   let assets = 0;
   for (const a of client.assets) {
-    const t = treatmentOf(a.type);
-    byTreat[t] = (byTreat[t] || 0) + a.value;
-    byType[a.type] = (byType[a.type] || 0) + a.value;
-    assets += a.value;
+    const t = treatmentOf(a.type); const v = fin(a.value);
+    byTreat[t] = (byTreat[t] || 0) + v;
+    byType[a.type] = (byType[a.type] || 0) + v;
+    assets += v;
   }
-  const liabilities = client.liabilities.reduce((s, l) => s + l.balance, 0);
+  const liabilities = client.liabilities.reduce((s, l) => s + fin(l.balance), 0);
   const liquid = client.assets.filter(a => ['taxable', 'taxfree'].includes(treatmentOf(a.type)))
-    .reduce((s, a) => s + a.value, 0);
+    .reduce((s, a) => s + fin(a.value), 0);
   return {
     assets, liabilities, netWorth: assets - liabilities, liquid,
     byTreat: Object.entries(byTreat).map(([k, v]) => ({ key: k, label: (TREAT_LABEL()[k] || k), value: v })),
@@ -37,25 +38,26 @@ export function netWorthBreakdown(client) {
 /** Capital-needs life insurance analysis for one insured member. */
 export function lifeInsuranceNeeds(client, memberId) {
   const A = client.assumptions;
+  const fin = (v) => Number.isFinite(+v) ? +v : 0;
   const member = client.members.find(m => m.id === memberId) || client.members[0];
   const incomeOf = client.incomes
     .filter(i => i.memberId === memberId && (i.type === 'employment' || i.type === 'self'))
-    .reduce((s, i) => s + i.amount, 0);
-  const yearsToReplace = Math.max(0, member.retirementAge - member.currentAge);
+    .reduce((s, i) => s + fin(i.amount), 0);
+  const yearsToReplace = Math.max(0, Math.min(70, (Number(member.retirementAge) || 65) - (Number(member.currentAge) || 40)));
   // Income replacement (after-tax ~70 %), present-valued at a 3 % real discount
   const replaceRate = 0.7, disc = 0.03;
   let incomeReplacement = 0;
   for (let y = 0; y < yearsToReplace; y++) incomeReplacement += (incomeOf * replaceRate) / Math.pow(1 + disc, y);
 
-  const debt = client.liabilities.reduce((s, l) => s + l.balance, 0);
+  const debt = client.liabilities.reduce((s, l) => s + fin(l.balance), 0);
   const finalExpenses = 25000;
-  const education = client.goals.filter(g => g.type === 'education').reduce((s, g) => s + g.amount, 0);
+  const education = client.goals.filter(g => g.type === 'education').reduce((s, g) => s + fin(g.amount), 0);
   const liquidAssets = client.assets
     .filter(a => ['taxable', 'taxfree', 'deferred'].includes(treatmentOf(a.type)))
-    .reduce((s, a) => s + a.value, 0);
+    .reduce((s, a) => s + fin(a.value), 0);
   const existingCoverage = client.insurance
     .filter(i => i.type === 'life' && i.insuredId === memberId)
-    .reduce((s, i) => s + i.coverage, 0);
+    .reduce((s, i) => s + fin(i.coverage), 0);
 
   const gross = incomeReplacement + debt + finalExpenses + education;
   const need = Math.max(0, gross - liquidAssets);
@@ -85,9 +87,9 @@ export function educationFunding(client, goal) {
 export function disabilityNeeds(client, memberId) {
   const income = client.incomes
     .filter(i => i.memberId === memberId && (i.type === 'employment' || i.type === 'self'))
-    .reduce((s, i) => s + i.amount, 0);
+    .reduce((s, i) => s + (Number.isFinite(+i.amount)?+i.amount:0), 0);
   const monthlyNeed = income * 0.65 / 12;
   const existing = client.insurance.filter(i => i.type === 'di' && i.insuredId === memberId)
-    .reduce((s, i) => s + i.coverage, 0) / 12;
+    .reduce((s, i) => s + (Number.isFinite(+i.coverage)?+i.coverage:0), 0) / 12;
   return { income, monthlyNeed, existingMonthly: existing, gap: Math.max(0, monthlyNeed - existing) };
 }

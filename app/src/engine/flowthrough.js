@@ -9,6 +9,7 @@
 // All figures CAD. Rates are parameters so the advisor can tune them.
 // ============================================================
 import { t } from '../i18n.js';
+import { cleanse, fin } from './util.js';
 
 // Reasonable provincial add-on exploration credits (illustrative).
 export const PROV_EXPLORATION_CREDIT = { QC: 0.20, BC: 0.20, ON: 0.05, SK: 0.10, MB: 0.30, AB: 0.0, OTHER: 0.0 };
@@ -23,7 +24,8 @@ export function donationCreditRate(region) { return DONATION_CREDIT[region] ?? D
  * p = { amount, marginalRate, ceeRate=1.0, metcRate=0.15, provCredit=0, saleValue }
  */
 export function flowThroughInvestment(p) {
-  const { amount, marginalRate, ceeRate = 1.0, metcRate = 0.15, provCredit = 0, saleValue = null } = p;
+  p = cleanse(p);
+  const { amount = 0, marginalRate = 0.5, ceeRate = 1.0, metcRate = 0.15, provCredit = 0, saleValue = null } = p;
   const ceeDeduction = amount * ceeRate;
   const ceeSaving = ceeDeduction * marginalRate;
   const metcCredit = amount * (metcRate + provCredit);
@@ -38,11 +40,11 @@ export function flowThroughInvestment(p) {
   const afterTaxProceeds = sale - capGainsTax;
   const netPosition = afterTaxProceeds - netCostAfterTax;
   // break-even sale value where after-tax proceeds recover the net cost
-  const breakEven = netCostAfterTax / (1 - 0.5 * marginalRate);
+  const breakEven = (1 - 0.5 * marginalRate) !== 0 ? netCostAfterTax / (1 - 0.5 * marginalRate) : 0;
 
   return {
     amount, ceeDeduction, ceeSaving, metcCredit, netMetc, firstYearBenefit,
-    netCostAfterTax, effectiveCostPct: netCostAfterTax / amount,
+    netCostAfterTax, effectiveCostPct: amount > 0 ? netCostAfterTax / amount : 0,
     sale, capGain, capGainsTax, afterTaxProceeds, netPosition, breakEven,
   };
 }
@@ -55,7 +57,8 @@ export function flowThroughInvestment(p) {
  *       provCredit=0, liquidityDiscount=0.12 }
  */
 export function peartreeDonation(p) {
-  const { amount, marginalRate, donationCredit, ceeRate = 1.0, metcRate = 0.15, provCredit = 0, liquidityDiscount = 0.12 } = p;
+  p = cleanse(p);
+  const { amount = 0, marginalRate = 0.5, donationCredit = 0.5, ceeRate = 1.0, metcRate = 0.15, provCredit = 0, liquidityDiscount = 0.12 } = p;
   const ceeSaving = amount * ceeRate * marginalRate;
   const metcCredit = amount * (metcRate + provCredit);
   const netMetc = metcCredit * (1 - marginalRate);
@@ -67,7 +70,7 @@ export function peartreeDonation(p) {
 
   const totalRelief = ceeSaving + netMetc + donationSaving;
   const netCost = amount - totalRelief + liquidityCost;
-  const costPerDollar = netCost / amount;
+  const costPerDollar = amount > 0 ? netCost / amount : 0;
 
   // Comparison: simple cash gift of the same amount
   const cashGiftNetCost = amount * (1 - donationCredit);

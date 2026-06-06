@@ -11,6 +11,7 @@ import { t } from '../i18n.js';
 
 /** Corporate tax on active + passive income for a CCPC. */
 export function corporateTaxCA(jur, activeIncome, passiveIncome = 0) {
+  activeIncome = Number.isFinite(+activeIncome) ? +activeIncome : 0; passiveIncome = Number.isFinite(+passiveIncome) ? +passiveIncome : 0;
   const C = jur.corporate, rd = jur.regionData || {};
   const sbRate = C.fedSB + (rd.provSB ?? 0.032);
   const genRate = C.fedGeneral + (rd.provGen ?? 0.115);

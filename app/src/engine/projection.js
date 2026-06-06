@@ -22,18 +22,30 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
 export function runProjection(client) {
   const jur = getJurisdiction(client.jurisdiction.country, client.jurisdiction.region);
-  const A = client.assumptions;
-  const members = client.members.map(m => ({ ...m }));
+  const A0 = client.assumptions || {};
+  const finA = (v,d)=>Number.isFinite(+v)?+v:d;
+  const A = { inflation:finA(A0.inflation,0.021), preReturn:finA(A0.preReturn,0.058), postReturn:finA(A0.postReturn,0.042), returnStdev:finA(A0.returnStdev,0.11), salaryGrowth:finA(A0.salaryGrowth,0.025), realEstateGrowth:finA(A0.realEstateGrowth,0.03) };
+  // Sanitize member ages so pathological/empty inputs never hang or NaN the run.
+  const safeAge = (v, d) => Number.isFinite(+v) ? Math.max(0, Math.min(120, +v)) : d;
+  const members = client.members.map(m => ({
+    ...m,
+    currentAge: safeAge(m.currentAge, 40),
+    retirementAge: safeAge(m.retirementAge, 65),
+    lifeExpectancy: safeAge(m.lifeExpectancy, 90),
+  }));
   const primary = members[0];
-  const endAge = Math.max(...members.map(m => m.lifeExpectancy));
-  const years = endAge - primary.currentAge + 1;
+  const endAge = Math.max(...members.map(m => m.lifeExpectancy), primary.currentAge + 1);
+  const years = Math.max(1, Math.min(90, endAge - primary.currentAge + 1));
 
   // Live asset state
+  // fin() coerces any non-finite value (NaN/Infinity from corrupted/imported data) to a default.
+  const fin = (v, d = 0) => Number.isFinite(+v) ? +v : d;
   const assets = client.assets.map(a => ({
-    ...a, bal: a.value, basis: a.costBasis ?? a.value, treat: treatmentOf(a.type),
-    owner: a.ownerId || primary.id,
+    ...a, bal: fin(a.value), basis: fin(a.costBasis ?? a.value), growth: fin(a.growth, 0.05),
+    annualContribution: fin(a.annualContribution), employerMatch: fin(a.employerMatch),
+    treat: treatmentOf(a.type), owner: a.ownerId || primary.id,
   }));
-  const liabs = client.liabilities.map(l => ({ ...l, bal: l.balance }));
+  const liabs = client.liabilities.map(l => ({ ...l, bal: fin(l.balance), rate: fin(l.rate), payment: fin(l.payment) }));
 
   const rows = [];
   let depletionAge = null, firstShortfallAge = null;
@@ -56,7 +68,7 @@ export function runProjection(client) {
       const endOk = inc.endAge == null || age <= inc.endAge;
       const empOk = !isEmp || age < (members.find(x => x.id === m)?.retirementAge ?? 65);
       if (!(startOk && endOk && empOk)) continue;
-      const amt = inc.amount * Math.pow(1 + (inc.growth ?? A.inflation), y);
+      const amt = fin(inc.amount) * Math.pow(1 + fin(inc.growth ?? A.inflation, A.inflation), y);
       if (inc.taxable !== false) memberOrdinary[m] += amt;
       if (isEmp) employmentIncome += amt; else pensionIncome += amt;
     }
@@ -120,8 +132,8 @@ export function runProjection(client) {
     // ---------- Expenses ----------
     let expenses = 0;
     for (const e of client.expenses) {
-      const base = e.amount * Math.pow(1 + (e.growth ?? A.inflation), y);
-      expenses += primaryRetired ? base * (e.retirementFactor ?? 1) : base;
+      const base = fin(e.amount) * Math.pow(1 + fin(e.growth ?? A.inflation, A.inflation), y);
+      expenses += primaryRetired ? base * fin(e.retirementFactor, 1) : base;
     }
 
     // ---------- Taxes (per member) ----------

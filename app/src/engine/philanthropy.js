@@ -5,13 +5,15 @@
 //   Donation credit, capital-gains elimination, bunching
 // ============================================================
 import { t } from '../i18n.js';
+import { cleanse, fin } from './util.js';
 
 /**
  * Compare donating cash vs donating appreciated listed securities.
  * p = { amount, costBasis, marginalRate, donationCredit }
  */
 export function charitableGift(jur, p) {
-  const { amount, costBasis = 0, marginalRate = 0.50, donationCredit = 0.50 } = p;
+  p = cleanse(p);
+  const { amount = 0, costBasis = 0, marginalRate = 0.50, donationCredit = 0.50 } = p;
   const credit = amount * donationCredit;
 
   // Capital-gains tax that WOULD apply if the securities were sold (then cash donated)
@@ -28,9 +30,9 @@ export function charitableGift(jur, p) {
   return {
     amount, credit, gain, capGainsTaxIfSold,
     cashNetCost, securitiesNetCost, securitiesAdvantage,
-    costPerDollarCash: cashNetCost / amount,
-    costPerDollarSecurities: (securitiesNetCost - 0) / amount,
-    effectiveAdvantagePct: securitiesAdvantage / amount,
+    costPerDollarCash: amount > 0 ? cashNetCost / amount : 0,
+    costPerDollarSecurities: amount > 0 ? securitiesNetCost / amount : 0,
+    effectiveAdvantagePct: amount > 0 ? securitiesAdvantage / amount : 0,
     note: t('Le don de titres cotés en bourse donne le même crédit qu’un don en argent tout en éliminant l’impôt sur le gain en capital latent (inclusion de 0 %). C’est presque toujours préférable à vendre puis donner l’argent.',
       'A gift of publicly-listed securities gives the same credit as a cash gift while eliminating tax on the latent capital gain (0% inclusion). It is almost always better than selling then donating cash.'),
   };

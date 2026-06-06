@@ -48,7 +48,9 @@ export function simulateDecumulation(jur, params, strategy) {
   let totalTax = 0, totalClawback = 0;
   const rows = [];
 
-  for (let i = 0, age = startAge; age <= endAge; age++, i++) {
+  const _sA = Number.isFinite(+startAge) ? Math.max(0, Math.min(120, +startAge)) : 65;
+  const _eA = Number.isFinite(+endAge) ? Math.max(_sA, Math.min(120, +endAge)) : 90;
+  for (let i = 0, age = _sA; age <= _eA; age++, i++) {
     const infl = Math.pow(1 + inflation, i);
     const otherIncome = params.otherIncomeNow * infl;
     const oas = params.oasAnnual * infl;

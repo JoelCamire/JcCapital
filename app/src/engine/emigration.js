@@ -5,12 +5,14 @@
 // pensions, and property of a Canadian business PE.
 // ============================================================
 import { t } from '../i18n.js';
+import { cleanse, fin } from './util.js';
 
 /**
  * p = { portfolioFMV, portfolioACB, realEstateFMV, rrspValue, privateCoFMV,
  *       privateCoACB, marginalRate }
  */
 export function departureTax(p) {
+  p = cleanse(p);
   const { portfolioFMV = 0, portfolioACB = 0, realEstateFMV = 0,
     rrspValue = 0, privateCoFMV = 0, privateCoACB = 0, marginalRate = 0.26 } = p;
 

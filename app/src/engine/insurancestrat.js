@@ -7,6 +7,7 @@
 // Figures are illustrative modelling, not policy illustrations.
 // ============================================================
 import { t } from '../i18n.js';
+import { cleanse, fin } from './util.js';
 
 /**
  * Capital Dividend Account credit from a corporate-owned policy.
@@ -14,6 +15,7 @@ import { t } from '../i18n.js';
  * paid to the estate/shareholders tax-free.
  */
 export function cdaCredit(deathBenefit, policyACB = 0) {
+  deathBenefit = Number.isFinite(+deathBenefit) ? +deathBenefit : 0; policyACB = Number.isFinite(+policyACB) ? +policyACB : 0;
   const cda = Math.max(0, deathBenefit - policyACB);
   const taxable = Math.min(deathBenefit, policyACB);
   return {
@@ -41,8 +43,13 @@ export function corporateInsuranceEstate(needAtDeath, deathBenefit, policyACB, d
  *       creditingRate, costDrag, loanRate, ltvPayout }
  */
 export function insuredRetirementPlan(p) {
-  const { annualPremium, fundingYears, currentAge, retireAge, endAge = 90,
-    creditingRate = 0.05, costDrag = 0.012, loanRate = 0.055, faceAmount = null } = p;
+  p = cleanse(p);
+  const { annualPremium = 0, creditingRate = 0.05, costDrag = 0.012, loanRate = 0.055, faceAmount = null } = p;
+  // Sanitize ages/counts so extreme inputs never hang.
+  const fundingYears = Math.max(0, Math.min(60, Number(p.fundingYears) || 0));
+  const currentAge = Number.isFinite(+p.currentAge) ? Math.max(0, Math.min(110, +p.currentAge)) : 40;
+  const retireAge = Number.isFinite(+p.retireAge) ? Math.max(currentAge, Math.min(110, +p.retireAge)) : Math.max(currentAge, 65);
+  const endAge = Number.isFinite(+p.endAge) ? Math.max(retireAge, Math.min(115, +p.endAge)) : 90;
   const net = creditingRate - costDrag;
   // Death benefit (face) — repays the loan at death. Rough default if not supplied.
   const face = faceAmount || annualPremium * fundingYears * 2.5;
@@ -73,9 +80,10 @@ export function insuredRetirementPlan(p) {
  * p = { annualPremium, years, loanRate, reinvestReturn, marginalRate, ncpiRate }
  */
 export function immediateFinancingArrangement(p) {
-  const { annualPremium, years, loanRate = 0.06, reinvestReturn = 0.07, marginalRate = 0.50, ncpiRate = 0.4 } = p;
+  p = cleanse(p);
+  const { annualPremium = 0, years = 0, loanRate = 0.06, reinvestReturn = 0.07, marginalRate = 0.50, ncpiRate = 0.4 } = p;
   let loan = 0, reinvest = 0, cumInterest = 0, cumInterestSaving = 0, cumCollateralDed = 0;
-  for (let y = 0; y < years; y++) {
+  for (let y = 0, _ny = Math.max(0, Math.min(80, Number(years) || 0)); y < _ny; y++) {
     loan += annualPremium;                       // borrow back each premium
     reinvest = reinvest * (1 + reinvestReturn) + annualPremium;
     const interest = loan * loanRate;

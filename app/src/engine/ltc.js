@@ -3,6 +3,7 @@
 // Compares self-funding the care cost vs LTC insurance.
 // ============================================================
 import { t } from '../i18n.js';
+import { cleanse, fin } from './util.js';
 
 // Illustrative annual costs of care (today's dollars).
 export const CARE_LEVELS = () => [
@@ -16,18 +17,20 @@ export const CARE_LEVELS = () => [
  *       insurancePremiumAnnual, insuranceCoverageAnnual, portfolioReturn }
  */
 export function projectLTC(p) {
+  p = cleanse(p);
   const {
     currentAge = 60, onsetAge = 84, durationYears = 4, annualCostToday = 60000,
     healthInflation = 0.04, insurancePremiumAnnual = 3500, insuranceCoverageAnnual = 50000,
   } = p;
 
-  const yearsToOnset = Math.max(0, onsetAge - currentAge);
-  const costAtOnset = annualCostToday * Math.pow(1 + healthInflation, yearsToOnset);
+  const _n=(v,d)=>Number.isFinite(+v)?+v:d; const _cur=_n(currentAge,60),_ons=_n(onsetAge,84),_cost=_n(annualCostToday,60000),_hi=Math.max(-0.5,Math.min(0.3,_n(healthInflation,0.04)));
+  const yearsToOnset = Math.max(0, Math.min(80, _ons - _cur));
+  const costAtOnset = _cost * Math.pow(1 + _hi, yearsToOnset);
 
   // Self-funding: total inflated cost across the care period
   let totalCost = 0; const series = [];
-  for (let i = 0; i < durationYears; i++) {
-    const c = annualCostToday * Math.pow(1 + healthInflation, yearsToOnset + i);
+  for (let i = 0, _n = Math.max(0, Math.min(60, Number(durationYears) || 0)); i < _n; i++) {
+    const c = _cost * Math.pow(1 + _hi, yearsToOnset + i);
     totalCost += c; series.push({ age: onsetAge + i, cost: c });
   }
 
@@ -35,8 +38,8 @@ export function projectLTC(p) {
   const premiumYears = yearsToOnset + durationYears;
   const totalPremiums = insurancePremiumAnnual * premiumYears;
   let coveredTotal = 0;
-  for (let i = 0; i < durationYears; i++) {
-    const cov = insuranceCoverageAnnual * Math.pow(1 + healthInflation * 0.5, yearsToOnset + i); // partial indexing
+  for (let i = 0, _n = Math.max(0, Math.min(60, Number(durationYears) || 0)); i < _n; i++) {
+    const cov = (Number.isFinite(+insuranceCoverageAnnual)?+insuranceCoverageAnnual:50000) * Math.pow(1 + _hi * 0.5, yearsToOnset + i); // partial indexing
     coveredTotal += Math.min(cov, series[i].cost);
   }
   const netOutOfPocketInsured = Math.max(0, totalCost - coveredTotal) + totalPremiums;

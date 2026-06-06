@@ -5,18 +5,20 @@
 // Illustrative modelling — real policy illustrations required.
 // ============================================================
 import { t } from '../i18n.js';
+import { cleanse, fin } from './util.js';
 
 /**
  * p = { coverage, currentAge, horizonAge, termPremium, wholePremium,
  *       t100Premium, csvGrowth, csvAllocation, investReturn, termYears }
  */
 export function compareLifeProducts(p) {
+  p = cleanse(p);
   const {
     coverage = 500000, currentAge = 40, horizonAge = 85,
     termPremium = 600, wholePremium = 6500, t100Premium = 3800,
     csvGrowth = 0.045, csvAllocation = 0.55, investReturn = 0.06, termYears = 20,
   } = p;
-  const years = Math.max(1, horizonAge - currentAge);
+  const years = Math.max(1, Math.min(90, (Number(horizonAge) || 85) - (Number(currentAge) || 40)));
 
   // Term: level premium for termYears, then coverage ends (or renews much higher)
   const termPaid = termPremium * Math.min(termYears, years);

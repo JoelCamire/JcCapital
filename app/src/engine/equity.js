@@ -7,9 +7,11 @@
 // Illustrative modelling. CAD/USD/GBP per jurisdiction.
 // ============================================================
 import { t } from '../i18n.js';
+import { cleanse, fin } from './util.js';
 
 /** Stock options. instrument: 'option' | 'rsu'. */
 export function equityComp(jur, p) {
+  p = cleanse(p);
   const { shares = 1000, strike = 10, fmvExercise = 30, fmvSale = 45, grantFmv = 10,
     marginalRate = 0.50, instrument = 'option', isCCPC = false, isISO = false } = p;
   const proceeds = fmvSale * shares;

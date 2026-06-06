@@ -6,6 +6,7 @@
 // 2025 income thresholds (approx).
 // ============================================================
 import { t } from '../i18n.js';
+import { cleanse } from './util.js';
 
 const GRANT_INCOME_THRESHOLD = 111733;   // above -> 100% match on first $1,000 only
 const BOND_FULL_THRESHOLD = 36502;       // at/below -> full $1,000 bond
@@ -15,6 +16,8 @@ const BOND_LIFETIME = 20000;
 
 /** Annual grant + bond for a given contribution and family net income. */
 export function rdspGrantBond(annualContribution, familyIncome) {
+  annualContribution = Number.isFinite(+annualContribution) ? +annualContribution : 0;
+  familyIncome = Number.isFinite(+familyIncome) ? +familyIncome : 0;
   let grant = 0;
   if (familyIncome <= GRANT_INCOME_THRESHOLD) {
     // 300% on first $500, 200% on next $1,000
@@ -30,10 +33,12 @@ export function rdspGrantBond(annualContribution, familyIncome) {
 }
 
 /** Year-by-year RDSP projection to age 60. */
-export function rdspProjection({ beneficiaryAge, annualContribution, familyIncome, growth = 0.05 }) {
+export function rdspProjection(p) {
+  let { beneficiaryAge = 0, annualContribution = 0, familyIncome = 0, growth = 0.05 } = cleanse(p);
+  growth = Math.max(-0.9, Math.min(0.5, Number(growth) || 0));
   let value = 0, totalGrant = 0, totalBond = 0, totalContrib = 0;
   const series = [];
-  for (let age = beneficiaryAge; age <= 60; age++) {
+  for (let age = Math.max(0, Math.min(60, Number(beneficiaryAge) || 0)); age <= 60; age++) {
     let g = 0, b = 0, contrib = 0;
     if (age <= 49) {
       const gb = rdspGrantBond(annualContribution, familyIncome);

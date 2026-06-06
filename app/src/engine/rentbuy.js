@@ -3,8 +3,10 @@
 // vs renting and investing the difference, year by year.
 // ============================================================
 import { t } from '../i18n.js';
+import { cleanse, fin } from './util.js';
 
 export function analyzeRentBuy(p) {
+  p = cleanse(p);
   const {
     price = 600000, downPct = 0.20, rate = 0.05, amortYears = 25,
     propertyTaxPct = 0.01, maintenancePct = 0.01, closingPct = 0.015,
@@ -22,7 +24,7 @@ export function analyzeRentBuy(p) {
   const series = [];
   let breakeven = null;
 
-  for (let y = 1; y <= holdYears; y++) {
+  for (let y = 1, _n = Math.max(0, Math.min(60, Number(holdYears) || 0)); y <= _n; y++) {
     // Buyer ownership cost this year
     homeValue *= 1 + appreciation;
     let interestYr = 0;
@@ -44,7 +46,7 @@ export function analyzeRentBuy(p) {
     series.push({ year: y, buyNetWorth, rentNetWorth, homeValue, balance, sideFund, ownCostYr, rentYr });
   }
 
-  const last = series[series.length - 1];
+  const last = series[series.length - 1] || { buyNetWorth: 0, rentNetWorth: down + closing };
   return {
     down, closing, monthlyMortgage, series,
     buyFinal: last.buyNetWorth, rentFinal: last.rentNetWorth,

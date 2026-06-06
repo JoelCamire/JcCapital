@@ -7,6 +7,7 @@
 // All figures CAD. Illustrative modelling — requires professional advice.
 // ============================================================
 import { t } from '../i18n.js';
+import { cleanse } from './util.js';
 
 const LCGE = 1250000; // lifetime capital gains exemption per individual, 2025
 
@@ -15,7 +16,8 @@ const LCGE = 1250000; // lifetime capital gains exemption per individual, 2025
  * up to Holdco to keep Opco a Qualified Small Business Corporation (QSBC),
  * plus creditor-protection benefit. (QSBC ≈ 90% active assets at sale.)
  */
-export function holdcoAnalysis({ activeAssets, passiveAssets }) {
+export function holdcoAnalysis(p) {
+  const { activeAssets = 0, passiveAssets = 0 } = cleanse(p);
   const total = activeAssets + passiveAssets;
   const activeRatio = total > 0 ? activeAssets / total : 1;
   const maxPassiveForQSBC = activeAssets / 9;                 // passive ≤ 10% of total
@@ -32,7 +34,8 @@ export function holdcoAnalysis({ activeAssets, passiveAssets }) {
  * Estate freeze + family trust: freeze today's value to the founder, grow
  * future value in a trust whose beneficiaries each claim their own LCGE.
  */
-export function estateFreezeLCGE({ currentValue, futureValue, beneficiaries = 1, marginalRate = 0.26 }) {
+export function estateFreezeLCGE(p) {
+  const { currentValue = 0, futureValue = 0, beneficiaries = 1, marginalRate = 0.26 } = cleanse(p);
   const growth = Math.max(0, futureValue - currentValue);
   const lcgeTotal = beneficiaries * LCGE;
   const exemptWithFreeze = Math.min(growth, lcgeTotal);
@@ -51,13 +54,14 @@ export function estateFreezeLCGE({ currentValue, futureValue, beneficiaries = 1,
  * RCA: corp contributes for the owner; 50% goes to a refundable tax account,
  * 50% is invested. Contribution is deductible to the corp.
  */
-export function rcaAnalysis({ contribution, corpRate = 0.122, years = 10, returnRate = 0.05 }) {
+export function rcaAnalysis(p) {
+  const { contribution = 0, corpRate = 0.122, years = 10, returnRate = 0.05 } = cleanse(p);
   const toInvest = contribution * 0.5;
   const toRTA = contribution * 0.5;                           // refundable to corp as benefits are paid
   const corpDeductionSaving = contribution * corpRate;
   // accumulate invested half (investment income also 50% refundable -> net ~ half the return invested)
   let invested = 0;
-  for (let y = 0; y < years; y++) invested = invested * (1 + returnRate * 0.5) + toInvest;
+  for (let y = 0, _ny = Math.max(0, Math.min(80, Number(years) || 0)); y < _ny; y++) invested = invested * (1 + returnRate * 0.5) + toInvest;
   const totalContributed = contribution * years;
   return {
     contribution, toInvest, toRTA, corpDeductionSaving,
@@ -73,14 +77,15 @@ export function rcaAnalysis({ contribution, corpRate = 0.122, years = 10, return
  * interest is attributed back, the excess return is taxed in low-income hands.
  * Saving/yr = loan*(return − prescribed)*(highMarg − lowMarg).
  */
-export function prescribedRateLoan({ loan, returnRate, prescribedRate, highMarg, lowMarg, years = 10 }) {
+export function prescribedRateLoan(p) {
+  const { loan = 0, returnRate = 0.06, prescribedRate = 0.04, highMarg = 0.5, lowMarg = 0.25, years = 10 } = cleanse(p);
   const annualReturn = loan * returnRate;
   const annualInterest = loan * prescribedRate;
   const splitIncome = Math.max(0, annualReturn - annualInterest);
   const annualSaving = Math.max(0, splitIncome * (highMarg - lowMarg));
   let cumulative = 0, bal = 0;
   const series = [];
-  for (let y = 1; y <= years; y++) {
+  for (let y = 1, _ny = Math.max(0, Math.min(80, Number(years) || 0)); y <= _ny; y++) {
     cumulative += annualSaving;
     bal = bal * (1 + returnRate) + splitIncome;              // compounding shifted income
     series.push({ year: y, cumulative, shifted: bal });

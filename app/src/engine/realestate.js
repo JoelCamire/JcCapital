@@ -2,6 +2,7 @@
 // Real estate / rental property analysis engine
 // ============================================================
 import { t } from '../i18n.js';
+import { cleanse, fin } from './util.js';
 
 /**
  * Compute standard monthly mortgage payment (fixed-rate amortization).
@@ -54,7 +55,8 @@ function annualInterest(loanAmount, annualRate, amortYears, year) {
  * Uses: (1 + totalReturn)^(1/holdYears) - 1
  */
 function annualizedReturn(totalReturn, holdYears) {
-  if (holdYears <= 0 || !isFinite(totalReturn)) return 0;
+  if (!(holdYears > 0) || !Number.isFinite(totalReturn)) return 0;
+  if (1 + totalReturn <= 0) return -1; // a >100% loss -> ~ -100% annualized (avoid NaN from pow of negative base)
   return Math.pow(1 + totalReturn, 1 / holdYears) - 1;
 }
 
@@ -78,6 +80,7 @@ function annualizedReturn(totalReturn, holdYears) {
  * @returns {object} Rich metrics + yearly series
  */
 export function analyzeProperty(p) {
+  p = cleanse(p);
   const price        = Math.max(0, p.price        || 0);
   const downPct      = Math.min(1, Math.max(0, p.downPct      ?? 0.20));
   const rate         = Math.max(0, p.rate         ?? 0.055);
@@ -116,7 +119,7 @@ export function analyzeProperty(p) {
   // CCA declining balance tracking (half-year rule in year 1 for CA)
   let ccaUndepreciated = buildingBase * 0.50; // half-year rule opening balance
 
-  for (let y = 1; y <= holdYears; y++) {
+  for (let y = 1, _n = Math.max(0, Math.min(60, Number(holdYears) || 0)); y <= _n; y++) {
     const growthFactor  = Math.pow(1 + appreciation, y);
     const rentFactor    = Math.pow(1 + rentGrowth, y - 1);
 
