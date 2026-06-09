@@ -337,22 +337,26 @@ html, body {
 
 .subtitle,
 .sub-title {
-    font-size: clamp(0.85rem, 3.5vw, 1rem);
+    font-size: clamp(0.8rem, 3.2vw, 1rem);
     line-height: 1.5;
     color: var(--c-gold);
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
     font-weight: 300;
-    padding: 0 0.25rem;
+    padding: 0;
     word-wrap: break-word;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
     max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    hyphens: auto;
+    -webkit-hyphens: auto;
 }
 
 .subtitle {
     /* The intro tagline above the sub-title */
     color: var(--c-light-beige);
     font-style: italic;
-    font-size: clamp(0.9rem, 3.8vw, 1.05rem);
+    font-size: clamp(0.85rem, 3.5vw, 1.05rem);
 }
 
 .scroll-indicator {
@@ -550,19 +554,21 @@ html, body {
 }
 
 .section-heading {
-    font-size: clamp(1.35rem, 6vw, 1.8rem);
+    font-size: clamp(1.2rem, 5.2vw, 1.8rem);
     line-height: 1.2;
     color: var(--c-gold);
     margin-bottom: 1.75rem;
     text-align: center;
     text-transform: uppercase;
     font-weight: 700;
-    letter-spacing: 0.5px;
+    letter-spacing: 0;
     word-wrap: break-word;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
     hyphens: auto;
     -webkit-hyphens: auto;
-    padding: 0 0.5rem;
+    padding: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* --- SERVICES --- */
