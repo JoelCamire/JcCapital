@@ -72,6 +72,79 @@ html, body {
     overflow-wrap: break-word;
 }
 
+/* AGGRESSIVE MOBILE OVERFLOW FIX — applied < 768px */
+@media (max-width: 768px) {
+    /* Every element must respect viewport width */
+    * {
+        max-width: 100%;
+    }
+
+    /* Force text wrapping on ALL text elements */
+    h1, h2, h3, h4, h5, h6, p, li, td, th, a, span, div, blockquote, figcaption {
+        word-wrap: break-word;
+        overflow-wrap: anywhere;
+        hyphens: auto;
+        -webkit-hyphens: auto;
+    }
+
+    /* Constrain media and tables */
+    img, video, iframe, embed, object, table, pre, code {
+        max-width: 100% !important;
+        height: auto;
+    }
+
+    /* Prevent tables from breaking layout */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: normal;
+    }
+
+    /* Block-level wrappers: respect viewport */
+    .section-container,
+    .content-wrapper,
+    .page-content,
+    .article-content,
+    .article-hero,
+    main,
+    section,
+    article {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        box-sizing: border-box;
+    }
+
+    /* Override percentage-based article paddings (5%) for predictability */
+    .article-hero {
+        padding: 100px 1rem 30px !important;
+    }
+
+    .article-content {
+        padding: 1.5rem 1rem 3rem !important;
+    }
+
+    /* Force ALL headings to wrap on mobile */
+    h1, h2, h3 {
+        max-width: 100%;
+        word-wrap: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    /* Article hero h1: more flexible on mobile */
+    .article-hero h1 {
+        font-size: clamp(1.3rem, 5.5vw, 1.85rem) !important;
+        line-height: 1.25 !important;
+        letter-spacing: 0 !important;
+    }
+
+    /* Article body text: comfortable mobile reading */
+    .article-content p,
+    .article-content li {
+        font-size: 0.98rem !important;
+        line-height: 1.7 !important;
+    }
+}
+
 /* Force mobile-friendly padding on inline-styled wrappers (about.html, team.html, etc.) */
 @media (max-width: 768px) {
     .content-wrapper {
