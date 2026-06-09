@@ -13,6 +13,10 @@
 
     <!-- Open Graph & Social sharing -->
     <link rel="canonical" href="https://jccapital.ca/pages/tax.html">
+    <!-- Bilingual SEO (Hreflang) -->
+    <link rel="alternate" hreflang="fr" href="https://jccapital.ca/pages/tax.html" />
+    <link rel="alternate" hreflang="en" href="https://jccapital.ca/pages/tax.html?lang=en" />
+    <link rel="alternate" hreflang="x-default" href="https://jccapital.ca/pages/tax.html" />
     <meta property="og:title" content="Estimateur d'Économies Fiscales – JC Capital">
     <meta property="og:description" content="Estimateur d'économies fiscales pour entrepreneurs. Découvrez combien vous pourriez sauver en vous incorporant au Québec.">
     <meta property="og:type" content="website">
@@ -31,11 +35,54 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 
+    <!-- Schema.org Markup (JSON-LD) — WebApplication (Tax Savings Estimator) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "https://jccapital.ca/pages/tax.html#app",
+          "name": "Estimateur d'Économies Fiscales JC Capital",
+          "alternateName": "Simulateur d'incorporation Québec",
+          "url": "https://jccapital.ca/pages/tax.html",
+          "description": "Estimateur gratuit d'économies fiscales pour entrepreneurs et travailleurs autonomes au Québec. Compare la fiscalité personnelle (travailleur autonome) à la fiscalité corporative (société par actions) afin d'identifier le potentiel d'économies en s'incorporant.",
+          "applicationCategory": "FinanceApplication",
+          "applicationSubCategory": "Calculateur fiscal",
+          "operatingSystem": "Tout navigateur web (Web)",
+          "browserRequirements": "Requires JavaScript. Requires HTML5.",
+          "inLanguage": ["fr-CA", "en-CA"],
+          "isAccessibleForFree": true,
+          "featureList": [
+            "Estimation des impôts personnels au Québec",
+            "Estimation des impôts d'une société par actions (SPCC)",
+            "Comparaison travailleur autonome vs incorporation",
+            "Calcul des économies fiscales potentielles à l'incorporation",
+            "Prise en compte du fractionnement salaire/dividendes",
+            "Estimation du report d'impôt sur les surplus corporatifs",
+            "Calcul en français et en anglais"
+          ],
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "CAD",
+            "availability": "https://schema.org/InStock"
+          },
+          "creator": { "@id": "https://jccapital.ca/#business" },
+          "publisher": { "@id": "https://jccapital.ca/#business" },
+          "isPartOf": { "@id": "https://jccapital.ca/#website" },
+          "audience": {
+            "@type": "Audience",
+            "audienceType": "Entrepreneurs, travailleurs autonomes, professionnels incorporés"
+          }
+        }
+      ]
+    }
+    </script>
+
     <!-- CSS Split -->
     <link rel="stylesheet" href="../css/_tokens.css">
     <link rel="stylesheet" href="../css/style.css">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <!-- Translations -->

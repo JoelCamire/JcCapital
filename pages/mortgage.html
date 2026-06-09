@@ -13,6 +13,10 @@
 
     <!-- Open Graph & Social sharing -->
     <link rel="canonical" href="https://jccapital.ca/pages/mortgage.html">
+    <!-- Bilingual SEO (Hreflang) -->
+    <link rel="alternate" hreflang="fr" href="https://jccapital.ca/pages/mortgage.html" />
+    <link rel="alternate" hreflang="en" href="https://jccapital.ca/pages/mortgage.html?lang=en" />
+    <link rel="alternate" hreflang="x-default" href="https://jccapital.ca/pages/mortgage.html" />
     <meta property="og:title" content="Payer ou Investir? – JC Capital">
     <meta property="og:description" content="Payer son hypothèque ou investir ? Utilisez notre simulateur pour comparer les deux stratégies et optimiser votre valeur nette.">
     <meta property="og:type" content="website">
@@ -31,15 +35,57 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 
+    <!-- Schema.org Markup (JSON-LD) — WebApplication (Pay Mortgage or Invest Simulator) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "https://jccapital.ca/pages/mortgage.html#app",
+          "name": "Simulateur Payer son hypothèque ou Investir – JC Capital",
+          "alternateName": "Calculateur hypothèque vs placement",
+          "url": "https://jccapital.ca/pages/mortgage.html",
+          "description": "Simulateur gratuit qui compare deux stratégies financières : accélérer le remboursement de votre hypothèque ou investir le surplus dans un portefeuille (REER, CELI, compte non enregistré). L'outil projette la valeur nette au fil des années pour aider à choisir l'approche optimale selon votre situation.",
+          "applicationCategory": "FinanceApplication",
+          "applicationSubCategory": "Calculateur hypothécaire et de placement",
+          "operatingSystem": "Tout navigateur web (Web)",
+          "browserRequirements": "Requires JavaScript. Requires HTML5.",
+          "inLanguage": ["fr-CA", "en-CA"],
+          "isAccessibleForFree": true,
+          "featureList": [
+            "Comparaison entre remboursement accéléré d'hypothèque et placement",
+            "Paramètres ajustables : taux hypothécaire, taux de rendement, durée",
+            "Projection de la valeur nette sur plusieurs années",
+            "Visualisation graphique des deux stratégies (Chart.js)",
+            "Prise en compte des cotisations REER et CELI",
+            "Calcul en français et en anglais"
+          ],
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "CAD",
+            "availability": "https://schema.org/InStock"
+          },
+          "creator": { "@id": "https://jccapital.ca/#business" },
+          "publisher": { "@id": "https://jccapital.ca/#business" },
+          "isPartOf": { "@id": "https://jccapital.ca/#website" },
+          "audience": {
+            "@type": "Audience",
+            "audienceType": "Propriétaires, acheteurs résidentiels, épargnants et investisseurs"
+          }
+        }
+      ]
+    }
+    </script>
+
     <!-- CSS Split -->
     <link rel="stylesheet" href="../css/_tokens.css">
     <link rel="stylesheet" href="../css/style.css">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Translations -->
     <script src="../js/translations.js"></script>
     <!-- Component Loader -->

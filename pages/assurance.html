@@ -13,6 +13,10 @@
 
     <!-- Open Graph & Social sharing -->
     <link rel="canonical" href="https://jccapital.ca/pages/assurance.html">
+    <!-- Bilingual SEO (Hreflang) -->
+    <link rel="alternate" hreflang="fr" href="https://jccapital.ca/pages/assurance.html" />
+    <link rel="alternate" hreflang="en" href="https://jccapital.ca/pages/assurance.html?lang=en" />
+    <link rel="alternate" hreflang="x-default" href="https://jccapital.ca/pages/assurance.html" />
     <meta property="og:title" content="Bilan de Protection Financière – JC Capital">
     <meta property="og:description" content="Identifiez vos vulnérabilités financières et obtenez une stratégie de protection sur mesure.">
     <meta property="og:type" content="website">
@@ -31,11 +35,59 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 
+    <!-- Schema.org Markup (JSON-LD) — WebApplication (Financial Protection Assessment) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "https://jccapital.ca/pages/assurance.html#app",
+          "name": "Bilan de Protection Financière JC Capital",
+          "alternateName": "Évaluation des besoins en assurance",
+          "url": "https://jccapital.ca/pages/assurance.html",
+          "description": "Outil d'évaluation gratuit qui identifie vos vulnérabilités financières en cas de décès, d'invalidité ou de maladie grave, puis génère une stratégie de protection personnalisée (assurance vie, invalidité, maladies graves, soins de longue durée). Conçu pour les particuliers, les entrepreneurs et les familles ambitieuses.",
+          "applicationCategory": "FinanceApplication",
+          "applicationSubCategory": "Évaluation des besoins en assurance",
+          "operatingSystem": "Tout navigateur web (Web)",
+          "browserRequirements": "Requires JavaScript. Requires HTML5.",
+          "inLanguage": ["fr-CA", "en-CA"],
+          "isAccessibleForFree": true,
+          "featureList": [
+            "Questionnaire d'évaluation des besoins de protection",
+            "Identification des vulnérabilités financières (décès, invalidité, maladies graves)",
+            "Recommandations personnalisées en assurance de personnes",
+            "Estimation des montants de couverture appropriés",
+            "Envoi du bilan par courriel via EmailJS",
+            "Calcul en français et en anglais"
+          ],
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "CAD",
+            "availability": "https://schema.org/InStock"
+          },
+          "creator": { "@id": "https://jccapital.ca/#business" },
+          "publisher": { "@id": "https://jccapital.ca/#business" },
+          "isPartOf": { "@id": "https://jccapital.ca/#website" },
+          "audience": {
+            "@type": "Audience",
+            "audienceType": "Particuliers, familles, entrepreneurs et travailleurs autonomes"
+          },
+          "about": [
+            { "@type": "Thing", "name": "Assurance vie" },
+            { "@type": "Thing", "name": "Assurance invalidité" },
+            { "@type": "Thing", "name": "Assurance maladies graves" },
+            { "@type": "Thing", "name": "Assurance soins de longue durée" }
+          ]
+        }
+      ]
+    }
+    </script>
+
     <!-- CSS Split -->
     <link rel="stylesheet" href="../css/_tokens.css">
     <link rel="stylesheet" href="../css/style.css">
-    <!-- Tailwind CSS (for consistent nav reset) -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <!-- SweetAlert2 -->
@@ -822,8 +874,8 @@ function processLead() {
     const templateParams = { client_name: name, client_phone: phone, client_email: email, message: emailBody, to_email: "admin@jccapital.ca" };
 
     emailjs.send('service_b4f4ooy', 'template_qphmqft', templateParams)
-        .then(function(response) { console.log('Succès !', response.status); finishProcess(); },
-              function(error) { console.error('Erreur...', error); finishProcess(); });
+        .then(function(response) { finishProcess(); },
+              function(error) { console.error('Erreur EmailJS:', error); finishProcess(); });
 }
 
 function finishProcess() {

@@ -13,6 +13,10 @@
 
     <!-- Open Graph & Social sharing -->
     <link rel="canonical" href="https://jccapital.ca/pages/events.html">
+    <!-- Bilingual SEO (Hreflang) -->
+    <link rel="alternate" hreflang="fr" href="https://jccapital.ca/pages/events.html" />
+    <link rel="alternate" hreflang="en" href="https://jccapital.ca/pages/events.html?lang=en" />
+    <link rel="alternate" hreflang="x-default" href="https://jccapital.ca/pages/events.html" />
     <meta property="og:title" content="Événements – JC Capital">
     <meta property="og:description" content="Découvrez nos prochains événements, conférences et webinaires sur la finance et l'investissement.">
     <meta property="og:type" content="website">
@@ -31,11 +35,41 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 
+    <!-- Schema.org Markup (JSON-LD) — Events ItemList wrapper -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "CollectionPage",
+          "@id": "https://jccapital.ca/pages/events.html#collection",
+          "url": "https://jccapital.ca/pages/events.html",
+          "name": "Événements – JC Capital",
+          "headline": "Nos Événements",
+          "description": "Conférences, webinaires et événements de réseautage organisés ou animés par JC Capital sur la fiscalité, la planification financière, la retraite, l'investissement et le transfert d'entreprise.",
+          "inLanguage": "fr-CA",
+          "isPartOf": { "@id": "https://jccapital.ca/#website" },
+          "publisher": { "@id": "https://jccapital.ca/#business" },
+          "about": { "@id": "https://jccapital.ca/#business" },
+          "mainEntity": { "@id": "https://jccapital.ca/pages/events.html#eventslist" }
+        },
+        {
+          "@type": "ItemList",
+          "@id": "https://jccapital.ca/pages/events.html#eventslist",
+          "name": "Événements JC Capital",
+          "description": "Liste des événements financiers, fiscaux et de réseautage organisés par JC Capital.",
+          "itemListOrder": "https://schema.org/ItemListOrderAscending",
+          "inLanguage": "fr-CA",
+          "numberOfItems": 0,
+          "itemListElement": []
+        }
+      ]
+    }
+    </script>
+
     <!-- CSS Split -->
     <link rel="stylesheet" href="../css/_tokens.css">
     <link rel="stylesheet" href="../css/style.css">
-    <!-- Tailwind CSS (for layout utilities) -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <!-- Translations -->

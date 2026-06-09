@@ -13,6 +13,10 @@
 
     <!-- Open Graph & Social sharing -->
     <link rel="canonical" href="https://jccapital.ca/pages/team.html">
+    <!-- Bilingual SEO (Hreflang) -->
+    <link rel="alternate" hreflang="fr" href="https://jccapital.ca/pages/team.html" />
+    <link rel="alternate" hreflang="en" href="https://jccapital.ca/pages/team.html?lang=en" />
+    <link rel="alternate" hreflang="x-default" href="https://jccapital.ca/pages/team.html" />
     <meta property="og:title" content="Notre Équipe – JC Capital">
     <meta property="og:description" content="Rencontrez l'équipe d'experts de JC Capital dédiée à votre réussite financière.">
     <meta property="og:type" content="website">
@@ -31,11 +35,102 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 
+    <!-- Schema.org Markup (JSON-LD) — Profile page enriched -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "ProfilePage",
+          "@id": "https://jccapital.ca/pages/team.html#profilepage",
+          "url": "https://jccapital.ca/pages/team.html",
+          "name": "Notre Équipe – JC Capital",
+          "description": "Présentation de l'équipe de JC Capital et de son fondateur Joël Camiré, conseiller en sécurité financière et représentant en épargne collective.",
+          "inLanguage": "fr-CA",
+          "isPartOf": { "@id": "https://jccapital.ca/#website" },
+          "publisher": { "@id": "https://jccapital.ca/#business" },
+          "about": { "@id": "https://jccapital.ca/#joel" },
+          "mainEntity": { "@id": "https://jccapital.ca/#joel" }
+        },
+        {
+          "@type": "Person",
+          "@id": "https://jccapital.ca/#joel",
+          "name": "Joël Camiré",
+          "givenName": "Joël",
+          "familyName": "Camiré",
+          "jobTitle": "Conseiller en sécurité financière, Représentant en épargne collective et Fondateur de JC Capital",
+          "description": "Joël Camiré est conseiller en sécurité financière inscrit auprès de l'Autorité des marchés financiers (AMF) du Québec et représentant en épargne collective au Canada. Il est le fondateur de JC Capital, cabinet de services financiers et fiscaux établi à Québec. Il accompagne les entrepreneurs, travailleurs autonomes, professionnels et familles ambitieuses dans la mise en place de stratégies intégrées de planification financière, fiscale, de placement et d'assurance. Il opère en partenariat avec SFL Gestion de patrimoine.",
+          "image": "https://jccapital.ca/img/joel.jpg",
+          "telephone": "+1-581-398-6747",
+          "email": "joelcamire@jccapital.ca",
+          "url": "https://jccapital.ca/pages/team.html#joel",
+          "birthPlace": { "@type": "Place", "name": "Québec, Canada" },
+          "nationality": { "@type": "Country", "name": "Canada" },
+          "gender": "Male",
+          "knowsLanguage": ["fr-CA", "en-CA"],
+          "worksFor": { "@id": "https://jccapital.ca/#business" },
+          "workLocation": { "@id": "https://jccapital.ca/#business" },
+          "affiliation": [
+            { "@type": "Organization", "name": "Autorité des marchés financiers (AMF)", "url": "https://lautorite.qc.ca/" },
+            { "@type": "Organization", "name": "Canadian Securities Institute (CSI)", "url": "https://www.csi.ca/" },
+            { "@type": "Organization", "name": "SFL Gestion de patrimoine", "url": "https://www.sfl.ca/" }
+          ],
+          "memberOf": [
+            { "@type": "Organization", "name": "SFL Gestion de patrimoine", "url": "https://www.sfl.ca/" }
+          ],
+          "hasCredential": [
+            {
+              "@type": "EducationalOccupationalCredential",
+              "credentialCategory": "Inscription professionnelle",
+              "name": "Représentant en assurance de personnes (AMF)",
+              "recognizedBy": { "@type": "Organization", "name": "Autorité des marchés financiers (AMF)", "url": "https://lautorite.qc.ca/" }
+            },
+            {
+              "@type": "EducationalOccupationalCredential",
+              "credentialCategory": "Inscription professionnelle",
+              "name": "Représentant en épargne collective (Canada)",
+              "recognizedBy": { "@type": "Organization", "name": "Autorité des marchés financiers (AMF)", "url": "https://lautorite.qc.ca/" }
+            },
+            {
+              "@type": "EducationalOccupationalCredential",
+              "credentialCategory": "Certification",
+              "name": "Canadian Securities Institute (CSI)",
+              "recognizedBy": { "@type": "Organization", "name": "Canadian Securities Institute", "url": "https://www.csi.ca/" }
+            }
+          ],
+          "award": [
+            "Inscription AMF — Assurance de personnes",
+            "Inscription AMF — Représentant en épargne collective (Canada)",
+            "Certifications Canadian Securities Institute (CSI)"
+          ],
+          "knowsAbout": [
+            "Planification financière personnelle et d'entreprise",
+            "Fiscalité québécoise et canadienne",
+            "Optimisation fiscale pour entrepreneurs et travailleurs autonomes",
+            "Assurance de personnes (vie, invalidité, maladies graves, soins de longue durée)",
+            "REER, CELI, CELIAPP, FERR, REEE",
+            "Régime de rentes du Québec (RRQ) et Pension de la Sécurité de la vieillesse (PSV)",
+            "Planification de la retraite",
+            "Planification successorale",
+            "Transfert d'entreprise et gel successoral",
+            "Convention entre actionnaires financée",
+            "Déduction pour gain en capital (DGC)",
+            "Fiscalité agricole et transfert de ferme",
+            "Incorporation et structures juridiques",
+            "Placement et gestion de portefeuille",
+            "Réglementation de l'Autorité des marchés financiers (AMF)"
+          ],
+          "sameAs": [
+            "https://www.linkedin.com/in/joel-camir%C3%A9-3656a2264"
+          ]
+        }
+      ]
+    }
+    </script>
+
     <!-- CSS Split -->
     <link rel="stylesheet" href="../css/_tokens.css">
     <link rel="stylesheet" href="../css/style.css">
-    <!-- Tailwind CSS (for consistent nav reset) -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <!-- Translations -->
