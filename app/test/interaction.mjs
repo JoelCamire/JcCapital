@@ -1,6 +1,6 @@
 // ============================================================
 // JC Planner — integration / interaction test
-// Boots the app via jsdom, navigates all 45 views, fuzzes inputs,
+// Boots the app via jsdom, navigates every view, fuzzes inputs,
 // tests store ops and empty-client stress. Reports all failures.
 // ============================================================
 
@@ -25,12 +25,12 @@ const { getJurisdiction, COUNTRY_LIST, JURISDICTIONS } = await import('../src/ju
 const M = await import('../src/state/models.js');
 
 // VIEWS list (from harness.mjs)
-const VIEWS = ['dashboard', 'healthcheck', 'profile', 'client', 'networth', 'nwtracker', 'cashflow', 'budget', 'debt',
+const VIEWS = ['clients', 'dashboard', 'healthcheck', 'profile', 'client', 'networth', 'nwtracker', 'cashflow', 'budget', 'debt',
   'business', 'succession', 'empbenefits', 'flowthrough', 'insurancestrat', 'advstructures', 'equity', 'realestate',
   'rentbuy', 'crypto', 'portfolio', 'feecompare', 'retirement', 'decumulation', 'montecarlo', 'scenarios',
   'strategycompare', 'tax', 'multitax', 'optimize', 'benefits', 'insurance', 'insurancecompare', 'philanthropy',
   'crossborder', 'emigration', 'goals', 'education', 'rdsp', 'ltc', 'timeline', 'estate', 'compliance', 'toolbox',
-  'reports', 'settings'];
+  'incorporation', 'selfemployed', 'farm', 'sred', 'treasury', 'borrowing', 'reports', 'settings'];
 
 // Pre-load all view modules
 const viewMods = {};
@@ -79,8 +79,8 @@ try {
     boots++;
   }
 
-  if (navItems.length !== 45) {
-    fail('boot:nav-item-count', new Error(`Expected 45 .nav-item, found ${navItems.length}`));
+  if (navItems.length !== VIEWS.length) {
+    fail('boot:nav-item-count', new Error(`Expected ${VIEWS.length} .nav-item (one per view), found ${navItems.length}`));
   } else {
     boots++;
   }
