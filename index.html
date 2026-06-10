@@ -260,8 +260,6 @@
 
 <body>
 
-  <!-- Header placeholder - loaded dynamically (MUST be before HERO for sticky to work) -->
-  <div id="header-placeholder"></div>
 
   <!-- HERO SECTION -->
   <header id="home" class="hero-section">
@@ -284,6 +282,9 @@
       <div class="scroll-indicator" onclick="scrollToServices()" role="button" tabindex="0" aria-label="Défiler vers les services / Scroll to services"><span>&#8595;</span></div>
     </div>
   </header>
+
+  <!-- Header placeholder - loaded dynamically (after HERO so nav reveals on scroll, then sticks) -->
+  <div id="header-placeholder"></div>
 
   <main>
   <!-- SERVICES SECTION -->
