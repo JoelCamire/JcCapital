@@ -49,7 +49,46 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize mobile hamburger menu (after header injected)
     initMobileMenu();
+
+    // Reveal the fixed nav once the user scrolls past the hero
+    initNavReveal();
 });
+
+// --- Robust body scroll lock ---
+// Plain `overflow:hidden` does NOT reliably lock scrolling on mobile Safari, so we
+// pin the body with position:fixed and restore the scroll position on unlock.
+let _savedScrollY = 0;
+function lockBodyScroll() {
+    _savedScrollY = window.scrollY || window.pageYOffset || 0;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${_savedScrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+}
+function unlockBodyScroll() {
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    // Restore scroll without the CSS smooth-scroll animating the jump
+    const html = document.documentElement;
+    const prevBehavior = html.style.scrollBehavior;
+    html.style.scrollBehavior = 'auto';
+    window.scrollTo(0, _savedScrollY);
+    html.style.scrollBehavior = prevBehavior;
+}
+
+// Close the mobile menu (shared by link clicks, outside clicks, Escape)
+function closeMobileMenu() {
+    const hamburger = document.querySelector('.hamburger-menu');
+    const navLinks = document.querySelector('.nav-links');
+    if (!navLinks || !navLinks.classList.contains('active')) return;
+    if (hamburger) hamburger.classList.remove('active');
+    navLinks.classList.remove('active');
+    unlockBodyScroll();
+}
 
 // Initialize Mobile Hamburger Menu
 function initMobileMenu() {
@@ -60,40 +99,64 @@ function initMobileMenu() {
     // Toggle menu on hamburger click
     hamburger.addEventListener('click', (e) => {
         e.stopPropagation();
-        hamburger.classList.toggle('active');
-        navLinks.classList.toggle('active');
-        // Prevent body scroll when menu is open
-        document.body.style.overflow = navLinks.classList.contains('active') ? 'hidden' : '';
+        const willOpen = !navLinks.classList.contains('active');
+        hamburger.classList.toggle('active', willOpen);
+        navLinks.classList.toggle('active', willOpen);
+        if (willOpen) {
+            lockBodyScroll();
+        } else {
+            unlockBodyScroll();
+        }
     });
 
     // Close menu when clicking a link (except dropdown toggles)
     navLinks.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', (e) => {
+        link.addEventListener('click', () => {
             if (link.classList.contains('dropdown-toggle')) return;
-            hamburger.classList.remove('active');
-            navLinks.classList.remove('active');
-            document.body.style.overflow = '';
+            closeMobileMenu();
         });
     });
 
-    // Close menu when clicking outside
+    // Close menu when clicking outside the panel / hamburger
     document.addEventListener('click', (e) => {
         if (!navLinks.classList.contains('active')) return;
         if (!e.target.closest('.nav-links') && !e.target.closest('.hamburger-menu')) {
-            hamburger.classList.remove('active');
-            navLinks.classList.remove('active');
-            document.body.style.overflow = '';
+            closeMobileMenu();
         }
     });
 
     // Close menu on Escape key
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && navLinks.classList.contains('active')) {
-            hamburger.classList.remove('active');
-            navLinks.classList.remove('active');
-            document.body.style.overflow = '';
-        }
+        if (e.key === 'Escape') closeMobileMenu();
     });
+}
+
+// Reveal the fixed nav once the user has scrolled past the hero; hide it at the
+// very top so the hero stays clean. Because the nav is position:fixed, it (and its
+// hamburger) stays reachable at every scroll position — including the page bottom.
+function initNavReveal() {
+    const nav = document.querySelector('.sticky-nav');
+    if (!nav) return;
+    const hero = document.querySelector('.hero-section');
+
+    function update() {
+        // Keep the bar visible while the mobile menu is open
+        const navLinks = document.querySelector('.nav-links');
+        if (navLinks && navLinks.classList.contains('active')) {
+            nav.classList.add('nav-revealed');
+            return;
+        }
+        const triggerPoint = (hero ? hero.offsetHeight : window.innerHeight) * 0.72;
+        if ((window.scrollY || window.pageYOffset || 0) > triggerPoint) {
+            nav.classList.add('nav-revealed');
+        } else {
+            nav.classList.remove('nav-revealed');
+        }
+    }
+
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update(); // set initial state on load
 }
 
 // Initialize Back to Top Button Logic

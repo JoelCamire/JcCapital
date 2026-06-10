@@ -21,6 +21,8 @@
 
 html {
     scroll-behavior: smooth;
+    /* Anchored sections (#services, #booking…) clear the fixed nav once revealed */
+    scroll-padding-top: 72px;
     /* overflow-x: clip preserves the horizontal-scroll fix BUT doesn't break
        position: sticky on descendants (unlike overflow-x: hidden) */
     overflow-x: clip;
@@ -379,15 +381,23 @@ html, body {
 
 /* --- NAV --- */
 #header-placeholder {
-    position: sticky;
-    top: 0;
+    /* The injected .sticky-nav is position:fixed (out of flow), so this wrapper
+       has no height of its own and needs no positioning. */
+    position: relative;
     z-index: 1000;
 }
 
 .sticky-nav {
-    /* Stays at top of viewport on scroll */
-    position: sticky;
-    top: 0;
+    /* FIXED to the viewport so the bar (and its hamburger) is reachable at ANY
+       scroll position — including the bottom of the page, which position:sticky
+       could not guarantee on mobile. Hidden above the top edge by default and
+       slid into view by JS (.nav-revealed) once the user scrolls past the hero.
+       Reveal is animated with `top` ON PURPOSE — a `transform` here would make
+       this element the containing block for the position:fixed .nav-links
+       overlay and break the full-screen mobile menu. */
+    position: fixed;
+    top: -110px;
+    left: 0;
     width: 100%;
     padding: 1rem;
     display: flex;
@@ -400,7 +410,14 @@ html, body {
     /* Override glass-panel's rounded corners and floating shadow on the sticky bar */
     border-radius: 0;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-    /* IMPORTANT: NO backdrop-filter here — would break position:fixed of .nav-links */
+    transition: top 0.35s ease, background 0.3s ease;
+    /* IMPORTANT: NO transform / backdrop-filter here — both would break
+       position:fixed of the .nav-links overlay. */
+}
+
+/* JS adds this once the user has scrolled past the hero. */
+.sticky-nav.nav-revealed {
+    top: 0;
 }
 
 .nav-logo {
@@ -463,13 +480,17 @@ html, body {
 }
 
 .nav-links {
-    /* Use transform for slide-out instead of right:-100% — avoids horizontal overflow */
+    /* FULL-SCREEN overlay on mobile. Covering the whole viewport (rather than an
+       80%-width drawer) means no strip of page is left visible/scrollable beside
+       the menu — that strip was the source of the "it stays at the top / feels
+       broken" behaviour. Slides in from the right via transform; uses 100dvh so
+       it fills the screen even with the mobile browser chrome showing. */
     position: fixed;
     top: 0;
-    right: 0;
-    width: 80%;
-    max-width: 360px;
+    left: 0;
+    width: 100%;
     height: 100vh;
+    height: 100dvh;
     background: var(--c-dark-blue);
     display: flex;
     flex-direction: column;
@@ -478,11 +499,9 @@ html, body {
     gap: 2rem;
     list-style: none;
     transform: translateX(100%);
-    transition: transform 0.3s ease;
+    transition: transform 0.35s ease;
     z-index: 1000;
-    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
-    border-left: 1px solid var(--c-brown);
-    padding: 0 1rem;
+    padding: 0 1.5rem;
 }
 
 .nav-links.active {
@@ -1582,7 +1601,8 @@ html, body {
     /* --- NAV --- */
     .sticky-nav {
         padding: 1rem 3rem;
-        transition: background 0.3s ease;
+        /* Keep the `top` slide from the base rule so the reveal animates here too */
+        transition: top 0.35s ease, background 0.3s ease;
         /* Override mobile's space-between: logo on left, links + lang on right */
         justify-content: flex-start;
         gap: 2rem;
