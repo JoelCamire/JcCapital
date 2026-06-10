@@ -46,7 +46,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize Logic that depends on footer elements
     initBackToTop();
+
+    // Initialize mobile hamburger menu (after header injected)
+    initMobileMenu();
 });
+
+// Initialize Mobile Hamburger Menu
+function initMobileMenu() {
+    const hamburger = document.querySelector('.hamburger-menu');
+    const navLinks = document.querySelector('.nav-links');
+    if (!hamburger || !navLinks) return;
+
+    // Toggle menu on hamburger click
+    hamburger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hamburger.classList.toggle('active');
+        navLinks.classList.toggle('active');
+        // Prevent body scroll when menu is open
+        document.body.style.overflow = navLinks.classList.contains('active') ? 'hidden' : '';
+    });
+
+    // Close menu when clicking a link (except dropdown toggles)
+    navLinks.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            if (link.classList.contains('dropdown-toggle')) return;
+            hamburger.classList.remove('active');
+            navLinks.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!navLinks.classList.contains('active')) return;
+        if (!e.target.closest('.nav-links') && !e.target.closest('.hamburger-menu')) {
+            hamburger.classList.remove('active');
+            navLinks.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+
+    // Close menu on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && navLinks.classList.contains('active')) {
+            hamburger.classList.remove('active');
+            navLinks.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+}
 
 // Initialize Back to Top Button Logic
 function initBackToTop() {
