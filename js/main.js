@@ -1,55 +1,8 @@
 // JC Capital - Core Logic
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. HAMBURGER MENU LOGIC
-    // 1. HAMBURGER MENU LOGIC (Centralized Event Delegation)
-    document.addEventListener('click', function (e) {
-        // Toggle Menu Button
-        const btn = e.target.closest('.hamburger-menu');
-        if (btn) {
-            e.preventDefault(); // Stop any default scroll behavior
-            e.stopPropagation();
-            const navLinks = document.querySelector('.nav-links');
-            if (navLinks) {
-                btn.classList.toggle('active');
-                navLinks.classList.toggle('active');
-            }
-            return;
-        }
-
-        // Close Menu when clicking ANY link inside nav-links
-        // (Except the dropdown toggle itself)
-        const link = e.target.closest('.nav-links a');
-        if (link) {
-            // If it's the dropdown toggle, let the specific handler below deal with it
-            if (link.classList.contains('dropdown-toggle')) return;
-
-            // Otherwise, it's a real navigation link -> Close Menu
-            const hamburger = document.querySelector('.hamburger-menu');
-            const navLinks = document.querySelector('.nav-links');
-            if (hamburger) hamburger.classList.remove('active');
-            if (navLinks) navLinks.classList.remove('active');
-        }
-    });
-
-    // Toggle Dropdown (Mobile)
-    window.toggleDropdown = function (e) {
-        e.preventDefault();
-        e.stopPropagation(); // Stop event bubbling
-        const link = e.currentTarget;
-        const parent = link.closest('.dropdown');
-        if (parent) {
-            parent.classList.toggle('active');
-        }
-    };
-
-    // Global close helper (kept for safety / manual calls)
-    window.closeMenu = function () {
-        const hamburger = document.querySelector('.hamburger-menu');
-        const navLinks = document.querySelector('.nav-links');
-        if (hamburger) hamburger.classList.remove('active');
-        if (navLinks) navLinks.classList.remove('active');
-    };
+    // 1. HAMBURGER MENU + DROPDOWNS — handled in components.js (single source
+    //    of truth, loaded on EVERY page; main.js is homepage-only)
 
     // 2. SERVICE BUBBLE EXPANSION
     window.toggleService = function (element) {

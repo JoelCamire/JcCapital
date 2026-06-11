@@ -87,14 +87,43 @@ function closeMobileMenu() {
     if (!navLinks || !navLinks.classList.contains('active')) return;
     if (hamburger) hamburger.classList.remove('active');
     navLinks.classList.remove('active');
+    // Collapse any expanded dropdown so the menu reopens in a clean state
+    navLinks.querySelectorAll('.dropdown.active').forEach(d => {
+        d.classList.remove('active');
+        const toggle = d.querySelector('.dropdown-toggle');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    });
     unlockBodyScroll();
 }
+
+// Toggle a nav dropdown ("À propos" / "Outils").
+// Global because header.html uses inline onclick, and defined HERE (not main.js)
+// so it exists on every page — main.js is only loaded on the homepage.
+window.toggleDropdown = function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const parent = e.currentTarget.closest('.dropdown');
+    if (!parent) return;
+    // Only one dropdown open at a time
+    document.querySelectorAll('.dropdown').forEach(d => {
+        if (d !== parent) {
+            d.classList.remove('active');
+            const t = d.querySelector('.dropdown-toggle');
+            if (t) t.setAttribute('aria-expanded', 'false');
+        }
+    });
+    const isOpen = parent.classList.toggle('active');
+    e.currentTarget.setAttribute('aria-expanded', String(isOpen));
+};
 
 // Initialize Mobile Hamburger Menu
 function initMobileMenu() {
     const hamburger = document.querySelector('.hamburger-menu');
     const navLinks = document.querySelector('.nav-links');
     if (!hamburger || !navLinks) return;
+    // Guard against double initialization (would make every toggle cancel itself)
+    if (hamburger.dataset.menuInit) return;
+    hamburger.dataset.menuInit = 'true';
 
     // Toggle menu on hamburger click
     hamburger.addEventListener('click', (e) => {
@@ -138,6 +167,13 @@ function initNavReveal() {
     const nav = document.querySelector('.sticky-nav');
     if (!nav) return;
     const hero = document.querySelector('.hero-section');
+
+    // Pages without a hero (sub-pages, 404) have no "scroll past the hero"
+    // moment — keep the nav (and its hamburger) visible at all times.
+    if (!hero) {
+        nav.classList.add('nav-revealed');
+        return;
+    }
 
     function update() {
         // Keep the bar visible while the mobile menu is open
@@ -183,7 +219,11 @@ function initBackToTop() {
 // Close dropdown when clicking outside
 document.addEventListener('click', function (event) {
     if (!event.target.closest('.dropdown') && !event.target.closest('.hamburger-menu')) {
-        document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
+        document.querySelectorAll('.dropdown.active').forEach(d => {
+            d.classList.remove('active');
+            const toggle = d.querySelector('.dropdown-toggle');
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+        });
     }
 });
 
