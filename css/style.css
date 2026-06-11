@@ -90,6 +90,15 @@ html, body {
         -webkit-hyphens: auto;
     }
 
+    /* Headings: wrap between words only — a hyphenated mid-word cut
+       ("ASSIS-TANT") looks broken and throws off the centering */
+    h1, h2, h3, h4, h5, h6 {
+        overflow-wrap: break-word;
+        word-break: normal;
+        hyphens: none;
+        -webkit-hyphens: none;
+    }
+
     /* Constrain media and tables */
     img, video, iframe, embed, object, table, pre, code {
         max-width: 100% !important;
