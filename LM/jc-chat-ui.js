@@ -8,6 +8,31 @@
     var session = null;
     var chatOpen = false;
     var panelCreated = false;
+    // true quand le moteur à bulles attend une saisie (nom / téléphone / courriel)
+    var engineCapturing = false;
+    // true pendant qu'une réponse IA est en cours de génération
+    var aiBusy = false;
+
+    function aiEnabled() {
+        return !!(window.JCLLM && window.JCLLM.enabled());
+    }
+
+    function aiPlaceholder() {
+        var lang = document.documentElement.lang || 'fr';
+        var placeholders = { fr: 'Posez votre question…', en: 'Ask your question…' };
+        return placeholders[lang] || placeholders.fr;
+    }
+
+    // Après chaque interaction : si l'IA est active, la zone de texte reste
+    // disponible pour la conversation libre; sinon, comportement actuel (cachée).
+    function restoreInputState() {
+        engineCapturing = false;
+        if (aiEnabled()) {
+            showInput(aiPlaceholder());
+        } else {
+            hideInput();
+        }
+    }
 
     // ==========================================
     // DOM CREATION
@@ -94,6 +119,7 @@
                 var response = window.JCChatEngine.buildLangSelectResponse();
                 addBotMessage(response.text);
                 if (response.options) renderOptions(response.options);
+                restoreInputState();
             }, 400);
         }
     }
@@ -131,9 +157,17 @@
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    function addBotMessage(text) {
+    function renderBotText(text) {
+        return escapeHtml(text)
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>')
+            .replace(/\n/g, '<br>');
+    }
+
+    // Crée une bulle bot vide et la retourne (réutilisée par le streaming IA)
+    function createBotBubble() {
         var container = document.getElementById('jc-chat-messages');
-        if (!container) return;
+        if (!container) return null;
 
         var msgDiv = document.createElement('div');
         msgDiv.className = 'jc-chat-msg jc-chat-msg--bot';
@@ -144,14 +178,17 @@
 
         var bubble = document.createElement('div');
         bubble.className = 'jc-chat-bubble jc-chat-bubble--bot';
-        var html = escapeHtml(text)
-            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\n/g, '<br>');
-        bubble.innerHTML = html;
 
         msgDiv.appendChild(avatar);
         msgDiv.appendChild(bubble);
         container.appendChild(msgDiv);
+        return bubble;
+    }
+
+    function addBotMessage(text) {
+        var bubble = createBotBubble();
+        if (!bubble) return;
+        bubble.innerHTML = renderBotText(text);
         scrollToBottom();
     }
 
@@ -203,7 +240,7 @@
     function handleOptionClick(opt) {
         disableCurrentOptions();
         addUserMessage(opt.label);
-        hideInput();
+        restoreInputState();
 
         showTyping();
 
@@ -216,13 +253,25 @@
     }
 
     // ==========================================
-    // FREE-TEXT SUBMIT (name / phone only)
+    // FREE-TEXT SUBMIT
+    // - moteur à bulles : capture nom / téléphone / courriel
+    // - sinon, si l'IA est activée : conversation libre avec l'assistant
     // ==========================================
     function handleSubmit(e) {
         e.preventDefault();
         var input = document.getElementById('jc-chat-input');
         var text = input.value.trim();
         if (!text) return;
+
+        // Conversation libre avec l'IA (texte hors capture du moteur)
+        if (!engineCapturing && aiEnabled()) {
+            if (aiBusy) return; // une réponse à la fois
+            disableCurrentOptions();
+            addUserMessage(text);
+            input.value = '';
+            sendToAi(text);
+            return;
+        }
 
         disableCurrentOptions();
         addUserMessage(text);
@@ -236,6 +285,41 @@
             var result = window.JCChatEngine.handleInput(text, session);
             processEngineResult(result);
         }, delay);
+    }
+
+    // ==========================================
+    // CONVERSATION IA (streaming)
+    // ==========================================
+    function sendToAi(text) {
+        aiBusy = true;
+        showTyping();
+        var bubble = null;
+
+        window.JCLLM.send(text, {
+            onDelta: function (fullTextSoFar) {
+                if (!bubble) {
+                    hideTyping();
+                    bubble = createBotBubble();
+                }
+                if (bubble) {
+                    bubble.innerHTML = renderBotText(fullTextSoFar);
+                    scrollToBottom();
+                }
+            },
+            onDone: function (fullText) {
+                hideTyping();
+                if (!bubble && fullText) {
+                    addBotMessage(fullText);
+                }
+                aiBusy = false;
+                scrollToBottom();
+            },
+            onError: function (message) {
+                hideTyping();
+                addBotMessage(message);
+                aiBusy = false;
+            }
+        });
     }
 
     // ==========================================
@@ -254,7 +338,7 @@
                     var doneResult = window.JCChatEngine.buildDoneResponse(session, true);
                     addBotMessage(doneResult.text);
                     if (doneResult.options) renderOptions(doneResult.options);
-                    hideInput();
+                    restoreInputState();
                 })
                 .catch(function (err) {
                     hideTyping();
@@ -262,7 +346,7 @@
                     var doneResult = window.JCChatEngine.buildDoneResponse(session, false);
                     addBotMessage(doneResult.text);
                     if (doneResult.options) renderOptions(doneResult.options);
-                    hideInput();
+                    restoreInputState();
                 });
             return;
         }
@@ -277,9 +361,10 @@
 
         // Toggle input area
         if (result.inputMode) {
+            engineCapturing = true;
             showInput(result.inputPlaceholder || '');
         } else {
-            hideInput();
+            restoreInputState();
         }
     }
 
