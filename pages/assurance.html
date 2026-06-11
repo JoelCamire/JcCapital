@@ -636,9 +636,9 @@
                         <div style="margin-top: 15px; font-size: 1rem; line-height: 1.5;">Un
                             expert de l'équipe <strong>JC CAPITAL</strong> communiquera avec
                             vous<br>
-                            <strong>par téléphone ou par courriel</strong>au : <span id="outPhone"
-                                class="highlight-phone">...</span>d'ici 24h
-                            ouvrables pour valider ces recommandations critiques.
+                            <strong>par téléphone ou par courriel</strong> au : <span id="outPhone"
+                                class="highlight-phone">...</span> d'ici 1 jour
+                            ouvrable pour répondre à vos questions.
                         </div>
                     </div>
                     <div id="reportContent"></div>
@@ -672,15 +672,18 @@ function formatPhone(input) {
     if (value.length > 3 && value.length <= 6) value = value.slice(0, 3) + '-' + value.slice(3);
     else if (value.length > 6) value = value.slice(0, 3) + '-' + value.slice(3, 6) + '-' + value.slice(6, 10);
     input.value = value;
-    if(value.length >= 12) { input.classList.add('valid'); input.classList.remove('invalid'); }
-    else { input.classList.remove('valid'); if(value.length>0) input.classList.add('invalid'); }
+    const digits = value.replace(/\D/g, '');
+    // 10 chiffres, pas tous identiques, indicatif nord-américain plausible (2-9)
+    const plausible = digits.length === 10 && !/^(\d)\1{9}$/.test(digits) && /^[2-9]/.test(digits);
+    if (plausible) { input.classList.add('valid'); input.classList.remove('invalid'); }
+    else { input.classList.remove('valid'); if (value.length > 0) input.classList.add('invalid'); }
     validateForm();
 }
 
 function validateEmail(input) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if(re.test(input.value)) { input.classList.add('valid'); input.classList.remove('invalid'); }
-    else { input.classList.remove('valid'); if(input.value.length>0) input.classList.add('invalid'); }
+    if (re.test(input.value)) { input.classList.add('valid'); input.classList.remove('invalid'); }
+    else { input.classList.remove('valid'); if (input.value.length > 0) input.classList.add('invalid'); }
     const datalist = document.getElementById('emailSuggestions');
     if (datalist) {
         datalist.innerHTML = '';
@@ -702,43 +705,49 @@ function validateEmail(input) {
     validateForm();
 }
 
+let leadSending = false; // verrou anti double-soumission
+
 function validateForm() {
+    if (leadSending) return; // ne jamais réactiver le bouton pendant l'envoi
     const name = document.getElementById('inpName').value;
     const phone = document.getElementById('inpPhone').classList.contains('valid');
     const email = document.getElementById('inpEmail').classList.contains('valid');
     const consent = document.getElementById('consentCheck').checked;
     const btn = document.getElementById('btnUnlock');
-    if(name.length > 2 && phone && email && consent) { btn.disabled = false; btn.style.opacity = "1"; }
+    if (name.length > 2 && phone && email && consent) { btn.disabled = false; btn.style.opacity = "1"; }
     else { btn.disabled = true; btn.style.opacity = "0.5"; }
 }
 
 // --- QUESTIONNAIRE ---
+// Note : « exclusive » liste les choix qui ne peuvent pas être combinés aux autres.
 const questions = [
-    { id: "age", cat: "Profil Client", title: "Quelle est votre tranche d'âge ?", context: "L'âge est le facteur principal pour établir la tarification et la stratégie de vos protections.", multi: false, options: [ { label: "19 à 34 ans", sub: "Le coût des assurances est à son plus bas.", val: "19-34" }, { label: "35 à 45 ans", sub: "Période clé de l'accumulation de patrimoine.", val: "35-45" }, { label: "46 à 55 ans", sub: "Les risques de santé augmentent statistiquement.", val: "46-55" }, { label: "Plus de 55 ans", sub: "Focus sur la succession et l'optimisation fiscale.", val: "over55" } ] },
-    { id: "famille", cat: "Axe Humain", title: "L'impact de votre absence", context: "En cas de décès inattendu, quelles personnes subiraient un impact financier majeur ? (Cochez tout ce qui s'applique)", multi: true, options: [ { label: "Mes enfants", sub: "Assurer leur avenir financier jusqu'à l'autonomie.", val: "kids" }, { label: "Un enfant à besoins particuliers", sub: "Prévoir des soins et un soutien financier à vie.", val: "special_needs" }, { label: "Mon/Ma conjoint(e)", sub: "Lui permettre de conserver la résidence et son niveau de vie.", val: "spouse" }, { label: "Mon ex-conjoint(e) (Pension)", sub: "Garantir le versement de la pension alimentaire.", val: "ex_spouse" }, { label: "Mes parents ou un proche", sub: "Maintenir mon soutien financier actuel.", val: "parents" }, { label: "Personne (Célibataire)", sub: "Couvrir uniquement mes dettes et mes impôts finaux.", val: "solo" } ] },
-    { id: "age_enfants", condition: (a) => a.famille && a.famille.includes('kids'), cat: "Axe Humain", title: "Âge de votre plus jeune enfant", context: "Pendant combien d'années êtes-vous encore financièrement responsable d'eux ?", multi: false, options: [ { label: "0 à 5 ans", sub: "Engagement financier à long terme (plus de 20 ans).", val: "0-5" }, { label: "6 à 12 ans", sub: "Engagement à moyen terme (10 à 15 ans).", val: "6-12" }, { label: "13 à 17 ans", sub: "Engagement à court terme, incluant les études supérieures.", val: "13-17" } ] },
-    { id: "etudes_enfants", condition: (a) => a.famille && a.famille.includes('kids'), cat: "Axe Humain", title: "Le financement des études", context: "En cas de décès, souhaitez-vous que l'assurance couvre les frais universitaires de vos enfants ?", multi: false, options: [ { label: "Oui, à 100%", sub: "Garantir leur parcours scolaire sans endettement.", val: "full" }, { label: "Non, ils seront autonomes", sub: "Ils financeront eux-mêmes leurs études.", val: "none" } ] },
-    { id: "revenus", cat: "Axe Professionnel", title: "Vos sources de revenus", context: "D'où proviennent vos revenus ? (Les régimes publics ne protègent pas toutes ces sources de la même façon).", multi: true, options: [ { label: "Salaire d'employé (T4)", sub: "Protection partielle via l'Assurance-Emploi ou la CNESST.", val: "t4" }, { label: "Dividendes d'entreprise", sub: "Aucune couverture publique. Stratégie privée requise.", val: "div" }, { label: "Travailleur autonome", sub: "Revenu d'entreprise. Aucun filet de sécurité social standard.", val: "self" }, { label: "Commissions / Pourboires / Bonus", sub: "Revenu variable assurable selon des critères spécifiques.", val: "comm" }, { label: "Revenus locatifs (Immobilier)", sub: "Revenus souvent liés à des obligations hypothécaires.", val: "immo" }, { label: "Placements / Retraite", sub: "Revenus d'investissements ou de fonds de pension.", val: "retraite" } ] },
-    { id: "frais_generaux", condition: (a) => a.revenus && (a.revenus.includes('self') || a.revenus.includes('div')), cat: "Axe Professionnel", title: "Les charges fixes de l'entreprise", context: "En cas d'invalidité prolongée, quelles sont les obligations financières de votre entreprise (loyer commercial, employés, etc.) ?", multi: false, options: [ { label: "Charges importantes", sub: "Plus de 2000$/mois. L'entreprise serait rapidement en péril sans moi.", val: "high" }, { label: "Charges minimes", sub: "Bureau à domicile, peu ou pas d'employés. Impact limité.", val: "low" } ] },
-    { id: "conjoint_travail", cat: "Axe Professionnel", title: "L'apport financier du conjoint", context: "Le revenu de votre conjoint(e) serait-il suffisant pour maintenir la stabilité familiale si vous deveniez invalide ?", multi: false, options: [ { label: "Oui, revenu stable et assurances", sub: "Réduit considérablement la pression financière globale.", val: "yes_insured" }, { label: "Oui, mais sans assurances", sub: "Risque modéré : vulnérabilité si les deux sont affectés.", val: "yes_uninsured" }, { label: "Non / Revenus très faibles", sub: "L'équilibre familial repose presque entièrement sur mon revenu.", val: "no" }, { label: "Je n'ai pas de conjoint", sub: "Je suis le seul soutien financier du ménage.", val: "na" } ] },
-    { id: "revenu_net", cat: "Axe Financier", title: "Votre revenu net mensuel", context: "Quel est le montant moyen de votre revenu mensuel net (après impôts) ? Cela détermine le plafond légal de votre assurance invalidité.", multi: false, options: [ { label: "Moins de 4 000 $", sub: "Besoin de couverture standard.", val: "low" }, { label: "4 000 $ à 7 000 $", sub: "Besoin de couverture intermédiaire.", val: "med" }, { label: "7 000 $ à 12 000 $", sub: "Besoin de couverture supérieure.", val: "high" }, { label: "Plus de 12 000 $", sub: "Nécessite des solutions de protection spécialisées.", val: "vhigh" } ] },
-    { id: "burnrate", cat: "Axe Financier", title: "Les dépenses essentielles du ménage", context: "En excluant les dépenses discrétionnaires, quel montant mensuel est absolument nécessaire pour couvrir vos obligations (hypothèque, épicerie, véhicules) ?", multi: false, options: [ { label: "Moins de 3 000 $ / mois", sub: "Dépenses fixes relativement faibles.", val: "low" }, { label: "3 000 $ à 5 000 $ / mois", sub: "Niveau de dépenses moyen et raisonnable.", val: "med" }, { label: "5 000 $ à 8 000 $ / mois", sub: "Obligations financières importantes.", val: "high" }, { label: "Plus de 8 000 $ / mois", sub: "Niveau d'engagements très élevé.", val: "vhigh" } ] },
-    { id: "liquidites", cat: "Axe Financier", title: "Vos liquidités d'urgence", context: "Si vos revenus cessaient demain, pendant combien de temps pourriez-vous maintenir vos obligations financières avec votre épargne liquide actuelle ?", multi: false, options: [ { label: "Moins d'un mois", sub: "Urgence : L'endettement s'accumulerait très rapidement.", val: "critical" }, { label: "De 1 à 3 mois", sub: "Coussin de sécurité modeste, vulnérable aux arrêts prolongés.", val: "med" }, { label: "Plus de 6 mois", sub: "Fonds d'urgence solide permettant une bonne flexibilité.", val: "safe" } ] },
-    { id: "patrimoine", cat: "Axe Financier", title: "Votre patrimoine global", context: "En cas d'imprévu majeur de santé (cancer, AVC, accident), quelle est la valeur totale de vos placements accessibles pour survivre financièrement ?", multi: false, options: [ { label: "Moins de 50 000 $", sub: "Capacité d'auto-assurance limitée.", val: "low" }, { label: "50 000 $ à 250 000 $", sub: "Bonne base pour absorber un imprévu temporaire.", val: "med" }, { label: "250 000 $ à 1 Million $", sub: "Patrimoine solide offrant plusieurs options.", val: "high" }, { label: "Plus de 1 Million $", sub: "Ressources suffisantes pour une auto-assurance partielle.", val: "vhigh" } ] },
-    { id: "dettes_hypo", cat: "Axe Financier", title: "La protection de votre résidence", context: "En cas de décès, comment vos proches assumeront-ils les frais liés au logement (hypothèque ou loyer) ?", multi: false, options: [ { label: "J'ai une assurance hypothécaire bancaire", sub: "La banque est bénéficiaire et le solde diminue avec le temps.", val: "bank" }, { label: "J'ai une assurance vie personnelle", sub: "Excellente option : vos proches reçoivent le capital directement.", val: "perso" }, { label: "Je n'ai aucune assurance", sub: "Risque élevé : vos proches devront assumer les paiements seuls.", val: "none" }, { label: "Logement payé / Locataire indépendant", sub: "Aucune obligation immobilière contraignante à léguer.", val: "na" } ] },
-    { id: "hypo_montant", condition: (a) => a.dettes_hypo && (a.dettes_hypo === 'bank' || a.dettes_hypo === 'perso' || a.dettes_hypo === 'none'), cat: "Axe Financier", title: "Solde hypothécaire", context: "Quel est le solde approximatif qu'il reste à payer sur votre résidence ?", multi: false, options: [ { label: "Moins de 250 000 $", sub: "Impact modéré sur le capital décès.", val: "150000" }, { label: "Entre 250 000 $ et 500 000 $", sub: "Impact significatif.", val: "375000" }, { label: "Entre 500 000 $ et 750 000 $", sub: "Impact majeur.", val: "625000" }, { label: "Plus de 750 000 $", sub: "Nécessite une forte couverture.", val: "850000" } ] },
-    { id: "hypo_duree", condition: (a) => a.dettes_hypo && (a.dettes_hypo === 'bank' || a.dettes_hypo === 'perso' || a.dettes_hypo === 'none'), cat: "Axe Financier", title: "Horizon hypothécaire", context: "Dans combien d'années prévoyez-vous avoir terminé de payer cette hypothèque ?", multi: false, options: [ { label: "Dans 10 ans ou moins", sub: "Protection à court terme (T10).", val: "10" }, { label: "Entre 11 et 20 ans", sub: "Protection à moyen terme (T20).", val: "20" }, { label: "Plus de 20 ans", sub: "Protection à long terme (T30).", val: "30" } ] },
-    { id: "obligations_biz", condition: (a) => a.revenus && (a.revenus.includes('self') || a.revenus.includes('div')), cat: "Axe Corporatif", title: "La continuité des affaires", context: "Votre entreprise présente-t-elle des vulnérabilités importantes en cas d'absence prolongée de votre part ? (Cochez tout ce qui s'applique)", multi: true, options: [ { label: "J'ai des associés", sub: "Besoin de structurer une convention d'actionnaires financée.", val: "partner" }, { label: "Prêts commerciaux garantis personnellement", sub: "Risque de saisie personnelle en cas de difficultés de l'entreprise.", val: "loan" }, { label: "Je suis une personne clé", sub: "Les revenus de l'entreprise dépendent majoritairement de moi.", val: "key" }, { label: "Aucune de ces situations", sub: "Structure d'entreprise simple.", val: "none" } ] },
-    { id: "collectif", cat: "Axe Contractuel", title: "Votre assurance collective", context: "Avez-vous une idée précise des couvertures réelles offertes par votre régime d'assurance employeur ?", multi: false, options: [ { label: "Aucune assurance collective", sub: "Vous n'avez pas de couverture de base en cas d'invalidité.", val: "none" }, { label: "J'en ai une, mais j'en ignore les limites", sub: "Risque de restrictions (ex: couverture limitée à 2 ans).", val: "unknown" }, { label: "Mon employeur paie la prime d'invalidité", sub: "La prestation d'invalidité sera imposable à la réception.", val: "taxable" }, { label: "Mon dossier est optimisé", sub: "Je connais exactement les paramètres de mon contrat.", val: "good" } ] },
-    { id: "ante_familiaux", cat: "Axe Médical", title: "Antécédents familiaux", context: "Y a-t-il eu des cas de maladie grave (cancer, infarctus, AVC) parmi vos parents ou frères/sœurs avant l'âge de 60 ans ?", multi: false, options: [ { label: "Non, aucun antécédent", sub: "Profil de santé familial favorable.", val: "no" }, { label: "Oui, un seul cas", sub: "Situation à surveiller.", val: "yes_1" }, { label: "Oui, plusieurs cas", sub: "Risque héréditaire plus élevé nécessitant une attention particulière.", val: "yes_2" } ] },
-    { id: "heritage", cat: "Axe Patrimonial", title: "Vos objectifs successoraux", context: "Au-delà de vos obligations actuelles, quelle est votre vision à long terme concernant votre patrimoine ?", multi: false, options: [ { label: "Laisser un héritage significatif", sub: "Créer un legs financier pour mes proches ou une fondation.", val: "maximize" }, { label: "Utiliser la totalité de mon capital", sub: "L'objectif est de profiter pleinement de mes actifs de mon vivant.", val: "spend" }, { label: "Couvrir uniquement l'impôt au décès", sub: "Éviter que mes héritiers n'aient à liquider des actifs pour payer l'impôt.", val: "taxes" } ] },
-    { id: "risque", cat: "Psychologie", title: "Vos principales préoccupations", context: "En cas d'imprévu majeur (maladie ou décès), quelles situations souhaitez-vous absolument éviter ? (Cochez tout ce qui s'applique)", multi: true, options: [ { label: "Perdre mon logement / mes actifs", sub: "Protéger le patrimoine familial accumulé.", val: "house" }, { label: "Transmettre mes dettes à autrui", sub: "Garantir une succession nette d'obligations.", val: "debt" }, { label: "Perdre mon autonomie financière", sub: "Ne pas dépendre de mes proches en cas de maladie.", val: "burden" }, { label: "Décaisser ma retraite pour des soins", sub: "Protéger mes REER et mes investissements à long terme.", val: "reer_drain" }, { label: "Devenir inassurable dans le futur", sub: "Peur qu'un changement de santé limite mes options plus tard.", val: "future" } ] },
-    { id: "budget", cat: "Capacité Financière", title: "Budget stratégique", context: "Pour orienter nos recommandations de façon réaliste, quel montant mensuel seriez-vous à l'aise d'allouer à la sécurité de votre patrimoine ou de votre entreprise ?", multi: false, options: [ { label: "Moins de 100$ / mois", sub: "L'essentiel absolu (Budget très limité).", val: "micro" }, { label: "100$ à 250$ / mois", sub: "Couvrir les priorités urgentes (Protection de base).", val: "base" }, { label: "250$ à 500$ / mois", sub: "Mettre en place une protection familiale solide.", val: "medium" }, { label: "500$ à 1500$ / mois", sub: "Stratégie avancée (Entrepreneur ou famille aisée).", val: "high" }, { label: "1500$ à 3000$ / mois", sub: "Optimisation fiscale et gestion de patrimoine importante.", val: "premium" }, { label: "Plus de 3000$ / mois (36k$+ / an)", sub: "Protection corporative majeure (Conventions, personne clé, transfert).", val: "elite" }, { label: "Je ne suis pas certain(e)", sub: "Nous définirons le budget ensemble selon l'urgence.", val: "tbd" } ] }
+    { id: "age", cat: "Profil Client", title: "Quelle est votre tranche d'âge ?", context: "L'âge est le facteur principal pour établir le coût et la stratégie de vos protections.", multi: false, options: [ { label: "19 à 34 ans", sub: "Le coût des assurances est à son plus bas.", val: "19-34" }, { label: "35 à 45 ans", sub: "Période clé de l'accumulation de patrimoine.", val: "35-45" }, { label: "46 à 55 ans", sub: "Les risques de santé augmentent statistiquement.", val: "46-55" }, { label: "Plus de 55 ans", sub: "Focus sur la succession (ce que vous léguez) et l'impôt.", val: "over55" } ] },
+    { id: "famille", cat: "Axe Humain", title: "L'impact de votre absence", context: "En cas de décès inattendu, quelles personnes subiraient un impact financier majeur ? (Cochez tout ce qui s'applique)", multi: true, exclusive: ["solo"], options: [ { label: "Mes enfants", sub: "Assurer leur avenir financier jusqu'à l'autonomie.", val: "kids" }, { label: "Un enfant à besoins particuliers", sub: "Prévoir des soins et un soutien financier à vie.", val: "special_needs" }, { label: "Mon/Ma conjoint(e)", sub: "Lui permettre de conserver la résidence et son niveau de vie.", val: "spouse" }, { label: "Pension alimentaire (versée ou reçue)", sub: "Une obligation ou un revenu familial qui doit être protégé.", val: "ex_spouse" }, { label: "Mes parents ou un proche", sub: "Maintenir mon soutien financier actuel.", val: "parents" }, { label: "Personne d'autre que moi", sub: "Couvrir uniquement mes dettes, mes frais finaux et mes impôts.", val: "solo" } ] },
+    { id: "nb_enfants", condition: (a) => a.famille && (a.famille.includes('kids') || a.famille.includes('special_needs')), cat: "Axe Humain", title: "Combien d'enfants sont à votre charge ?", context: "Le nombre d'enfants influence directement le capital nécessaire pour protéger leur avenir.", multi: false, options: [ { label: "1 enfant", sub: "", val: "1" }, { label: "2 enfants", sub: "", val: "2" }, { label: "3 enfants ou plus", sub: "", val: "3" } ] },
+    { id: "age_enfants", condition: (a) => a.famille && (a.famille.includes('kids') || a.famille.includes('special_needs')), cat: "Axe Humain", title: "Âge de votre plus jeune enfant", context: "Pendant combien d'années êtes-vous encore financièrement responsable d'eux ?", multi: false, options: [ { label: "0 à 5 ans", sub: "Engagement financier à long terme (plus de 20 ans).", val: "0-5" }, { label: "6 à 12 ans", sub: "Engagement à moyen terme (10 à 15 ans).", val: "6-12" }, { label: "13 à 17 ans", sub: "Engagement à court terme, incluant les études supérieures.", val: "13-17" }, { label: "18 ans ou plus (toujours à charge)", sub: "Soutien prolongé ou besoins particuliers.", val: "18plus" } ] },
+    { id: "etudes_enfants", condition: (a) => a.famille && a.famille.includes('kids'), cat: "Axe Humain", title: "Le financement des études", context: "En cas de décès, souhaitez-vous que l'assurance couvre les études supérieures de vos enfants ?", multi: false, options: [ { label: "Oui, à 100%", sub: "Garantir leur parcours scolaire sans endettement.", val: "full" }, { label: "Non, ils seront autonomes", sub: "Ils financeront eux-mêmes leurs études.", val: "none" } ] },
+    { id: "revenus", cat: "Axe Professionnel", title: "Vos sources de revenus", context: "D'où proviennent vos revenus ? (Les régimes publics ne protègent pas toutes ces sources de la même façon).", multi: true, options: [ { label: "Salaire d'employé", sub: "Protection publique partielle seulement (assurance-emploi, accidents de travail).", val: "t4" }, { label: "Dividendes de mon entreprise", sub: "Aucune protection publique. Une stratégie privée est requise.", val: "div" }, { label: "Travailleur autonome", sub: "À votre compte, sans filet de sécurité public standard.", val: "self" }, { label: "Revenus agricoles (ferme)", sub: "Fiscalité, quota et transfert : des règles bien spécifiques.", val: "agri" }, { label: "Commissions / Pourboires / Bonus", sub: "Revenu variable, assurable selon des critères précis.", val: "comm" }, { label: "Revenus locatifs (Immobilier)", sub: "Revenus souvent liés à des dettes hypothécaires.", val: "immo" }, { label: "Placements / Retraite", sub: "Revenus d'investissements ou de fonds de pension.", val: "retraite" } ] },
+    { id: "frais_generaux", condition: (a) => a.revenus && (a.revenus.includes('self') || a.revenus.includes('div') || a.revenus.includes('agri')), cat: "Axe Professionnel", title: "Les charges fixes de l'entreprise", context: "Si vous étiez incapable de travailler plusieurs mois, quelles obligations votre entreprise devrait-elle continuer de payer (loyer, employés, équipement, paiements de machinerie ou de véhicules) ?", multi: false, options: [ { label: "Charges importantes", sub: "Plus de 2 000$/mois. L'entreprise serait rapidement en péril sans moi.", val: "high" }, { label: "Charges minimes", sub: "Bureau à domicile, peu ou pas d'employés. Impact limité.", val: "low" } ] },
+    { id: "conjoint_travail", condition: (a) => a.famille && a.famille.includes('spouse'), cat: "Axe Professionnel", title: "L'apport financier de votre conjoint(e)", context: "Le revenu de votre conjoint(e) serait-il suffisant pour maintenir la stabilité familiale si vous ne pouviez plus travailler ?", multi: false, options: [ { label: "Oui, revenu stable et assurances", sub: "Réduit considérablement la pression financière globale.", val: "yes_insured" }, { label: "Oui, mais sans assurances", sub: "Risque modéré : vulnérabilité si vous êtes touchés tous les deux.", val: "yes_uninsured" }, { label: "Non / Revenus très faibles", sub: "L'équilibre familial repose presque entièrement sur mon revenu.", val: "no" } ] },
+    { id: "revenu_net", cat: "Axe Financier", title: "Votre revenu net mensuel", context: "Quel est le montant moyen qui entre dans vos poches chaque mois, après impôts ? Il sert à calibrer le montant de votre protection de revenu.", multi: false, options: [ { label: "Moins de 4 000 $", sub: "Besoin de couverture standard.", val: "low" }, { label: "4 000 $ à 7 000 $", sub: "Besoin de couverture intermédiaire.", val: "med" }, { label: "7 000 $ à 12 000 $", sub: "Besoin de couverture supérieure.", val: "high" }, { label: "Plus de 12 000 $", sub: "Nécessite des solutions de protection spécialisées.", val: "vhigh" } ] },
+    { id: "burnrate", cat: "Axe Financier", title: "Les dépenses essentielles du ménage", context: "En excluant les extras (sorties, loisirs, voyages), quel montant mensuel est absolument nécessaire pour couvrir vos obligations (logement, épicerie, véhicules) ?", multi: false, options: [ { label: "Moins de 3 000 $ / mois", sub: "Dépenses fixes relativement faibles.", val: "low" }, { label: "3 000 $ à 5 000 $ / mois", sub: "Niveau de dépenses moyen et raisonnable.", val: "med" }, { label: "5 000 $ à 8 000 $ / mois", sub: "Obligations financières importantes.", val: "high" }, { label: "Plus de 8 000 $ / mois", sub: "Niveau d'engagements très élevé.", val: "vhigh" } ] },
+    { id: "liquidites", cat: "Axe Financier", title: "Vos liquidités d'urgence", context: "Si vos revenus cessaient demain, pendant combien de temps pourriez-vous tenir vos obligations avec votre épargne disponible ?", multi: false, options: [ { label: "Moins d'un mois", sub: "Urgence : l'endettement s'accumulerait très rapidement.", val: "critical" }, { label: "De 1 à 3 mois", sub: "Coussin modeste, vulnérable aux arrêts prolongés.", val: "med" }, { label: "De 3 à 6 mois", sub: "Bonne réserve pour absorber un imprévu temporaire.", val: "good" }, { label: "Plus de 6 mois", sub: "Fonds d'urgence solide offrant une vraie flexibilité.", val: "safe" } ] },
+    { id: "patrimoine", cat: "Axe Financier", title: "Votre patrimoine global", context: "En cas d'imprévu majeur de santé (cancer, AVC, accident), quelle est la valeur totale de vos placements accessibles ? (Excluez la valeur de votre entreprise ou de votre ferme.)", multi: false, options: [ { label: "Moins de 50 000 $ (ou aucune épargne)", sub: "Peu de réserve pour absorber un coup dur.", val: "low" }, { label: "50 000 $ à 250 000 $", sub: "Bonne base pour absorber un imprévu temporaire.", val: "med" }, { label: "250 000 $ à 1 Million $", sub: "Patrimoine solide offrant plusieurs options.", val: "high" }, { label: "Plus de 1 Million $", sub: "Ressources permettant de s'auto-protéger en partie.", val: "vhigh" } ] },
+    { id: "dettes_hypo", cat: "Axe Financier", title: "La protection de votre résidence", context: "En cas de décès, comment vos proches assumeraient-ils les frais liés au logement ?", multi: false, options: [ { label: "Propriétaire — assurance hypothécaire de la banque", sub: "La banque est la seule à être payée, et le montant diminue avec le temps.", val: "bank" }, { label: "Propriétaire — assurance vie personnelle", sub: "Vos proches reçoivent l'argent directement et en font ce qu'ils veulent.", val: "perso" }, { label: "Propriétaire — aucune assurance sur l'hypothèque", sub: "Risque élevé : vos proches devraient assumer seuls les paiements.", val: "none" }, { label: "Je suis locataire", sub: "Le loyer devrait continuer d'être payé pour vos proches.", val: "renter" }, { label: "Résidence payée à 100%", sub: "Aucune dette sur votre logement.", val: "na" } ] },
+    { id: "hypo_montant", condition: (a) => a.dettes_hypo && (a.dettes_hypo === 'bank' || a.dettes_hypo === 'perso' || a.dettes_hypo === 'none'), cat: "Axe Financier", title: "Solde hypothécaire", context: "Quel est le solde approximatif qu'il reste à payer sur votre résidence ?", multi: false, options: [ { label: "Moins de 250 000 $", sub: "Impact modéré sur le capital à prévoir.", val: "200000" }, { label: "Entre 250 000 $ et 500 000 $", sub: "Impact significatif.", val: "375000" }, { label: "Entre 500 000 $ et 750 000 $", sub: "Impact majeur.", val: "625000" }, { label: "Plus de 750 000 $", sub: "Nécessite une forte couverture.", val: "850000" } ] },
+    { id: "hypo_duree", condition: (a) => a.dettes_hypo && (a.dettes_hypo === 'bank' || a.dettes_hypo === 'perso' || a.dettes_hypo === 'none'), cat: "Axe Financier", title: "Horizon hypothécaire", context: "Dans combien d'années prévoyez-vous avoir terminé de payer cette hypothèque ?", multi: false, options: [ { label: "Dans 10 ans ou moins", sub: "Protection temporaire courte.", val: "10" }, { label: "Entre 11 et 20 ans", sub: "Protection à moyen terme.", val: "20" }, { label: "Plus de 20 ans", sub: "Protection à long terme.", val: "30" } ] },
+    { id: "obligations_biz", condition: (a) => a.revenus && (a.revenus.includes('self') || a.revenus.includes('div') || a.revenus.includes('agri')), cat: "Axe Corporatif", title: "La continuité des affaires", context: "Votre entreprise (ou votre ferme) présente-t-elle des vulnérabilités importantes en cas d'absence prolongée de votre part ? (Cochez tout ce qui s'applique)", multi: true, exclusive: ["none"], options: [ { label: "J'ai des associés", sub: "Une entente de rachat des parts doit être prévue et financée.", val: "partner" }, { label: "Prêts d'affaires garantis avec mes biens personnels", sub: "Ma maison ou mes épargnes pourraient être saisies en cas de problème.", val: "loan" }, { label: "Tout repose sur moi (personne clé)", sub: "Les revenus de l'entreprise dépendent majoritairement de moi.", val: "key" }, { label: "Une relève à préparer (famille ou autre)", sub: "Le transfert de l'entreprise ou de la ferme doit être organisé.", val: "releve" }, { label: "Aucune de ces situations", sub: "Structure d'entreprise simple.", val: "none" } ] },
+    { id: "collectif", condition: (a) => a.revenus && (a.revenus.includes('t4') || a.revenus.includes('comm')), cat: "Axe Contractuel", title: "Votre assurance collective", context: "Avez-vous une idée précise des couvertures réelles offertes par le régime d'assurance de votre employeur ?", multi: false, options: [ { label: "Aucune assurance collective", sub: "Vous n'avez pas de couverture de base si vous ne pouvez plus travailler.", val: "none" }, { label: "J'en ai une, mais j'en ignore les limites", sub: "Risque de mauvaises surprises (ex. : couverture limitée à 2 ans).", val: "unknown" }, { label: "Mon employeur paie la prime d'invalidité", sub: "Les versements reçus seraient alors imposables.", val: "taxable" }, { label: "Mon dossier est optimisé", sub: "Je connais exactement les paramètres de mon contrat.", val: "good" } ] },
+    { id: "ante_familiaux", cat: "Axe Médical", title: "Antécédents familiaux", context: "Y a-t-il eu des cas de maladie grave (cancer, infarctus, AVC) dans votre famille proche (parents, frères, sœurs, oncles, tantes) avant l'âge de 60 ans ?", multi: false, options: [ { label: "Non, aucun antécédent", sub: "Profil de santé familial favorable.", val: "no" }, { label: "Oui, un seul cas", sub: "Situation à surveiller.", val: "yes_1" }, { label: "Oui, plusieurs cas", sub: "Risque héréditaire plus élevé nécessitant une attention particulière.", val: "yes_2" } ] },
+    { id: "heritage", cat: "Axe Patrimonial", title: "Votre vision à long terme", context: "Au-delà de vos obligations actuelles, quel est votre objectif principal concernant votre patrimoine ?", multi: false, options: [ { label: "Protéger ma famille avant tout", sub: "Assurer le niveau de vie de mes proches, sans objectif successoral précis.", val: "protect" }, { label: "Laisser un héritage significatif", sub: "Créer un legs financier pour mes proches ou une cause.", val: "maximize" }, { label: "Couvrir l'impôt à payer au décès", sub: "Éviter que mes héritiers doivent vendre des actifs pour payer l'impôt.", val: "taxes" }, { label: "Transférer mon entreprise ou ma ferme à la relève", sub: "Préparer une relève sans conflit ni facture fiscale surprise.", val: "transfer" }, { label: "Profiter de mon capital de mon vivant", sub: "L'objectif est d'utiliser pleinement mes actifs.", val: "spend" } ] },
+    { id: "risque", cat: "Vos priorités", title: "Vos principales préoccupations", context: "En cas d'imprévu majeur (maladie ou décès), quelles situations souhaitez-vous absolument éviter ? (Cochez tout ce qui s'applique)", multi: true, options: [ { label: "Perdre mon logement / mes actifs", sub: "Protéger le patrimoine familial accumulé.", val: "house" }, { label: "Transmettre mes dettes à autrui", sub: "Garantir une succession nette d'obligations.", val: "debt" }, { label: "Perdre mon autonomie financière", sub: "Ne pas dépendre de mes proches en cas de maladie.", val: "burden" }, { label: "Vider mes épargnes pour des soins", sub: "Protéger mes placements et ma retraite à long terme.", val: "reer_drain" }, { label: "Devenir inassurable dans le futur", sub: "Peur qu'un changement de santé limite mes options plus tard.", val: "future" } ] },
+    { id: "budget", cat: "Capacité Financière", title: "Budget stratégique", context: "Pour orienter nos recommandations de façon réaliste, quel montant mensuel seriez-vous à l'aise d'allouer à la sécurité de votre patrimoine ou de votre entreprise ?", multi: false, options: [ { label: "Moins de 100$ / mois", sub: "L'essentiel absolu (budget très limité).", val: "micro" }, { label: "100$ à 250$ / mois", sub: "Couvrir les priorités urgentes (protection de base).", val: "base" }, { label: "250$ à 500$ / mois", sub: "Mettre en place une protection familiale solide.", val: "medium" }, { label: "500$ à 1500$ / mois", sub: "Stratégie avancée (entrepreneur ou famille aisée).", val: "high" }, { label: "1500$ à 3000$ / mois", sub: "Optimisation fiscale et gestion de patrimoine importante.", val: "premium" }, { label: "Plus de 3000$ / mois", sub: "Protection corporative majeure (rachat de parts, personne clé, transfert).", val: "elite" }, { label: "Je ne suis pas certain(e)", sub: "Nous définirons le budget ensemble selon l'urgence.", val: "tbd" } ] }
 ];
 
 // --- MOTEUR ---
 let currentIndex = 0;
 let answers = {};
+let advancing = false; // verrou anti double-clic sur les choix uniques
 
 window.onload = function() {
     renderQuestion();
@@ -748,10 +757,18 @@ window.onload = function() {
             if (!document.getElementById('btnUnlock').disabled) { processLead(); }
         }
     });
+    retryBackupLead(); // renvoyer un lead non transmis lors d'une visite précédente
 };
 
+// Questions réellement applicables selon les réponses actuelles
+function visibleQuestions() {
+    return questions.filter(q => !q.condition || q.condition(answers));
+}
+
 function renderQuestion() {
+    // Sauter les questions non applicables ET purger leurs réponses orphelines
     while (currentIndex < questions.length && questions[currentIndex].condition && !questions[currentIndex].condition(answers)) {
+        delete answers[questions[currentIndex].id];
         currentIndex++;
     }
     if (currentIndex >= questions.length) { showLeadForm(); return; }
@@ -762,8 +779,11 @@ function renderQuestion() {
     const btnPrev = document.getElementById('btnPrev');
     const progressBar = document.getElementById('progressBar');
 
-    const pct = ((currentIndex) / questions.length) * 100;
-    progressBar.style.width = pct + '%';
+    // Numérotation et progression sur les questions APPLICABLES seulement
+    const visible = visibleQuestions();
+    const pos = visible.indexOf(q) + 1;
+    const total = visible.length;
+    progressBar.style.width = ((pos - 1) / total) * 100 + '%';
 
     if (currentIndex === 0) btnPrev.classList.add('hidden');
     else btnPrev.classList.remove('hidden');
@@ -771,7 +791,7 @@ function renderQuestion() {
     if (q.multi) btnNext.style.display = 'block';
     else btnNext.style.display = 'none';
 
-    let html = `<span class="step-indicator">ÉTAPE ${currentIndex + 1} SUR ${questions.length} - ${q.cat}</span>
+    let html = `<span class="step-indicator">QUESTION ${pos} SUR ${total} - ${q.cat}</span>
                 <h2 class="question-title">${q.title}</h2>
                 <div class="question-context">${q.context}</div>
                 <div class="options-grid">`;
@@ -787,7 +807,7 @@ function renderQuestion() {
                     <div class="selector-icon ${iconClass}"></div>
                     <div class="option-content">
                         <span class="option-main">${opt.label}</span>
-                        <span class="option-sub">${opt.sub}</span>
+                        ${opt.sub ? `<span class="option-sub">${opt.sub}</span>` : ''}
                     </div>
                 </div>`;
     });
@@ -796,22 +816,35 @@ function renderQuestion() {
 }
 
 function clickOption(qId, val, isMulti) {
+    const q = questions.find(x => x.id === qId);
     if (isMulti) {
         if (!answers[qId]) answers[qId] = [];
+        const exclusives = (q && q.exclusive) || [];
         const idx = answers[qId].indexOf(val);
-        if (idx > -1) answers[qId].splice(idx, 1);
-        else answers[qId].push(val);
+        if (idx > -1) {
+            answers[qId].splice(idx, 1);
+        } else if (exclusives.includes(val)) {
+            // Choix exclusif (« Personne d'autre », « Aucune de ces situations ») : remplace tout
+            answers[qId] = [val];
+        } else {
+            // Un choix normal retire les choix exclusifs déjà cochés
+            answers[qId] = answers[qId].filter(v => !exclusives.includes(v));
+            answers[qId].push(val);
+        }
         renderQuestion();
     } else {
         answers[qId] = val;
         renderQuestion();
-        setTimeout(nextQuestion, 250);
+        if (advancing) return; // ignore le double-clic
+        advancing = true;
+        setTimeout(() => { advancing = false; nextQuestion(); }, 250);
     }
 }
 
 function nextQuestion() {
+    if (currentIndex >= questions.length) return;
     const q = questions[currentIndex];
-    if (q.multi && (!answers[q.id] || answers[q.id].length === 0)) {
+    if (q && q.multi && (!answers[q.id] || answers[q.id].length === 0)) {
         Swal.fire({ icon: 'warning', title: 'Oups!', text: 'Veuillez sélectionner au moins une option.', confirmButtonColor: '#C6AC8F', confirmButtonText: 'OK' });
         return;
     }
@@ -843,7 +876,199 @@ function showLeadForm() {
     }, 2400);
 }
 
+// --- AIDES DE CALCUL ---
+const formatCurrency = (val) => new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(val);
+
+function hasAns(id, val) {
+    if (!answers[id]) return false;
+    if (Array.isArray(answers[id])) return answers[id].includes(val);
+    return answers[id] === val;
+}
+
+// Calcule toutes les cibles + textes. Retourne un objet réutilisé par le rapport ET le courriel.
+function computeStrategy() {
+    const has = hasAns;
+    const s = {};
+
+    // Revenu de travail assurable ? (la retraite et l'immobilier locatif n'en sont pas)
+    s.hasWorkIncome = ['t4', 'self', 'div', 'comm', 'agri'].some(v => has('revenus', v));
+    s.isCorp = has('revenus', 'div') || has('revenus', 'self') || has('revenus', 'agri');
+    s.isAgri = has('revenus', 'agri');
+    s.isRetiree = !s.hasWorkIncome && has('revenus', 'retraite');
+
+    // --- CAPITAL DÉCÈS (avec décomposition affichable) ---
+    s.lifeBreakdown = [];
+    let lifeBase = 0;
+    const addLife = (label, amount) => { lifeBase += amount; s.lifeBreakdown.push({ label, amount }); };
+
+    const isOwnerWithDebt = ['bank', 'perso', 'none'].includes(answers.dettes_hypo);
+    if (isOwnerWithDebt) {
+        const hypo = parseInt(answers.hypo_montant) || 350000;
+        addLife("Solde hypothécaire à éteindre", hypo);
+    } else if (answers.dettes_hypo === 'renter' && (has('famille', 'kids') || has('famille', 'special_needs') || has('famille', 'spouse') || has('famille', 'parents'))) {
+        addLife("Continuité du loyer pour vos proches (≈ 3 ans)", 75000);
+    }
+
+    const nKids = parseInt(answers.nb_enfants) || 1;
+    const kidsFactor = nKids >= 3 ? 1.6 : (nKids === 2 ? 1.3 : 1);
+    if (has('famille', 'kids')) {
+        let kidCap = 0;
+        if (has('age_enfants', '0-5')) kidCap = 500000;
+        else if (has('age_enfants', '6-12')) kidCap = 350000;
+        else if (has('age_enfants', '13-17')) kidCap = 200000;
+        else if (has('age_enfants', '18plus')) kidCap = 150000;
+        else kidCap = 350000;
+        addLife(`Niveau de vie de ${nKids >= 3 ? 'vos enfants' : (nKids === 2 ? 'vos 2 enfants' : 'votre enfant')}`, Math.round(kidCap * kidsFactor));
+    }
+    if (has('famille', 'special_needs')) {
+        addLife("Soutien à vie — enfant à besoins particuliers", 750000);
+    }
+    if (has('etudes_enfants', 'full') && has('famille', 'kids')) {
+        addLife("Études supérieures garanties", 50000 * Math.min(nKids, 3));
+    }
+    if (has('famille', 'spouse')) {
+        addLife("Transition et niveau de vie du conjoint", has('conjoint_travail', 'yes_insured') ? 150000 : 250000);
+    }
+    if (has('famille', 'ex_spouse')) addLife("Protection de la pension alimentaire", 100000);
+    if (has('famille', 'parents')) addLife("Soutien à vos parents / proches", 100000);
+    if (has('heritage', 'maximize') || has('heritage', 'transfer') || has('patrimoine', 'vhigh')) {
+        addLife(has('heritage', 'transfer') ? "Équité successorale et transfert d'entreprise" : "Legs et impôt au décès", 350000);
+    }
+    if (lifeBase === 0) addLife("Frais finaux, dettes personnelles et impôts", 50000);
+    s.lifeBase = lifeBase;
+
+    // --- PROTECTION DE REVENU (INVALIDITÉ) — besoin plafonné par le revenu ---
+    const needMap = { low: 2500, med: 4000, high: 6500, vhigh: 9000 };
+    const capMap = { low: 3000, med: 5500, high: 9000, vhigh: 15000 };
+    const diNeed = needMap[answers.burnrate] || 2500;
+    const diCap = capMap[answers.revenu_net] || 3000;
+    s.diCapped = diNeed >= diCap;
+    s.diLow = Math.min(diNeed, diCap);
+    s.diHigh = diCap;
+    s.diText = s.diCapped
+        ? `~ ${formatCurrency(diCap)} / mois (maximum assurable selon votre revenu)`
+        : `${formatCurrency(diNeed)} à ${formatCurrency(diCap)} / mois`;
+
+    if (has('liquidites', 'critical')) s.carence = "30 jours (impératif vu vos réserves quasi nulles)";
+    else if (has('liquidites', 'med')) s.carence = "60 à 90 jours — attention : vos réserves couvrent 1 à 3 mois, le délai doit être calibré au plus juste";
+    else if (has('liquidites', 'good')) s.carence = "90 jours (standard)";
+    else s.carence = "120 jours ou plus (vos réserves le permettent et la prime diminue)";
+
+    // --- MALADIE GRAVE ---
+    let mgBase = 50000;
+    if (has('revenu_net', 'med')) mgBase = 75000;
+    if (has('revenu_net', 'high')) mgBase = 100000;
+    if (has('revenu_net', 'vhigh')) mgBase = 150000;
+    if (has('ante_familiaux', 'yes_1')) mgBase += 25000;
+    if (has('ante_familiaux', 'yes_2')) mgBase += 50000;
+    s.mgBase = mgBase;
+
+    // --- SCORES DE PRIORISATION ---
+    s.scoreDI = 50;
+    if (has('liquidites', 'critical')) s.scoreDI += 30;
+    if (has('liquidites', 'med')) s.scoreDI += 10;
+    if (has('collectif', 'none')) s.scoreDI += 20;
+    if (has('collectif', 'good')) s.scoreDI -= 30;
+    if (has('conjoint_travail', 'yes_insured')) s.scoreDI -= 10;
+    if (has('conjoint_travail', 'no')) s.scoreDI += 10;
+    if (has('patrimoine', 'vhigh')) s.scoreDI -= 10;
+    if (s.isCorp && has('frais_generaux', 'high')) s.scoreDI += 10;
+
+    s.scoreLife = 40;
+    if (has('famille', 'kids') || has('famille', 'special_needs')) s.scoreLife += 35;
+    if (has('dettes_hypo', 'none')) s.scoreLife += 15;
+    if (has('dettes_hypo', 'bank')) s.scoreLife += 10;
+    if (has('heritage', 'maximize') || has('heritage', 'taxes') || has('heritage', 'transfer')) s.scoreLife += 10;
+    if (has('conjoint_travail', 'no')) s.scoreLife += 10;
+    if (s.isRetiree) s.scoreLife += 30; // pour un retraité, la vie/succession devient LA priorité
+
+    s.scoreMG = 30;
+    if (has('ante_familiaux', 'yes_2')) s.scoreMG += 35;
+    if (has('ante_familiaux', 'yes_1')) s.scoreMG += 15;
+    if (has('risque', 'reer_drain')) s.scoreMG += 10;
+    if (has('collectif', 'good')) s.scoreMG += 10; // la MG est l'angle mort typique des bien-assurés
+
+    s.scoreCorp = 55;
+    if (has('budget', 'premium') || has('budget', 'elite')) s.scoreCorp += 20;
+    if (has('obligations_biz', 'partner')) s.scoreCorp += 10;
+    if (has('obligations_biz', 'loan')) s.scoreCorp += 10;
+    if (has('obligations_biz', 'key')) s.scoreCorp += 5;
+    if (has('obligations_biz', 'releve') || has('heritage', 'transfer')) s.scoreCorp += 10;
+
+    // --- PRODUITS VIE ---
+    s.vieProduits = [];
+    let maxTerm = 10;
+    if (has('age_enfants', '0-5')) maxTerm = Math.max(maxTerm, has('etudes_enfants', 'full') ? 25 : 20);
+    else if (has('age_enfants', '6-12')) maxTerm = Math.max(maxTerm, 20);
+    else if (has('age_enfants', '13-17')) maxTerm = Math.max(maxTerm, 15);
+    if (has('hypo_duree', '10')) maxTerm = Math.max(maxTerm, 10);
+    if (has('hypo_duree', '20')) maxTerm = Math.max(maxTerm, 20);
+    if (has('hypo_duree', '30')) maxTerm = Math.max(maxTerm, 30);
+    s.maxTerm = maxTerm;
+
+    const hasTemporaryNeed = has('famille', 'kids') || isOwnerWithDebt || answers.dettes_hypo === 'renter';
+    if (hasTemporaryNeed) s.vieProduits.push(`<strong>Temporaire ${maxTerm} ans (T-${maxTerm}) :</strong> une protection au coût le plus bas, alignée sur la durée réelle de vos obligations (hypothèque, enfants).`);
+    if (has('heritage', 'maximize') || has('heritage', 'taxes') || has('heritage', 'transfer') || has('famille', 'special_needs') || has('patrimoine', 'vhigh') || has('age', 'over55')) {
+        s.vieProduits.push("<strong>Permanente (Vie entière ou T-100) :</strong> elle n'expire jamais — idéale pour couvrir l'impôt au décès, léguer un montant garanti ou protéger un enfant à charge à vie.");
+    }
+    if (s.vieProduits.length === 0) s.vieProduits.push("<strong>Temporaire 10 ans (T-10) :</strong> protection de base économique pour couvrir vos dettes et frais finaux.");
+
+    const budgetMap = { 'micro': "Moins de 100$", 'base': "100$ à 250$", 'medium': "250$ à 500$", 'high': "500$ à 1500$", 'premium': "1500$ à 3000$", 'elite': "3000$ et plus", 'tbd': "À déterminer ensemble" };
+    s.budgetText = budgetMap[answers.budget] || "À déterminer ensemble";
+
+    return s;
+}
+
+// --- GESTION DU LEAD ---
+function buildEmailBody(s, name, phone, email) {
+    let body = "=== NOUVEAU BILAN DE PROTECTION — " + new Date().toLocaleString('fr-CA') + " ===\n\n";
+    body += "CLIENT : " + name + "\nTÉLÉPHONE : " + phone + "\nCOURRIEL : " + email + "\n\n";
+    body += "--- SYNTHÈSE DU RAPPORT PRÉSENTÉ AU CLIENT ---\n";
+    body += "Capital décès cible : ~ " + formatCurrency(s.lifeBase) + "\n";
+    s.lifeBreakdown.forEach(b => { body += "   • " + b.label + " : " + formatCurrency(b.amount) + "\n"; });
+    body += s.hasWorkIncome ? ("Protection de revenu : " + s.diText + " | Carence : " + s.carence + "\n")
+                            : "Protection de revenu : NON APPLICABLE (aucun revenu de travail — profil retraite/placements)\n";
+    body += "Maladie grave : ~ " + formatCurrency(s.mgBase) + "\n";
+    body += "Priorités affichées : " + s.priorityOrder.join(" > ") + "\n";
+    body += "Budget déclaré : " + s.budgetText + "\n";
+    if (answers.risque && answers.risque.length) {
+        const q = questions.find(x => x.id === 'risque');
+        body += "Préoccupations cochées : " + answers.risque.map(v => { const o = q.options.find(o => o.val === v); return o ? o.label : v; }).join(" / ") + "\n";
+    }
+    body += "\n--- RÉPONSES DÉTAILLÉES ---\n\n";
+    let num = 0;
+    questions.forEach((q) => {
+        const answerVal = answers[q.id];
+        if (answerVal === undefined) return;
+        num++;
+        body += `${num}. ${q.title}\n`;
+        if (q.multi && Array.isArray(answerVal)) {
+            const labels = answerVal.map(val => { const opt = q.options.find(o => o.val === val); return opt ? `   - ${opt.label}` : `   - ${val}`; });
+            body += labels.join("\n") + "\n\n";
+        } else {
+            const opt = q.options.find(o => o.val === answerVal);
+            body += `   Rép : ${opt ? opt.label : answerVal}\n\n`;
+        }
+    });
+    return body;
+}
+
+function sendLeadEmail(templateParams) {
+    return emailjs.send('service_b4f4ooy', 'template_qphmqft', templateParams);
+}
+
+function retryBackupLead() {
+    try {
+        const backup = localStorage.getItem('jc_lead_backup');
+        if (!backup) return;
+        const params = JSON.parse(backup);
+        sendLeadEmail(params).then(() => { localStorage.removeItem('jc_lead_backup'); }).catch(() => {});
+    } catch (e) { /* localStorage indisponible : tant pis */ }
+}
+
 function processLead() {
+    if (leadSending) return;
+    leadSending = true;
     const btn = document.getElementById('btnUnlock');
     btn.innerText = "GÉNÉRATION EN COURS ⏳";
     btn.disabled = true;
@@ -855,199 +1080,273 @@ function processLead() {
     document.getElementById('outName').innerText = name;
     document.getElementById('outPhone').innerText = phone;
 
-    generateReportHTML();
-
-    // Build readable email body
-    let emailBody = "--- RÉPONSES DÉTAILLÉES DU CLIENT ---\n\n";
-    questions.forEach((q, index) => {
-        const answerVal = answers[q.id];
-        if (answerVal) {
-            emailBody += `${index + 1}. ${q.title}\n`;
-            if (q.multi && Array.isArray(answerVal)) {
-                const labels = answerVal.map(val => { const opt = q.options.find(o => o.val === val); return opt ? `   - ${opt.label}` : `   - ${val}`; });
-                emailBody += labels.join("\n") + "\n\n";
-            } else {
-                const opt = q.options.find(o => o.val === answerVal);
-                emailBody += `   Rép : ${opt ? opt.label : answerVal}\n\n`;
-            }
-        }
-    });
-
+    const strategy = generateReportHTML();
+    const emailBody = buildEmailBody(strategy, name, phone, email);
     const templateParams = { client_name: name, client_phone: phone, client_email: email, message: emailBody, to_email: "admin@jccapital.ca" };
 
-    emailjs.send('service_b4f4ooy', 'template_qphmqft', templateParams)
-        .then(function(response) { finishProcess(); },
-              function(error) { console.error('Erreur EmailJS:', error); finishProcess(); });
+    const finishOk = () => { finishProcess(false); };
+    const finishFail = () => {
+        // Le lead N'EST PAS perdu : sauvegarde locale + alerte visible dans le rapport
+        try { localStorage.setItem('jc_lead_backup', JSON.stringify(templateParams)); } catch (e) {}
+        finishProcess(true);
+    };
+
+    // Tentative d'envoi, avec UNE reprise automatique avant de basculer en mode secours
+    sendLeadEmail(templateParams)
+        .then(finishOk)
+        .catch(() => {
+            setTimeout(() => { sendLeadEmail(templateParams).then(finishOk).catch(finishFail); }, 1500);
+        });
 }
 
-function finishProcess() {
+function finishProcess(emailFailed) {
     document.getElementById('sectionLead').classList.add('hidden');
     document.getElementById('sectionReport').classList.remove('hidden');
     document.getElementById('progressBar').style.width = '100%';
+    if (emailFailed) {
+        const box = document.createElement('div');
+        box.style.cssText = "background: rgba(239,68,68,0.12); border: 1px solid #ef4444; border-radius: 10px; padding: 15px 20px; margin-bottom: 20px; color: var(--c-light-beige); line-height: 1.5;";
+        box.innerHTML = '⚠️ <strong>Petit pépin technique :</strong> la transmission automatique de votre dossier a échoué. Pour être certain(e) d\'être rappelé(e), réservez directement votre consultation avec le bouton doré ci-dessous, ou appelez-nous au <a href="tel:+15813986747" style="color: var(--c-gold); font-weight:700;">581 398-6747</a>.';
+        const report = document.getElementById('sectionReport');
+        report.insertBefore(box, report.firstChild);
+    }
 }
 
+// --- RAPPORT ---
 function generateReportHTML() {
     const container = document.getElementById('reportContent');
+    const has = hasAns;
+    const s = computeStrategy();
     let html = "";
 
-    const has = (id, val) => {
-        if (!answers[id]) return false;
-        if (Array.isArray(answers[id])) return answers[id].includes(val);
-        return answers[id] === val;
-    };
-
-    // --- 1. FINANCIAL CALCULATIONS ---
-    let minDI = 2500, maxDI = 3500;
-    if(has('burnrate', 'med')) minDI = 4000;
-    if(has('burnrate', 'high')) minDI = 6500;
-    if(has('burnrate', 'vhigh')) minDI = 10000;
-    if(has('revenu_net', 'med')) maxDI = 5500;
-    if(has('revenu_net', 'high')) maxDI = 9000;
-    if(has('revenu_net', 'vhigh')) maxDI = 15000;
-
-    let lifeBase = 0;
-    if (answers.hypo_montant) { lifeBase += parseInt(answers.hypo_montant); }
-    else if (has('dettes_hypo', 'bank') || has('dettes_hypo', 'none') || has('dettes_hypo', 'perso')) { lifeBase += 350000; }
-    if(has('famille', 'kids')) {
-        if(has('age_enfants', '0-5')) lifeBase += 500000;
-        else if(has('age_enfants', '6-12')) lifeBase += 350000;
-        else if(has('age_enfants', '13-17')) lifeBase += 200000;
-    }
-    if(has('etudes_enfants', 'full')) lifeBase += 100000;
-    if(has('famille', 'spouse')) lifeBase += 250000;
-    if(has('heritage', 'maximize') || has('patrimoine', 'vhigh')) lifeBase += 350000;
-    if(lifeBase === 0) lifeBase = 50000;
-
-    let mgBase = 50000;
-    if(has('revenu_net', 'med')) mgBase = 75000;
-    if(has('revenu_net', 'high')) mgBase = 100000;
-    if(has('revenu_net', 'vhigh')) mgBase = 150000;
-    if(has('ante_familiaux', 'yes_2')) mgBase += 50000;
-
-    const formatCurrency = (val) => new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(val);
-    let lifeFormatted = formatCurrency(lifeBase);
-    let diFormatted = formatCurrency(minDI) + " à " + formatCurrency(maxDI);
-    let mgFormatted = formatCurrency(mgBase);
-    let budgetMap = { 'micro': "Moins de 100$", 'base': "100$ à 250$", 'medium': "250$ à 500$", 'high': "500$ à 1500$", 'premium': "1500$ à 3000$", 'elite': "3000$ et plus", 'tbd': "À déterminer" };
-    let budgetText = budgetMap[answers.budget] || "À déterminer";
-
-    // --- 2. EXECUTIVE DASHBOARD ---
+    // --- 1. TABLEAU DE BORD ---
+    const diCell = s.hasWorkIncome
+        ? `<div class="dashboard-cell"><div class="dashboard-label">Protection de Revenu (rente mensuelle*)</div><div class="dashboard-value">${s.diText}</div></div>`
+        : `<div class="dashboard-cell"><div class="dashboard-label">Stratégie Successorale</div><div class="dashboard-value">Prioritaire</div></div>`;
     html += `<div class="report-dashboard">
         <h3>Tableau de bord : Cibles de protection</h3>
         <div class="dashboard-grid">
-            <div class="dashboard-cell"><div class="dashboard-label">Capital Décès (Vie)</div><div class="dashboard-value">~ ${lifeFormatted}</div></div>
-            <div class="dashboard-cell"><div class="dashboard-label">Rente Mensuelle (Invalidité)</div><div class="dashboard-value">${diFormatted}</div></div>
-            <div class="dashboard-cell"><div class="dashboard-label">Montant Maladie Grave</div><div class="dashboard-value">~ ${mgFormatted}</div></div>
-            <div class="dashboard-cell highlight"><div class="dashboard-label gold">Budget Mensuel Estimé</div><div class="dashboard-value gold">${budgetText}</div></div>
+            <div class="dashboard-cell"><div class="dashboard-label">Capital Décès (montant versé à vos proches)</div><div class="dashboard-value">~ ${formatCurrency(s.lifeBase)}</div></div>
+            ${diCell}
+            <div class="dashboard-cell"><div class="dashboard-label">Montant Maladie Grave</div><div class="dashboard-value">~ ${formatCurrency(s.mgBase)}</div></div>
+            <div class="dashboard-cell highlight"><div class="dashboard-label gold">Votre Budget Mensuel</div><div class="dashboard-value gold">${s.budgetText}</div></div>
         </div>
+        ${s.hasWorkIncome ? '<p style="font-size:0.8rem; opacity:0.65; margin-top:8px;">* Rente : montant qui vous serait versé chaque mois si vous ne pouviez plus travailler.</p>' : ''}
     </div>`;
 
-    // --- 3. SCORING & PRIORITIZATION ---
+    // --- 2. DÉCOMPOSITION DU CAPITAL DÉCÈS (transparence = confiance) ---
+    html += `<div class="report-section" style="border-left: 4px solid rgba(198,172,143,0.5);">
+        <div class="section-header" style="color: var(--c-gold);">D'OÙ VIENT VOTRE CIBLE DE ${formatCurrency(s.lifeBase)} ?</div>
+        <div class="rec-text"><ul style="margin-top:8px;">
+            ${s.lifeBreakdown.map(b => `<li><strong>${b.label} :</strong> ${formatCurrency(b.amount)}</li>`).join('')}
+        </ul></div>
+    </div>`;
+
+    // --- 3. MIROIR DES PRÉOCCUPATIONS (écho émotionnel) ---
+    if (answers.risque && answers.risque.length > 0) {
+        const concernMap = {
+            house: "<strong>« Perdre mon logement / mes actifs »</strong> — le capital décès et la protection de revenu ci-dessous sont précisément dimensionnés pour que vos proches gardent leur milieu de vie.",
+            debt: "<strong>« Transmettre mes dettes à autrui »</strong> — vos protections sont calculées pour éteindre vos obligations, afin que personne n'hérite de vos paiements.",
+            burden: "<strong>« Perdre mon autonomie financière »</strong> — la protection de revenu et la maladie grave existent exactement pour que vous n'ayez jamais à dépendre de vos proches.",
+            reer_drain: "<strong>« Vider mes épargnes pour des soins »</strong> — le capital maladie grave est votre bouclier : il évite de piger dans vos placements au pire moment.",
+            future: "<strong>« Devenir inassurable »</strong> — c'est la seule chose qu'aucun conseiller ne peut réparer après coup : chaque année d'attente augmente le risque qu'un changement de santé ferme des portes. Agir pendant que votre dossier est bon est la seule vraie garantie."
+        };
+        const items = answers.risque.filter(v => concernMap[v]).map(v => `<li style="margin-bottom:8px;">${concernMap[v]}</li>`);
+        if (items.length) {
+            html += `<div class="report-section" style="border-left: 4px solid var(--c-gold);">
+                <div class="section-header" style="color: var(--c-gold);">CE QUE VOUS NOUS AVEZ DIT VOULOIR ÉVITER</div>
+                <div class="rec-text"><ul style="margin-top:8px;">${items.join('')}</ul></div>
+            </div>`;
+        }
+    }
+
+    // --- 4. POURQUOI AGIR MAINTENANT (urgence légitime et personnalisée) ---
+    const urgencyReasons = [];
+    const ageUrgency = {
+        '19-34': "Vos primes sont <strong>au plus bas de votre vie</strong> : chaque contrat signé maintenant verrouille ce tarif pour des décennies.",
+        '35-45': "La quarantaine est la <strong>dernière fenêtre des tarifs avantageux</strong> — les primes grimpent à chaque anniversaire.",
+        '46-55': "À votre âge, <strong>chaque anniversaire augmente définitivement la prime</strong>, et les enjeux de santé qui ferment des portes se multiplient.",
+        'over55': "Passé 55 ans, <strong>l'assurabilité devient le nerf de la guerre</strong> : chaque année d'attente peut coûter cher — ou fermer définitivement des options."
+    };
+    if (ageUrgency[answers.age]) urgencyReasons.push(ageUrgency[answers.age]);
+    if (has('ante_familiaux', 'yes_2') || has('ante_familiaux', 'yes_1')) urgencyReasons.push("Vos <strong>antécédents familiaux</strong> peuvent influencer la tarification : plus le dossier est ouvert tôt, meilleures sont les conditions obtenues.");
+    if (has('liquidites', 'critical') && s.hasWorkIncome) urgencyReasons.push("Avec <strong>moins d'un mois de réserve</strong>, un seul arrêt de travail imprévu enclenche l'endettement immédiatement — c'est la vulnérabilité n°1 de votre profil.");
+    if (has('dettes_hypo', 'none')) urgencyReasons.push("Votre hypothèque n'est <strong>couverte par aucune assurance</strong> : en cas de décès, vos proches assumeraient seuls chaque paiement.");
+    if (urgencyReasons.length > 0) {
+        html += `<div class="report-section" style="border-left: 4px solid #ef4444;">
+            <div class="section-header" style="color: #ef4444;">⏳ POURQUOI AGIR MAINTENANT</div>
+            <div class="rec-text"><ul style="margin-top:8px;">${urgencyReasons.slice(0, 3).map(r => `<li style="margin-bottom:8px;">${r}</li>`).join('')}</ul></div>
+        </div>`;
+    }
+
+    // --- 5. POINTS FORTS (l'honnêteté qui crédibilise le reste) ---
+    const strengths = [];
+    if (has('collectif', 'good')) strengths.push("Votre assurance collective est bien maîtrisée — une base solide que peu de gens ont.");
+    if (has('liquidites', 'safe') || has('liquidites', 'good')) strengths.push("Votre fonds d'urgence est en santé : il vous donne du pouvoir de négociation (délais de carence plus longs = primes réduites).");
+    if (has('dettes_hypo', 'perso')) strengths.push("Votre hypothèque est couverte par une assurance vie personnelle — le bon choix : vos proches reçoivent l'argent, pas la banque.");
+    if (has('conjoint_travail', 'yes_insured')) strengths.push("Le revenu assuré de votre conjoint(e) réduit la pression sur votre propre couverture.");
+    if (strengths.length > 0) {
+        html += `<div class="report-section" style="border-left: 4px solid #22c55e;">
+            <div class="section-header" style="color: #22c55e;">✓ LES POINTS FORTS DE VOTRE SITUATION</div>
+            <div class="rec-text"><ul style="margin-top:8px;">${strengths.map(t => `<li style="margin-bottom:6px;">${t}</li>`).join('')}</ul></div>
+        </div>`;
+    }
+
+    // --- 6. SECTIONS PRIORISÉES ---
     let sections = [];
 
-    // A. DISABILITY
-    let scoreDI = 50;
-    if(has('liquidites', 'critical')) scoreDI += 30;
-    if(has('collectif', 'none')) scoreDI += 20;
-    if(has('collectif', 'good')) scoreDI -= 30;
-    let carence = "90 jours (standard)";
-    if(has('liquidites', 'critical')) carence = "30 jours (Impératif vu vos réserves actuelles)";
-    if(has('liquidites', 'safe')) carence = "119 jours ou plus (Permet de réduire considérablement la prime)";
-
-    let invHtml = `<div class="report-section" style="border-left: 4px solid #ef4444;">
-        <div class="section-header" style="color: #ef4444;">PRIORITÉ {IDX} : SÉCURITÉ DU REVENU (INVALIDITÉ)</div>
-        <div class="rec-text">
-            <strong>L'enjeu critique :</strong> Votre capacité à générer un revenu est votre actif financier le plus important. Sans protection adéquate, un arrêt de travail de longue durée épuiserait vos actifs et mènerait à l'endettement.<br><br>
-            <strong>🎯 Architecture de la solution :</strong>
-            <ul style="margin-top:8px;">
-                <li><strong>Montant visé :</strong> Rente de ${formatCurrency(minDI)} à ${formatCurrency(maxDI)} par mois (versée libre d'impôt).</li>
-                <li><strong>Produit recommandé :</strong> Assurance Invalidité avec définition "Profession Habituelle".</li>
-                <li><strong>Délai d'attente (Carence) :</strong> ${carence}.</li>
-            </ul>
-        </div>
-    </div>`;
-    sections.push({ type: 'DI', score: scoreDI, html: invHtml });
-
-    // B. LIFE INSURANCE
-    let scoreLife = 40;
-    if(has('famille', 'kids') || has('famille', 'special_needs')) scoreLife += 35;
-    if(has('dettes_hypo', 'none')) scoreLife += 15;
-    if(has('heritage', 'maximize')) scoreLife += 10;
-
-    let vieProduits = [];
-    let maxTerm = 10;
-    if (has('age_enfants', '0-5')) maxTerm = Math.max(maxTerm, 20);
-    else if (has('age_enfants', '6-12')) maxTerm = Math.max(maxTerm, 15);
-    if (has('hypo_duree', '10')) maxTerm = Math.max(maxTerm, 10);
-    if (has('hypo_duree', '20')) maxTerm = Math.max(maxTerm, 20);
-    if (has('hypo_duree', '30')) maxTerm = Math.max(maxTerm, 30);
-
-    let hasTemporaryNeed = has('famille', 'kids') || has('dettes_hypo', 'bank') || has('dettes_hypo', 'none') || has('dettes_hypo', 'perso');
-    if(hasTemporaryNeed) vieProduits.push(`<strong>Temporaire ${maxTerm} ans (T-${maxTerm}) :</strong> Solution sur mesure alignée avec votre horizon hypothécaire et/ou l'âge de vos enfants.`);
-    if(has('heritage', 'maximize') || has('famille', 'special_needs') || has('patrimoine', 'vhigh') || has('age', 'over55')) vieProduits.push("<strong>Permanente (Vie Entière ou T-100) :</strong> Indispensable pour absorber l'impact fiscal au décès ou léguer un héritage intouchable.");
-    if(vieProduits.length === 0) vieProduits.push("<strong>Temporaire 10 ans (T-10) :</strong> Protection de base économique pour couvrir vos dettes résiduelles et frais finaux.");
-
-    let lifeHtml = `<div class="report-section" style="border-left: 4px solid var(--c-gold);">
-        <div class="section-header" style="color: var(--c-gold);">PRIORITÉ {IDX} : PROTECTION DU PATRIMOINE (VIE)</div>
-        <div class="rec-text">
-            <strong>L'enjeu critique :</strong> Assurer la continuité du niveau de vie de vos proches et éviter la transmission de vos dettes à votre succession.<br><br>
-            <strong>🎯 Architecture de la solution :</strong>
-            <ul style="margin-top:8px;">
-                <li><strong>Capital global évalué :</strong> ~ ${lifeFormatted} (Montant versé non imposable).</li>
-                <li><strong>Recommandation de produits :</strong><ul style="margin-top:5px;">${vieProduits.map(p => `<li style="margin-bottom:6px;">${p}</li>`).join('')}</ul></li>
-            </ul>
-        </div>
-    </div>`;
-    sections.push({ type: 'LIFE', score: scoreLife, html: lifeHtml });
-
-    // C. CRITICAL ILLNESS
-    let scoreMG = 30;
-    if(has('ante_familiaux', 'yes_2')) scoreMG += 35;
-    if(has('ante_familiaux', 'yes_1')) scoreMG += 15;
-
-    let mgHtml = `<div class="report-section" style="border-left: 4px solid #3b82f6;">
-        <div class="section-header" style="color: #3b82f6;">PRIORITÉ {IDX} : BOUCLIER DE SANTÉ (MALADIE GRAVE)</div>
-        <div class="rec-text">
-            <strong>L'enjeu critique :</strong> Une maladie sévère (Cancer, AVC) entraîne des coûts importants non couverts par la RAMQ. Ce capital protège vos épargnes de retraite d'un décaissement hâtif et lourdement imposé.<br><br>
-            <strong>🎯 Architecture de la solution :</strong>
-            <ul style="margin-top:8px;">
-                <li><strong>Montant forfaitaire visé :</strong> ~ ${mgFormatted}.</li>
-                <li><strong>Produit recommandé :</strong> Assurance Maladie Grave T-10 ou T-20 (Capital versé net d'impôt au moment du diagnostic).</li>
-                ${has('ante_familiaux', 'yes_2') || has('ante_familiaux', 'yes_1') ? `<li><strong style="color: #ef4444;">Note d'Assurabilité :</strong> En raison de vos antécédents familiaux, il est urgent de sécuriser cette protection avant que les règles de tarification des assureurs ne vous pénalisent.</li>` : `<li><strong>Le pouvoir de choisir :</strong> Permet d'accéder aux soins privés ou d'offrir à votre conjoint une pause de travail sans stress financier.</li>`}
-            </ul>
-        </div>
-    </div>`;
-    sections.push({ type: 'MG', score: scoreMG, html: mgHtml });
-
-    // D. CORPORATE (Optional)
-    let isCorp = has('revenus', 'div') || has('revenus', 'self');
-    if (isCorp) {
-        let scoreCorp = 55;
-        if(has('budget', 'premium') || has('budget', 'elite')) scoreCorp += 20;
-        let corpNeeds = [];
-        if(has('obligations_biz', 'partner')) corpNeeds.push("Convention d'actionnaires financée.");
-        if(has('frais_generaux', 'high')) corpNeeds.push("Assurance Frais Généraux.");
-
-        let corpHtml = `<div class="report-section" style="border-left: 4px solid #f59e0b;">
-            <div class="section-header" style="color: #f59e0b;">PRIORITÉ {IDX} : L'ENTREPRISE & L'OPTIMISATION FISCALE</div>
+    // A. PROTECTION DE REVENU — seulement si revenu de travail
+    if (s.hasWorkIncome) {
+        const wellCovered = has('collectif', 'good');
+        const enjeuDI = wellCovered
+            ? "Votre collective couvre la base — les angles morts typiques sont la <strong>fin de la couverture si vous quittez l'emploi</strong>, le plafonnement du % de salaire et la définition d'invalidité après 2 ans. C'est précisément ce que la rencontre validera."
+            : "Votre capacité à gagner un revenu est votre plus grand actif financier. Sans protection adéquate, un arrêt de travail prolongé épuise l'épargne puis mène à l'endettement.";
+        const divNote = (has('revenus', 'div')) ? `<li><strong>Particularité dividendes :</strong> un revenu en dividendes demande une structuration spéciale pour être assurable — un point technique que nous réglons en rencontre.</li>` : '';
+        let invHtml = `<div class="report-section" style="border-left: 4px solid #ef4444;">
+            <div class="section-header" style="color: #ef4444;">PRIORITÉ {IDX} : SÉCURITÉ DU REVENU (INVALIDITÉ)</div>
             <div class="rec-text">
-                <strong>L'enjeu critique :</strong> Payer des primes avec de l'argent personnel (imposé à ~50%) est inefficace. Une structuration corporative permet de protéger l'entreprise tout en enrichissant votre succession.<br><br>
+                <strong>L'enjeu :</strong> ${enjeuDI}<br><br>
                 <strong>🎯 Architecture de la solution :</strong>
                 <ul style="margin-top:8px;">
-                    <li><strong>Stratégie fiscale :</strong> Intégrer les assurances au sein de la société (Prime payée avec des dollars à impôt réduit).</li>
-                    <li><strong>Transfert de richesse :</strong> Utilisation du Compte de Dividendes en Capital (CDC) pour sortir les liquidités libres d'impôt au décès.</li>
-                    ${corpNeeds.length > 0 ? `<li><strong>Protections commerciales requises :</strong> ${corpNeeds.join(' / ')}</li>` : ''}
+                    <li><strong>Montant visé :</strong> ${s.diText} (versé sans impôt si la prime est payée personnellement).</li>
+                    <li><strong>Produit recommandé :</strong> assurance invalidité avec définition « profession habituelle » (vous êtes couvert si vous ne pouvez plus faire VOTRE métier).</li>
+                    <li><strong>Délai d'attente avant le premier versement (carence) :</strong> ${s.carence}.</li>
+                    ${divNote}
                 </ul>
             </div>
         </div>`;
-        sections.push({ type: 'CORP', score: scoreCorp, html: corpHtml });
+        sections.push({ type: 'Invalidité', score: s.scoreDI, html: invHtml });
     }
 
-    // --- 4. DISPLAY IN PRIORITY ORDER ---
+    // B. ASSURANCE VIE
+    const bankAttack = has('dettes_hypo', 'bank') ? `<li><strong style="color:#f59e0b;">À savoir sur votre assurance hypothécaire bancaire :</strong> elle protège la banque, pas votre famille — le montant versé diminue chaque année alors que votre prime, elle, reste pareille. Une assurance vie personnelle du même montant coûte souvent moins cher et l'argent va à vos proches.</li>` : '';
+    const specialNote = has('famille', 'special_needs') ? `<li><strong style="color:#3b82f6;">Enfant à besoins particuliers :</strong> la stratégie passe par une assurance permanente combinée à une <strong>fiducie (de type Henson)</strong> — pour soutenir votre enfant à vie sans lui faire perdre ses prestations gouvernementales — et au <strong>REEI</strong> (régime d'épargne avec subventions allant jusqu'à 70 000 $). C'est une expertise pointue que nous maîtrisons.</li>` : '';
+    const retireeNote = (s.isRetiree || (has('age', 'over55') && (has('heritage', 'taxes') || has('heritage', 'maximize')))) ? `<li><strong>Impôt au décès :</strong> vos REER/FERR sont imposés comme un revenu au décès — la facture peut dépasser 25-50 % de leur valeur. L'assurance permanente paie cette facture pour que vos héritiers n'aient pas à liquider vos actifs.</li>` : '';
+    let lifeHtml = `<div class="report-section" style="border-left: 4px solid var(--c-gold);">
+        <div class="section-header" style="color: var(--c-gold);">PRIORITÉ {IDX} : PROTECTION DU PATRIMOINE (VIE)</div>
+        <div class="rec-text">
+            <strong>L'enjeu :</strong> assurer la continuité du niveau de vie de vos proches et ne transmettre aucune dette.<br><br>
+            <strong>🎯 Architecture de la solution :</strong>
+            <ul style="margin-top:8px;">
+                <li><strong>Capital cible :</strong> ~ ${formatCurrency(s.lifeBase)} (montant versé à vos proches, sans impôt — détail plus haut).</li>
+                <li><strong>Produits recommandés :</strong><ul style="margin-top:5px;">${s.vieProduits.map(p => `<li style="margin-bottom:6px;">${p}</li>`).join('')}</ul></li>
+                ${bankAttack}
+                ${specialNote}
+                ${retireeNote}
+            </ul>
+        </div>
+    </div>`;
+    sections.push({ type: 'Vie', score: s.scoreLife, html: lifeHtml });
+
+    // C. MALADIE GRAVE
+    const mgCosts = has('famille', 'spouse') ? "(déplacements, soins privés, perte de revenus du conjoint)" : "(déplacements, soins privés, perte de revenus)";
+    const mgAngle = has('patrimoine', 'low')
+        ? `Une maladie sévère (cancer, AVC, infarctus) entraîne des coûts que la RAMQ ne couvre pas ${mgCosts}. Sans réserve importante, c'est l'endettement assuré.`
+        : "Une maladie sévère (cancer, AVC, infarctus) entraîne des coûts que la RAMQ ne couvre pas. Ce capital évite de vider vos placements au pire moment — un retrait précipité est aussi lourdement imposé.";
+    const mgClosing = (has('ante_familiaux', 'yes_2') || has('ante_familiaux', 'yes_1'))
+        ? `<li><strong style="color: #ef4444;">Note d'assurabilité :</strong> avec vos antécédents familiaux, chaque année compte — il faut sécuriser cette protection pendant que votre dossier de santé personnel est encore favorable.</li>`
+        : (has('famille', 'spouse')
+            ? `<li><strong>Le pouvoir de choisir :</strong> accéder à des soins privés, ou permettre à votre conjoint(e) de prendre une pause sans stress financier pour vous accompagner.</li>`
+            : `<li><strong>Le pouvoir de choisir :</strong> accéder à des soins privés et vous donner le temps de guérir, sans pression financière.</li>`);
+    let mgHtml = `<div class="report-section" style="border-left: 4px solid #3b82f6;">
+        <div class="section-header" style="color: #3b82f6;">PRIORITÉ {IDX} : BOUCLIER DE SANTÉ (MALADIE GRAVE)</div>
+        <div class="rec-text">
+            <strong>L'enjeu :</strong> ${mgAngle}<br><br>
+            <strong>🎯 Architecture de la solution :</strong>
+            <ul style="margin-top:8px;">
+                <li><strong>Montant forfaitaire visé :</strong> ~ ${formatCurrency(s.mgBase)}, versé d'un coup et sans impôt dès le diagnostic.</li>
+                <li><strong>Produit recommandé :</strong> assurance maladie grave (T-10 ou T-20, selon le budget).</li>
+                ${mgClosing}
+            </ul>
+        </div>
+    </div>`;
+    sections.push({ type: 'Maladie grave', score: s.scoreMG, html: mgHtml });
+
+    // D. ENTREPRISE / FERME
+    if (s.isCorp) {
+        let corpNeeds = [];
+        if (has('obligations_biz', 'partner')) corpNeeds.push("<strong>Entente de rachat des parts financée :</strong> sans elle, votre famille devient l'associée involontaire de vos partenaires.");
+        if (has('obligations_biz', 'loan')) corpNeeds.push("<strong>Couverture des prêts garantis personnellement :</strong> votre maison et vos épargnes sont actuellement exposées si l'entreprise a des difficultés sans vous.");
+        if (has('obligations_biz', 'key')) corpNeeds.push("<strong>Assurance « personne clé » :</strong> donner à l'entreprise les liquidités pour survivre le temps de vous remplacer.");
+        if (has('frais_generaux', 'high')) corpNeeds.push("<strong>Assurance frais généraux :</strong> elle paie le loyer, les employés et les paiements d'équipement pendant votre invalidité.");
+        if (has('obligations_biz', 'releve') || has('heritage', 'transfer')) corpNeeds.push("<strong>Plan de transfert à la relève :</strong> structurer le passage du flambeau (gel successoral, équité entre les héritiers) pendant que vous êtes en pleine maîtrise.");
+        const agriNote = s.isAgri ? `<li><strong style="color:#22c55e;">Volet agricole — notre spécialité :</strong> transfert de ferme intergénérationnel, exonération du gain en capital agricole, équité entre l'enfant qui reprend et les autres : l'assurance est l'outil central pour transférer la ferme SANS la fragmenter ni endetter la relève.</li>` : '';
+        // Le discours fiscal corporatif (CDC, polices détenues par la société) ne
+        // s'applique qu'aux incorporés (dividendes/ferme) — pas au travailleur
+        // autonome non incorporé, pour qui ce jargon est hors sujet.
+        const isIncorporated = has('revenus', 'div') || has('revenus', 'agri');
+        if (isIncorporated) {
+            let corpHtml = `<div class="report-section" style="border-left: 4px solid #f59e0b;">
+                <div class="section-header" style="color: #f59e0b;">PRIORITÉ {IDX} : ${s.isAgri ? "L'ENTREPRISE, LA FERME & LA FISCALITÉ" : "L'ENTREPRISE & L'OPTIMISATION FISCALE"}</div>
+                <div class="rec-text">
+                    <strong>L'enjeu :</strong> payer des primes avec de l'argent personnel déjà imposé est inefficace pour un incorporé. Une structuration corporative protège l'entreprise tout en enrichissant votre succession.<br><br>
+                    <strong>🎯 Architecture de la solution :</strong>
+                    <ul style="margin-top:8px;">
+                        <li><strong>Stratégie fiscale :</strong> détenir les bonnes polices dans la société (payées avec des dollars moins imposés) et utiliser le compte de dividendes en capital (CDC) — le mécanisme qui permet de sortir l'argent de l'entreprise <em>sans impôt</em> au décès.</li>
+                        <li><strong>Nuance importante :</strong> l'assurance invalidité reste généralement payée personnellement pour que la rente demeure non imposable — c'est exactement le genre d'arbitrage qu'on règle en rencontre.</li>
+                        ${corpNeeds.length > 0 ? `<li><strong>Protections requises selon vos réponses :</strong><ul style="margin-top:5px;">${corpNeeds.map(c => `<li style="margin-bottom:6px;">${c}</li>`).join('')}</ul></li>` : ''}
+                        ${agriNote}
+                    </ul>
+                </div>
+            </div>`;
+            sections.push({ type: s.isAgri ? 'Entreprise/Ferme' : 'Entreprise', score: s.scoreCorp, html: corpHtml });
+        } else {
+            // Travailleur autonome non incorporé : version adaptée, sans jargon corporatif
+            let soloNeeds = [];
+            if (has('obligations_biz', 'key')) soloNeeds.push("<strong>Tout repose sur vous :</strong> votre priorité absolue est la sécurité du revenu (voir la section Invalidité) — c'est elle qui garde votre activité et votre ménage à flot.");
+            if (has('obligations_biz', 'loan')) soloNeeds.push("<strong>Prêts garantis avec vos biens personnels :</strong> votre maison et vos épargnes sont exposées — une couverture dédiée s'impose.");
+            if (has('frais_generaux', 'high')) soloNeeds.push("<strong>Assurance frais généraux :</strong> elle paie le loyer, les employés et l'équipement pendant votre invalidité.");
+            if (has('obligations_biz', 'releve') || has('heritage', 'transfer')) soloNeeds.push("<strong>Plan de transfert :</strong> organiser la suite de votre activité pendant que vous êtes en pleine maîtrise.");
+            if (soloNeeds.length > 0) {
+                let soloHtml = `<div class="report-section" style="border-left: 4px solid #f59e0b;">
+                    <div class="section-header" style="color: #f59e0b;">PRIORITÉ {IDX} : VOTRE ACTIVITÉ DE TRAVAILLEUR AUTONOME</div>
+                    <div class="rec-text">
+                        <strong>L'enjeu :</strong> à votre compte, aucun filet public standard ne protège votre activité — tout repose sur votre capacité à travailler.<br><br>
+                        <strong>🎯 Points à sécuriser selon vos réponses :</strong>
+                        <ul style="margin-top:8px;">${soloNeeds.map(c => `<li style="margin-bottom:6px;">${c}</li>`).join('')}</ul>
+                    </div>
+                </div>`;
+                sections.push({ type: 'Travail autonome', score: s.scoreCorp - 15, html: soloHtml });
+            }
+        }
+    }
+
+    // --- 7. AFFICHAGE EN ORDRE DE PRIORITÉ ---
     sections.sort((a, b) => b.score - a.score);
+    s.priorityOrder = sections.map(sec => sec.type);
     sections.forEach((sec, index) => { html += sec.html.replace('{IDX}', index + 1); });
+
+    // --- 8. PAR OÙ COMMENCER (réconciliation avec le budget) ---
+    const startMap = {
+        micro: `Avec votre budget, l'important n'est pas de tout faire d'un coup : on sécurise d'abord <strong>${s.priorityOrder[0]}</strong>, et le reste se bâtit par étapes. Un budget bien placé vaut mieux qu'un gros budget mal réparti.`,
+        base: `Votre budget permet de couvrir solidement la priorité n°1 (<strong>${s.priorityOrder[0]}</strong>) et de poser la première pierre de la n°2. La rencontre sert exactement à maximiser chaque dollar.`,
+        medium: `Votre budget permet de couvrir les deux premières priorités dès maintenant — un excellent point de départ.`,
+        high: `Votre budget permet une stratégie complète sur vos ${s.priorityOrder.length} priorités. Chaque mois d'attente a un coût d'opportunité réel.`,
+        premium: `Votre budget ouvre la porte à une stratégie complète incluant l'optimisation fiscale — le niveau où l'assurance devient un outil de création de richesse, pas une dépense.`,
+        elite: `À ce niveau de budget, la conversation dépasse la protection : structuration corporative, CDC, legs optimisé. Une rencontre stratégique s'impose rapidement.`,
+        tbd: `Le budget se définira ensemble en rencontre — l'ordre des priorités ci-dessus vous indique déjà quoi sécuriser en premier.`
+    };
+    html += `<div class="report-section" style="border-left: 4px solid #22c55e;">
+        <div class="section-header" style="color: #22c55e;">🧭 PAR OÙ COMMENCER</div>
+        <div class="rec-text">
+            ${startMap[answers.budget] || startMap.tbd}<br><br>
+            <strong>Votre séquence recommandée :</strong>
+            <ol style="margin-top:8px; padding-left: 20px;">${s.priorityOrder.map(p => `<li style="margin-bottom:4px;">${p}</li>`).join('')}</ol>
+        </div>
+    </div>`;
+
+    // --- 9. APPEL À L'ACTION ---
+    html += `<div style="text-align:center; margin-top: 30px; padding: 30px 20px; border: 2px solid var(--c-gold); border-radius: 14px; background: rgba(198,172,143,0.07);">
+        <h3 style="color: var(--c-gold); font-size: 1.4rem; margin-bottom: 12px;">Passez à l'action pendant que c'est frais</h3>
+        <p style="color: var(--c-light-beige); opacity: 0.9; margin-bottom: 20px; line-height: 1.6;">Ces chiffres sont des cibles préliminaires. La prochaine étape : les valider ensemble en 30 minutes — gratuitement et sans engagement. Choisissez vous-même votre moment :</p>
+        <a href="https://calendly.com/joelcamire-jccapital/consultation" target="_blank" rel="noopener" style="display:inline-block; background: var(--c-gold); color: #0A0908; font-weight: 700; font-size: 1.05rem; padding: 14px 32px; border-radius: 10px; text-decoration: none; text-transform: uppercase;">📅 Réserver ma consultation gratuite</a>
+        <p style="color: var(--c-light-beige); opacity: 0.75; margin-top: 15px; font-size: 0.95rem;">ou appelez-nous directement : <a href="tel:+15813986747" style="color: var(--c-gold); font-weight: 700; text-decoration: none;">581 398-6747</a></p>
+    </div>`;
+
     container.innerHTML = html;
+    return s;
 }
+
 
     </script>
 </body>
