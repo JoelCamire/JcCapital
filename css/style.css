@@ -546,18 +546,31 @@ html, body {
     font-weight: bold;
 }
 
-/* Dropdown — mobile (collapsed inside slide-out menu) */
+/* Dropdown — mobile (collapsed inside slide-out menu).
+   Clean look: no box, no separators, no bullets — just indented sub-links. */
 .dropdown-menu {
     display: none;
     flex-direction: column;
-    background: rgba(0, 0, 0, 0.2);
+    gap: 0.35rem;
+    background: none;
+    border: none;
     width: 100%;
-    border-radius: 8px;
-    margin-top: 0.5rem;
-    padding: 0.5rem 0;
-    /* No bullets on the nested <ul> — they don't inherit from .nav-links */
+    border-radius: 0;
+    margin-top: 0.75rem;
+    padding: 0;
     list-style: none;
     text-align: center;
+}
+
+/* Belt and braces: kill any list marker the browser might still draw */
+.nav-links li::marker,
+.dropdown-menu li::marker {
+    content: none;
+}
+
+.nav-links li,
+.dropdown-menu li {
+    list-style: none;
 }
 
 .dropdown.active .dropdown-menu {
@@ -579,13 +592,18 @@ html, body {
 }
 
 .dropdown-menu li a {
-    font-size: 1.2rem;
-    padding: 0.5rem 1rem;
-    border-bottom: 1px solid rgba(198, 172, 143, 0.1);
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--c-light-beige);
+    opacity: 0.8;
+    padding: 0.35rem 1rem;
+    border: none;
 }
 
-.dropdown-menu li:last-child a {
-    border-bottom: none;
+.dropdown-menu li a:active {
+    color: var(--c-gold);
+    opacity: 1;
 }
 
 /* Sub-pages: clear the fixed nav, which is always visible on hero-less pages.
@@ -1735,6 +1753,7 @@ html, body {
         border: 1px solid var(--c-brown);
         border-radius: 8px;
         padding: 0.5rem 0;
+        gap: 0;
         text-align: left;
         min-width: 250px;
         display: none;
@@ -1757,6 +1776,7 @@ html, body {
         display: block;
         padding: 0.8rem 1.5rem;
         font-size: 1rem;
+        opacity: 1;
         white-space: normal;
         border-bottom: 1px solid rgba(94, 80, 63, 0.3);
     }
