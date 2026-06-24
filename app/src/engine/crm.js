@@ -378,6 +378,34 @@ export function cadenceTasks(cadenceKey, fromISO) {
   return cad.steps.map(s => ({ title: s.title(), due: isoAddDays(fromISO, s.offset), category: s.category, priority: 'medium' }));
 }
 
+// ---------- Monthly calendar events ----------
+const pad2 = (n) => (n < 10 ? '0' + n : '' + n);
+export function monthEvents(clients, year, month) {
+  // month: 0-11. Returns { 'YYYY-MM-DD': [ {type,label,clientId,clientName} ] }
+  const byDay = {};
+  const push = (y, m, d, ev) => { if (m !== month || y !== year) return; const key = `${y}-${pad2(m + 1)}-${pad2(d)}`; (byDay[key] = byDay[key] || []).push(ev); };
+  for (const c of clients || []) {
+    for (const tk of (c.tasks || [])) {
+      if (tk.done || !tk.due) continue; const d = parseDate(tk.due); if (!d) continue;
+      push(d.getFullYear(), d.getMonth(), d.getDate(), { type: 'task', label: tk.title, clientId: c.id, clientName: c.name });
+    }
+    for (const m of (c.members || [])) {
+      const d = parseDate(m.dob); if (!d) continue;
+      push(year, d.getMonth(), d.getDate(), { type: 'birthday', label: t(`Anniversaire — ${m.name}`, `Birthday — ${m.name}`), clientId: c.id, clientName: c.name });
+    }
+    const rv = parseDate(c.household && c.household.reviewDate);
+    if (rv) push(rv.getFullYear(), rv.getMonth(), rv.getDate(), { type: 'review', label: t('Revue annuelle', 'Annual review'), clientId: c.id, clientName: c.name });
+    const na = parseDate(c.crm && c.crm.nextActionDate);
+    if (na) push(na.getFullYear(), na.getMonth(), na.getDate(), { type: 'nextaction', label: t('Prochaine action', 'Next action'), clientId: c.id, clientName: c.name });
+    for (const p of (c.products || [])) {
+      const rn = parseDate(p.renewalDate); if (!rn) continue;
+      push(rn.getFullYear(), rn.getMonth(), rn.getDate(), { type: 'renewal', label: t(`Renouvellement — ${p.carrier || ''}`, `Renewal — ${p.carrier || ''}`), clientId: c.id, clientName: c.name });
+    }
+  }
+  return byDay;
+}
+export const EVENT_COLOR = { task: '#C2922F', birthday: '#C6AC8F', review: '#6E8CA0', renewal: '#6F9461', nextaction: '#B0573F' };
+
 // ---------- Per-client merged timeline ----------
 export function clientTimeline(c) {
   const ev = [];
