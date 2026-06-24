@@ -4,6 +4,7 @@ import { store } from '../../state/store.js';
 import { sync } from '../../sync.js';
 import { getJurisdiction, JURISDICTIONS, COUNTRY_LIST } from '../../jurisdictions/index.js';
 import { netWorthBreakdown } from '../../engine/analysis.js';
+import { lifecycleOf, LIFECYCLE_META, contactName } from '../../engine/crm.js';
 
 function syncErr(e) {
   const m = (e && e.message) || '';
@@ -72,30 +73,34 @@ function buildSyncCard() {
 
 export function render({ client, jur, navigate }) {
   let query = '';
+  let lifeFilter = 'all';
 
   const wrap = h('div', { class: 'grid' });
   const grid = h('div', { class: 'grid cols-3 span-full' });
 
-  function openClient(id) { store.setActive(id); navigate('dashboard'); }
+  function openClient(id) { store.setActive(id); navigate('relation'); }
 
   function newClientModal() {
-    const item = { name: '', country: 'CA', region: 'QC' };
+    const item = { name: '', country: 'CA', region: 'QC', lifecycle: 'prospect' };
     const regionSel = h('select', {}, ...Object.entries(JURISDICTIONS.CA.regions).map(([k, v]) => h('option', { value: k }, v)));
     const countrySel = h('select', { onChange: e => { item.country = e.target.value; const j = JURISDICTIONS[e.target.value]; item.region = j.defaultRegion; regionSel.replaceChildren(...Object.entries(j.regions).map(([k, v]) => h('option', { value: k, selected: k === j.defaultRegion }, v))); } },
       ...COUNTRY_LIST.map(x => h('option', { value: x.code }, `${x.flag} ${x.name}`)));
     regionSel.addEventListener('change', e => item.region = e.target.value);
+    const lifeSel = h('select', { onChange: e => item.lifecycle = e.target.value },
+      ...['prospect', 'lead', 'client'].map(k => h('option', { value: k, selected: k === item.lifecycle }, LIFECYCLE_META[k].label())));
     const nameInput = h('input', { placeholder: t('Ex. Famille Tremblay / Boulangerie Inc.', 'e.g. Tremblay Family / Bakery Inc.'), onInput: e => item.name = e.target.value });
     const m = modal({
-      title: t('Nouveau client', 'New client'),
+      title: t('Nouveau contact', 'New contact'),
       body: h('div', { class: 'grid', style: { gap: '14px' } },
-        h('div', { class: 'field' }, h('label', {}, t('Nom du client / dossier', 'Client / file name')), nameInput),
+        h('div', { class: 'field' }, h('label', {}, t('Nom du contact / dossier', 'Contact / file name')), nameInput),
         h('div', { class: 'grid cols-2' },
-          h('div', { class: 'field' }, h('label', {}, t('Pays', 'Country')), countrySel),
-          h('div', { class: 'field' }, h('label', {}, t('Province / État', 'Province / State')), regionSel)),
+          h('div', { class: 'field' }, h('label', {}, t('Type', 'Type')), lifeSel),
+          h('div', { class: 'field' }, h('label', {}, t('Pays', 'Country')), countrySel)),
+        h('div', { class: 'field' }, h('label', {}, t('Province / État', 'Province / State')), regionSel),
         h('p', { class: 'tiny muted', style: { margin: 0 } }, t('Le dossier est sauvegardé automatiquement et reste disponible ici.', 'The file is saved automatically and stays available here.'))),
       footer: [
         h('button', { class: 'btn ghost', onClick: () => m.close() }, t('Annuler', 'Cancel')),
-        h('button', { class: 'btn primary', onClick: () => { const c = store.addClient(item.name || t('Nouveau client', 'New client'), item.country, item.region); m.close(); toast(t('Client créé ✓', 'Client created ✓')); navigate('profile'); } }, t('Créer et ouvrir', 'Create & open')),
+        h('button', { class: 'btn primary', onClick: () => { const c = store.addClient(item.name || t('Nouveau contact', 'New contact'), item.country, item.region); store.update(x => { x.crm.lifecycle = item.lifecycle; }); m.close(); toast(t('Contact créé ✓', 'Contact created ✓')); navigate('relation'); } }, t('Créer et ouvrir', 'Create & open')),
       ],
     });
     setTimeout(() => nameInput.focus(), 50);
@@ -119,7 +124,8 @@ export function render({ client, jur, navigate }) {
 
   function buildGrid() {
     const clients = store.state.clients
-      .filter(c => !query || c.name.toLowerCase().includes(query.toLowerCase()))
+      .filter(c => !query || c.name.toLowerCase().includes(query.toLowerCase()) || contactName(c).toLowerCase().includes(query.toLowerCase()))
+      .filter(c => lifeFilter === 'all' || lifecycleOf(c) === lifeFilter || (lifeFilter === 'prospect' && lifecycleOf(c) === 'lead'))
       .slice().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
     const newCard = h('button', { class: 'card', style: { border: '2px dashed var(--border-strong)', background: 'var(--surface-2)', cursor: 'pointer', minHeight: '150px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--brand-500)' }, onClick: newClientModal },
@@ -130,13 +136,18 @@ export function render({ client, jur, navigate }) {
       const cj = getJurisdiction(c.jurisdiction.country, c.jurisdiction.region);
       const nw = netWorthBreakdown(c);
       const isActive = c.id === store.state.activeId;
-      const primary = c.members?.[0];
+      const life = lifecycleOf(c);
+      const lm = LIFECYCLE_META[life] || LIFECYCLE_META.client;
+      const openOpps = (c.opportunities || []).filter(o => ['new', 'contacted', 'meeting', 'proposal'].includes(o.stage)).length;
+      const tags = (c.crm && c.crm.tags) || [];
       return h('div', { class: 'card', style: { position: 'relative', cursor: 'pointer', borderColor: isActive ? 'var(--brand-400)' : 'var(--border)', boxShadow: isActive ? '0 0 0 2px var(--brand-400) inset' : 'var(--shadow-sm)' }, onClick: () => openClient(c.id) },
-        isActive ? h('span', { class: 'chip pos', style: { position: 'absolute', top: '12px', right: '12px' } }, t('Actif', 'Active')) : null,
-        h('div', { class: 'flex center gap-8', style: { marginBottom: '6px' } },
+        h('span', { class: 'chip', style: { position: 'absolute', top: '12px', right: '12px', background: lm.color, color: 'var(--c-black)' } }, lm.label()),
+        h('div', { class: 'flex center gap-8', style: { marginBottom: '6px', paddingRight: '70px' } },
           h('span', { class: 'flag-em' }, cj.flag),
           h('b', { style: { fontFamily: 'var(--font-display)', fontSize: '16px' } }, c.name)),
         h('div', { class: 'tiny muted' }, `${cj.name} · ${cj.regionName} · ${c.members?.length || 1} ${t('membre(s)', 'member(s)')}${c.business ? ' · ' + t('société', 'corp') : ''}`),
+        tags.length ? h('div', { class: 'inline', style: { gap: '5px', marginTop: '7px' } }, ...tags.slice(0, 4).map(tg => h('span', { class: 'chip', style: { fontSize: '10.5px' } }, tg))) : null,
+        openOpps ? h('div', { class: 'tiny', style: { marginTop: '7px', color: 'var(--c-gold)', display: 'flex', alignItems: 'center', gap: '5px' } }, h('span', { html: icon('funnel', 12) }), `${openOpps} ${t('opportunité(s) ouverte(s)', 'open opportunity(ies)')}`) : null,
         h('div', { class: 'flex between', style: { marginTop: '12px' } },
           h('div', {}, h('div', { class: 'tiny muted' }, t('Valeur nette', 'Net worth')), h('b', { class: 'mono' }, money(nw.netWorth, { currency: cj.currency, compact: true }))),
           h('div', { style: { textAlign: 'right' } }, h('div', { class: 'tiny muted' }, t('Modifié', 'Updated')), h('div', { class: 'tiny' }, fmtDate(new Date(c.updatedAt || c.createdAt || Date.now()).toISOString())))),
@@ -155,17 +166,24 @@ export function render({ client, jur, navigate }) {
   buildGrid();
 
   // Header
+  const counts = store.state.clients.reduce((a, c) => { const l = lifecycleOf(c); a[l] = (a[l] || 0) + 1; return a; }, {});
+  const pills = h('div', { class: 'pill-tabs', style: { marginBottom: 0 } },
+    ...[['all', t('Tous', 'All')], ['prospect', LIFECYCLE_META.prospect.label()], ['client', LIFECYCLE_META.client.label()], ['inactive', LIFECYCLE_META.inactive.label()]]
+      .map(([k, label]) => h('a', { href: 'javascript:void 0', class: k === lifeFilter ? 'on' : '',
+        onClick: e => { e.preventDefault(); lifeFilter = k; document.querySelectorAll('.cl-pills a').forEach(x => x.classList.remove('on')); e.target.classList.add('on'); buildGrid(); } }, label)));
+  pills.classList.add('cl-pills');
   const header = card('', { class: 'span-full' },
     h('div', { class: 'flex between center', style: { flexWrap: 'wrap', gap: '12px' } },
       h('div', {},
-        h('h2', { style: { margin: '0 0 2px', fontFamily: 'var(--font-display)' } }, t('Mes clients', 'My clients')),
-        h('div', { class: 'muted tiny' }, t(`${store.state.clients.length} dossier(s) · sauvegarde automatique dans ce navigateur`, `${store.state.clients.length} file(s) · auto-saved in this browser`))),
+        h('h2', { style: { margin: '0 0 2px', fontFamily: 'var(--font-display)' } }, t('Contacts', 'Contacts')),
+        h('div', { class: 'muted tiny' }, t(`${counts.prospect || 0} prospect(s) · ${counts.client || 0} client(s) · sauvegarde automatique`, `${counts.prospect || 0} prospect(s) · ${counts.client || 0} client(s) · auto-saved`))),
       h('div', { class: 'inline' },
-        h('input', { placeholder: t('Rechercher un client…', 'Search a client…'), style: { width: '220px' }, onInput: e => { query = e.target.value; buildGrid(); } }),
+        h('input', { placeholder: t('Rechercher…', 'Search…'), style: { width: '200px' }, onInput: e => { query = e.target.value; buildGrid(); } }),
         h('button', { class: 'btn', html: icon('download', 14) + ' ' + t('Sauvegarde', 'Backup'), onClick: exportAll }),
         h('button', { class: 'btn', html: icon('doc', 14) + ' ' + t('Restaurer', 'Restore'), onClick: importAll }),
-        h('button', { class: 'btn primary', html: icon('plus', 14) + ' ' + t('Nouveau client', 'New client'), onClick: newClientModal }),
-      )));
+        h('button', { class: 'btn primary', html: icon('plus', 14) + ' ' + t('Nouveau contact', 'New contact'), onClick: newClientModal }),
+      )),
+    h('div', { style: { marginTop: '12px' } }, pills));
 
   const tip = card('', { class: 'span-full', style: {} },
     h('div', { class: 'flex center gap-8' },

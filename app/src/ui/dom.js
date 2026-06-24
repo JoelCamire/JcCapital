@@ -117,6 +117,15 @@ const I = {
   timeline: 'M4 4v16M4 8h6M4 14h10M4 20h4M12 8a2 2 0 100-.01M16 14a2 2 0 100-.01M10 20a2 2 0 100-.01',
   briefcase: 'M3 8h18v12H3zM8 8V6a2 2 0 012-2h4a2 2 0 012 2v2M3 13h18',
   users: 'M8 11a3 3 0 100-6 3 3 0 000 6zM2 20c0-3.2 3-5 6-5s6 1.8 6 5M16 5.2a3 3 0 010 5.6M17 15.2c2.4.5 4 2 4 4.8',
+  phone: 'M5 4h4l2 5-3 2a12 12 0 005 5l2-3 5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z',
+  mail: 'M3 6h18v12H3zM3 7l9 6 9-6',
+  message: 'M4 5h16v11H7l-3 3z',
+  file: 'M6 2h8l4 4v16H6zM14 2v4h4',
+  tag: 'M3 11l8-8 10 10-8 8zM7 7h.01',
+  bell: 'M6 8a6 6 0 1112 0c0 7 3 7 3 9H3c0-2 3-2 3-9zM10 21a2 2 0 004 0',
+  dollar: 'M12 2v20M16 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H7',
+  funnel: 'M3 5h18l-7 8v6l-4-2v-4z',
+  calendar: 'M4 5h16v16H4zM4 9h16M8 3v4M16 3v4',
 };
 export function icon(name, size = 18, extra = '') {
   const d = I[name] || I.doc;

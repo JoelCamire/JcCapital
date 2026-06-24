@@ -25,7 +25,8 @@ const { getJurisdiction, COUNTRY_LIST, JURISDICTIONS } = await import('../src/ju
 const M = await import('../src/state/models.js');
 
 // VIEWS list (from harness.mjs)
-const VIEWS = ['clients', 'dashboard', 'healthcheck', 'profile', 'client', 'networth', 'nwtracker', 'cashflow', 'budget', 'debt',
+const VIEWS = ['crmdash', 'clients', 'pipeline', 'tasks', 'activities', 'relation',
+  'dashboard', 'healthcheck', 'profile', 'client', 'networth', 'nwtracker', 'cashflow', 'budget', 'debt',
   'business', 'succession', 'empbenefits', 'flowthrough', 'insurancestrat', 'advstructures', 'equity', 'realestate',
   'rentbuy', 'crypto', 'portfolio', 'feecompare', 'retirement', 'decumulation', 'montecarlo', 'scenarios',
   'strategycompare', 'tax', 'multitax', 'optimize', 'benefits', 'insurance', 'insurancecompare', 'philanthropy',

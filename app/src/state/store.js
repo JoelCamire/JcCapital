@@ -14,6 +14,13 @@ function normalize(c) {
   c.documents = c.documents || [];
   c.contacts = c.contacts || [];
   c.snapshots = c.snapshots || [];
+  // CRM layer (back-fill for clients created before the CRM existed)
+  c.crm = c.crm || { lifecycle: 'client', source: '', referredBy: '', tags: [], rating: '', nextActionDate: '', lastContactAt: null };
+  if (!Array.isArray(c.crm.tags)) c.crm.tags = [];
+  c.opportunities = c.opportunities || [];
+  c.activities = c.activities || [];
+  c.tasks = c.tasks || [];
+  c.products = c.products || [];
   c.updatedAt = c.updatedAt || c.createdAt || Date.now();
   return c;
 }
@@ -55,6 +62,13 @@ export const store = {
   },
   /** Mutate the active client but DON'T re-render (live sliders / typing). */
   quietUpdate(mutator) { mutator(this.activeClient()); persist(); },
+
+  /** Mutate a specific client by id (used by cross-client CRM views). */
+  updateClient(id, mutator) {
+    const c = state.clients.find(x => x.id === id); if (!c) return;
+    mutator(c); c.updatedAt = Date.now();
+    persist(); notify();
+  },
 
   /** Mutate top-level store. */
   set(mutator) { mutator(state); persist(); notify(); },

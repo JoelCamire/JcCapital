@@ -68,6 +68,59 @@ export function newInsurance(over = {}) {
   return { id: uid(), type: 'life', insuredId: null, coverage: 250000, premium: 600, ...over };
 }
 
+// ===================== CRM =====================
+export const todayISO = () => new Date().toISOString().slice(0, 10);
+
+// Pipeline stages for sales opportunities (ordered).
+export const PIPELINE_STAGES = ['new', 'contacted', 'meeting', 'proposal', 'won', 'lost'];
+// Person lifecycle (where the relationship sits).
+export const LIFECYCLES = ['lead', 'prospect', 'client', 'inactive'];
+
+export function defaultCRM(over = {}) {
+  return {
+    lifecycle: 'client',        // lead | prospect | client | inactive
+    source: '',                 // referral | web | event | coi | social | walkin | other
+    referredBy: '',             // name of referrer (or client id)
+    tags: [],                   // free-form labels
+    rating: '',                 // A | B | C — relationship value
+    nextActionDate: '',         // next planned touch
+    lastContactAt: null,        // stamp of most recent activity
+    ...over,
+  };
+}
+export function newOpportunity(over = {}) {
+  return {
+    id: uid(), title: 'Nouvelle opportunité', type: 'investment', // investment | life | disability | ci | mortgage | group | planning | other
+    stage: 'new', value: 0, valueKind: 'aum',  // aum (assets) | premium (annual)
+    probability: 20, expectedClose: '', notes: '',
+    openedAt: Date.now(), closedAt: null, ...over,
+  };
+}
+export function newActivity(over = {}) {
+  return {
+    id: uid(), type: 'note',    // call | email | meeting | note | text | task
+    subject: '', body: '', date: todayISO(), outcome: '',
+    createdAt: Date.now(), ...over,
+  };
+}
+export function newTask(over = {}) {
+  return {
+    id: uid(), title: 'Tâche', due: '', done: false,
+    priority: 'medium',         // low | medium | high
+    category: 'followup',       // followup | review | admin | compliance | call | meeting | prospecting
+    notes: '', createdAt: Date.now(), completedAt: null, ...over,
+  };
+}
+export function newProduct(over = {}) {
+  return {
+    id: uid(), kind: 'life',    // life | disability | ci | health | investment | segfund | mortgage | group | annuity
+    carrier: '', policyNumber: '', status: 'inforce', // pending | inforce | lapsed | cancelled | paid
+    faceAmount: 0, aum: 0, premium: 0, frequency: 'monthly', // monthly | annual | single
+    insuredId: null, issueDate: '', renewalDate: '',
+    firstYearCommission: 0, renewalCommission: 0, notes: '', ...over,
+  };
+}
+
 export function newClient(name = 'Nouveau ménage', country = 'CA', region = 'QC') {
   const m = newMember({ name: 'Titulaire', role: 'primary', currentAge: 40 });
   return {
@@ -86,6 +139,12 @@ export function newClient(name = 'Nouveau ménage', country = 'CA', region = 'QC
     documents: [],
     contacts: [],
     business: null,
+    // ----- CRM layer -----
+    crm: defaultCRM({ lifecycle: 'prospect' }),
+    opportunities: [],
+    activities: [],
+    tasks: [],
+    products: [],
     assumptions: defaultAssumptions(),
   };
 }
@@ -169,7 +228,74 @@ export function seedClients() {
       valuation: { ebitda: 240000, ebitdaMultiple: 5, revenue: 1100000, revenueMultiple: 1.2 },
       sale: { proceeds: 1300000, acb: 100000, owners: 2 },
     }),
+    crm: defaultCRM({ lifecycle: 'client', source: 'referral', referredBy: 'Pierre Gagnon, CPA',
+      tags: ['VIP', 'Entreprise'], rating: 'A', nextActionDate: '2026-07-08', lastContactAt: Date.now() }),
+    opportunities: [
+      newOpportunity({ title: "Assurance invalidité — Julie", type: 'disability', stage: 'proposal',
+        value: 2100, valueKind: 'premium', probability: 70, expectedClose: '2026-07-20',
+        notes: 'Couverture actuelle insuffisante; proposition envoyée.' }),
+      newOpportunity({ title: 'Transfert REER non-géré — Marc', type: 'investment', stage: 'meeting',
+        value: 145000, valueKind: 'aum', probability: 50, expectedClose: '2026-08-15',
+        notes: 'Consolidation des placements non enregistrés.' }),
+    ],
+    activities: [
+      newActivity({ type: 'meeting', subject: 'Revue annuelle', date: '2026-06-10',
+        body: 'Revue complète du portefeuille et des objectifs de retraite.', outcome: 'positive' }),
+      newActivity({ type: 'call', subject: 'Suivi assurance invalidité', date: '2026-06-18',
+        body: 'Discuté du besoin de couverture pour Julie. Proposition à envoyer.' }),
+      newActivity({ type: 'email', subject: 'Documents REER envoyés', date: '2026-06-20' }),
+    ],
+    tasks: [
+      newTask({ title: 'Envoyer la proposition d’invalidité à Julie', due: '2026-06-30', priority: 'high', category: 'followup' }),
+      newTask({ title: 'Préparer la revue de placements de Marc', due: '2026-07-15', priority: 'medium', category: 'review' }),
+      newTask({ title: 'Réviser le testament (post-naissance Noah)', due: '2026-09-01', priority: 'low', category: 'admin' }),
+    ],
+    products: [
+      newProduct({ kind: 'life', carrier: 'Canada Vie', policyNumber: 'CV-8841201', insuredId: a, status: 'inforce',
+        faceAmount: 500000, premium: 720, frequency: 'annual', issueDate: '2019-03-01', renewalDate: '2027-03-01',
+        firstYearCommission: 0, renewalCommission: 360 }),
+      newProduct({ kind: 'life', carrier: 'Canada Vie', policyNumber: 'CV-8841202', insuredId: b, status: 'inforce',
+        faceAmount: 350000, premium: 540, frequency: 'annual', issueDate: '2019-03-01', renewalDate: '2027-03-01',
+        firstYearCommission: 0, renewalCommission: 270 }),
+      newProduct({ kind: 'disability', carrier: 'RBC Assurances', policyNumber: 'RBC-DI-55092', insuredId: a, status: 'inforce',
+        faceAmount: 72000, premium: 1850, frequency: 'annual', issueDate: '2020-07-15', renewalDate: '2026-11-01',
+        firstYearCommission: 0, renewalCommission: 925 }),
+      newProduct({ kind: 'investment', carrier: 'Mackenzie', policyNumber: 'MK-RRSP-Marc', insuredId: a, status: 'inforce',
+        aum: 285000, premium: 0, issueDate: '2015-01-10', renewalDate: '',
+        firstYearCommission: 0, renewalCommission: 2850 }),
+    ],
     assumptions: defaultAssumptions(),
   };
-  return [joel];
+
+  // ----- A prospect in the pipeline (entrepreneur referral) -----
+  const p = uid();
+  const prospect = {
+    id: uid(), name: 'Geneviève Côté (Boulangerie Côté inc.)', createdAt: Date.now(), updatedAt: Date.now(),
+    jurisdiction: { country: 'CA', region: 'QC' }, filingStatus: 'single', riskProfile: 'balanced',
+    household: { address: '', city: 'Lévis', region: 'QC', postal: '', country: 'CA',
+      maritalStatus: 'single', reviewDate: '', advisorNotes: 'Propriétaire d’une PME, référée par Marc Tremblay. Besoin : assurance personne clé + convention de rachat.' },
+    members: [newMember({ id: p, name: 'Geneviève Côté', role: 'primary', currentAge: 47,
+      dob: '1979-02-14', gender: 'F', email: 'gcote@boulangeriecote.ca', phone: '418-555-0220',
+      employer: 'Boulangerie Côté inc.', occupation: 'Présidente', employmentStatus: 'business' })],
+    dependents: [], incomes: [newIncome({ memberId: p, label: 'Revenu', amount: 160000 })],
+    expenses: [], assets: [], liabilities: [], goals: [], insurance: [],
+    beneficiaries: [], documents: [], contacts: [], business: null,
+    crm: defaultCRM({ lifecycle: 'prospect', source: 'referral', referredBy: 'Marc Tremblay',
+      tags: ['Entreprise', 'Personne clé'], rating: 'A', nextActionDate: '2026-06-27' }),
+    opportunities: [
+      newOpportunity({ title: 'Assurance personne clé', type: 'life', stage: 'contacted',
+        value: 6500, valueKind: 'premium', probability: 40, expectedClose: '2026-09-30',
+        notes: 'Première rencontre à planifier.' }),
+    ],
+    activities: [
+      newActivity({ type: 'call', subject: 'Premier contact', date: '2026-06-22',
+        body: 'Référée par Marc Tremblay. Intéressée par assurance personne clé et convention de rachat.' }),
+    ],
+    tasks: [
+      newTask({ title: 'Planifier la rencontre de découverte', due: '2026-06-27', priority: 'high', category: 'meeting' }),
+    ],
+    products: [],
+    assumptions: defaultAssumptions(),
+  };
+  return [joel, prospect];
 }

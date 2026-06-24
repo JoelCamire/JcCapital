@@ -25,6 +25,12 @@ Aucune étape de compilation. C'est une application web statique en modules ES.
 
 | Module | Description |
 |--------|-------------|
+| **Tableau CRM** | Centre de commande : pipeline pondéré, entonnoir de conversion, tâches dues, rappels (anniversaires/revues/renouvellements), AUM et commissions récurrentes, fil d’activité récente |
+| **Contacts** | Galerie de tous les contacts (prospects + clients) : badges de cycle de vie, filtres prospect/client, étiquettes, source, opportunités ouvertes — créer/ouvrir/renommer/dupliquer/supprimer, recherche, sauvegarde/restauration (JSON) |
+| **Pipeline** | Tableau Kanban des opportunités par étape (nouveau → contacté → rencontre → proposition → gagné/perdu), valeur pondérée, taux de conversion, ajout rapide |
+| **Tâches & rappels** | Tâches du book regroupées par urgence (en retard / aujourd’hui / cette semaine / à venir), rappels sur 60 jours, ajout et suivi |
+| **Activités** | Journal chronologique de tous les contacts (appels, courriels, rencontres, notes), filtres et saisie rapide |
+| **Relation client** | Onglet CRM par fiche : coordonnées, cycle de vie, source, étiquettes, opportunités, produits/polices, tâches, historique, **modèles de courriel** (mailto) et **ajout à l’agenda** (Google / .ics) |
 | **Mes clients** | Page d’accueil : galerie de tous les dossiers — créer/ouvrir/renommer/dupliquer/supprimer un client, recherche, sauvegarde et restauration (JSON) |
 | **Tableau de bord** | KPIs, projection de valeur nette, jauge de préparation, recommandations automatiques |
 | **Bilan de santé financière** | Revue automatisée de tout le dossier : pointage par domaine (retraite, fiscalité, protection, succession, dettes, entreprise), cote globale A–E et **plan d'action priorisé** |
