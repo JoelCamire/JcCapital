@@ -222,3 +222,104 @@ export function lastTouch(c) {
   for (const a of (c.activities || [])) if (!best || (a.date || '') > best) best = a.date || '';
   return best;
 }
+
+// ---------- Revenue report ----------
+export function revenueReport(clients) {
+  const byKind = {}, byCarrier = {};
+  const byMonth = Array.from({ length: 12 }, (_, i) => ({ month: i + 1, recurring: 0 }));
+  let recurring = 0, annualPremium = 0, aum = 0, faceTotal = 0;
+  let wonPremiumYTD = 0, wonAumYTD = 0, wonCountYTD = 0;
+  const yr = new Date().getFullYear();
+  for (const c of clients || []) {
+    for (const p of (c.products || [])) {
+      if (p.status === 'lapsed' || p.status === 'cancelled') continue;
+      const k = p.kind || 'other';
+      byKind[k] = byKind[k] || { kind: k, label: (PRODUCT_KIND_META[k] || { label: () => k }).label(), aum: 0, annualPremium: 0, recurring: 0, faceTotal: 0, count: 0 };
+      const prem = annualizePremium(p), rec = fin(p.renewalCommission, 0);
+      byKind[k].aum += fin(p.aum, 0); byKind[k].annualPremium += prem; byKind[k].recurring += rec; byKind[k].faceTotal += fin(p.faceAmount, 0); byKind[k].count++;
+      const carr = p.carrier || t('Autre', 'Other');
+      byCarrier[carr] = byCarrier[carr] || { carrier: carr, recurring: 0, annualPremium: 0, aum: 0, count: 0 };
+      byCarrier[carr].recurring += rec; byCarrier[carr].annualPremium += prem; byCarrier[carr].aum += fin(p.aum, 0); byCarrier[carr].count++;
+      recurring += rec; annualPremium += prem; aum += fin(p.aum, 0); faceTotal += fin(p.faceAmount, 0);
+      const rd = parseDate(p.renewalDate); if (rd) byMonth[rd.getMonth()].recurring += rec;
+    }
+    for (const o of (c.opportunities || [])) {
+      if (o.stage === 'won' && o.closedAt) {
+        const d = new Date(o.closedAt);
+        if (d.getFullYear() === yr) { wonCountYTD++; if (o.valueKind === 'premium') wonPremiumYTD += fin(o.value, 0); else wonAumYTD += fin(o.value, 0); }
+      }
+    }
+  }
+  return {
+    byKind: Object.values(byKind).sort((a, b) => b.recurring - a.recurring),
+    byCarrier: Object.values(byCarrier).sort((a, b) => b.recurring - a.recurring),
+    byMonth, recurring, annualPremium, aum, faceTotal, wonPremiumYTD, wonAumYTD, wonCountYTD,
+  };
+}
+
+// ---------- Referral network ----------
+function clientValue(c) {
+  let v = 0;
+  for (const p of (c.products || [])) if (p.status !== 'lapsed' && p.status !== 'cancelled') v += fin(p.renewalCommission, 0);
+  return v;
+}
+export function referralNetwork(clients) {
+  const byRef = {}, bySource = {};
+  for (const c of clients || []) {
+    const ref = ((c.crm && c.crm.referredBy) || '').trim();
+    const val = clientValue(c);
+    if (ref) {
+      byRef[ref] = byRef[ref] || { name: ref, referred: [], count: 0, value: 0 };
+      byRef[ref].referred.push({ id: c.id, name: c.name, value: val });
+      byRef[ref].count++; byRef[ref].value += val;
+    }
+    const src = (c.crm && c.crm.source) || '';
+    if (src) {
+      const lbl = (SOURCE_OPTIONS.find(s => s[0] === src) || [src, () => src])[1]();
+      bySource[src] = bySource[src] || { source: src, label: lbl, count: 0, value: 0 };
+      bySource[src].count++; bySource[src].value += val;
+    }
+  }
+  return {
+    referrers: Object.values(byRef).sort((a, b) => b.value - a.value || b.count - a.count),
+    bySource: Object.values(bySource).sort((a, b) => b.count - a.count),
+  };
+}
+
+// ---------- Dynamic segments ----------
+export function buildSegments(clients) {
+  const month = new Date().getMonth();
+  const hasWill = (c) => (c.documents || []).some(d => d.type === 'will' && d.status === 'done');
+  const emailOf = (c) => { const m = primaryMember(c); return m.email ? [m.email] : []; };
+  const defs = [
+    { key: 'reviewdue', label: () => t('Revue à planifier', 'Review due'), desc: () => t('Revue dans 90 j ou en retard', 'Review within 90d or overdue'),
+      pred: c => { const d = daysUntil(c.household && c.household.reviewDate); return d != null && d <= 90; } },
+    { key: 'prospects', label: () => t('Prospects à convertir', 'Prospects to convert'), desc: () => t('Cycle de vie prospect ou piste', 'Lifecycle prospect or lead'),
+      pred: c => ['prospect', 'lead'].includes(lifecycleOf(c)) },
+    { key: 'proposal', label: () => t('Proposition en cours', 'Open proposal'), desc: () => t('Opportunité à l’étape proposition', 'Opportunity at proposal stage'),
+      pred: c => (c.opportunities || []).some(o => o.stage === 'proposal') },
+    { key: 'birthday', label: () => t('Anniversaire ce mois', 'Birthday this month'), desc: () => t('Un membre fête son anniversaire', 'A member has a birthday'),
+      pred: c => (c.members || []).some(m => { const d = parseDate(m.dob); return d && d.getMonth() === month; }) },
+    { key: 'nowill', label: () => t('Sans testament', 'No will'), desc: () => t('Aucun testament signé au dossier', 'No signed will on file'),
+      pred: c => !hasWill(c) },
+    { key: 'stale', label: () => t('Clients sans contact (1 an)', 'Clients out of touch (1y)'), desc: () => t('Aucun contact depuis 12 mois', 'No touch in 12 months'),
+      pred: c => { if (lifecycleOf(c) !== 'client') return false; const lt = lastTouch(c); if (!lt) return true; const d = daysUntil(lt); return d != null && d <= -365; } },
+    { key: 'lapsed', label: () => t('Polices déchues', 'Lapsed policies'), desc: () => t('Produit déchu ou annulé', 'Lapsed or cancelled product'),
+      pred: c => (c.products || []).some(p => p.status === 'lapsed' || p.status === 'cancelled') },
+  ];
+  return defs.map(d => { const list = (clients || []).filter(d.pred); return { key: d.key, label: d.label(), desc: d.desc(), clients: list, emails: [...new Set(list.flatMap(emailOf))] }; });
+}
+
+// ---------- Per-client merged timeline ----------
+export function clientTimeline(c) {
+  const ev = [];
+  for (const a of (c.activities || [])) ev.push({ date: a.date, kind: 'activity', sub: a.type, title: a.subject || (ACTIVITY_META[a.type] || ACTIVITY_META.note).label(), detail: a.body || '' });
+  for (const tk of (c.tasks || [])) ev.push({ date: tk.due || (tk.createdAt ? new Date(tk.createdAt).toISOString().slice(0, 10) : ''), kind: 'task', sub: tk.done ? 'done' : 'open', title: tk.title, detail: tk.done ? t('Terminée', 'Completed') : t('À faire', 'To do') });
+  for (const o of (c.opportunities || [])) {
+    const od = o.openedAt ? new Date(o.openedAt).toISOString().slice(0, 10) : (o.expectedClose || '');
+    ev.push({ date: od, kind: 'opportunity', sub: o.stage, title: o.title, detail: (STAGE_META[o.stage] || {}).label?.() || o.stage });
+  }
+  for (const p of (c.products || [])) if (p.issueDate) ev.push({ date: p.issueDate, kind: 'product', sub: p.kind, title: `${(PRODUCT_KIND_META[p.kind] || { label: () => p.kind }).label()} — ${p.carrier || ''}`, detail: p.policyNumber || '' });
+  return ev.filter(e => e.date).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+}
+
