@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Joël Camiré – JC Capital (maquette)</title>
+    <meta name="description"
+        content="Faites connaissance avec Joël Camiré, conseiller en sécurité financière passionné, fondateur de JC Capital." />
+    <link rel="icon" type="image/png" href="../img/2nd_logo.png">
+
+    <!-- ====== NOUVELLES POLICES (design.md) ====== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700;800;900&family=Nunito+Sans:wght@300;400;600;700;900&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <style>
+        /* =========================================================
+           MAQUETTE — Système de design « jeune & passionné »
+           Tokens dérivés de design.md (référence : thème Swirl).
+           Tout est intégré ici : c'est une maquette autonome.
+           ========================================================= */
+        :root {
+            --brand: #057485;
+            --brand-light: #4f9da6;
+            --brand-dark: #04606e;
+            --accent: #ff715b;
+            --accent-dark: #f15a43;
+            --accent-soft: #ffb703;
+            --ink: #191919;
+            --muted: #5b6470;
+            --heading: #222e41;
+            --bg: #ffffff;
+            --bg-alt: #f7f7f5;
+            --ink-dark: #1a0841;
+            --font-head: 'League Spartan', sans-serif;
+            --font-body: 'Nunito Sans', sans-serif;
+            --radius-sm: 8px;
+            --radius: 16px;
+            --radius-pill: 999px;
+            --shadow-soft: 0 12px 30px rgba(34, 46, 65, .08);
+            --shadow-lift: 0 22px 50px rgba(34, 46, 65, .14);
+            --t: .25s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--ink);
+            background: var(--bg);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, .eyebrow {
+            font-family: var(--font-head);
+            color: var(--heading);
+            line-height: 1.12;
+            letter-spacing: .01em;
+        }
+
+        a {
+            color: var(--brand);
+            text-decoration: none;
+        }
+
+        img {
+            display: block;
+            max-width: 100%;
+        }
+
+        .wrap {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            font-size: .8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            color: var(--brand);
+            margin-bottom: 1rem;
+        }
+
+        /* ---------- Boutons ---------- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .55rem;
+            font-family: var(--font-head);
+            font-weight: 700;
+            font-size: .95rem;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            padding: .85rem 1.6rem;
+            border-radius: var(--radius-pill);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: var(--t);
+            min-height: 48px;
+        }
+
+        .btn-primary {
+            background: var(--brand);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--brand-dark);
+            transform: translateY(-2px);
+            color: #fff;
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-accent:hover {
+            background: var(--accent-dark);
+            transform: translateY(-2px);
+            color: #fff;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--brand);
+            border-color: var(--brand);
+        }
+
+        .btn-outline:hover {
+            background: var(--brand);
+            color: #fff;
+        }
+
+        /* =========================================================
+           HEADER (intégré)
+           ========================================================= */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, .92);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #eceae6;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 74px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            font-family: var(--font-head);
+            font-weight: 900;
+            font-size: 1.35rem;
+            color: var(--heading);
+            letter-spacing: .02em;
+        }
+
+        .nav-logo span {
+            color: var(--brand);
+        }
+
+        .nav-logo img {
+            height: 38px;
+            width: auto;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.8rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-family: var(--font-head);
+            font-weight: 600;
+            font-size: .92rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: var(--heading);
+            transition: var(--t);
+        }
+
+        .nav-links a:hover {
+            color: var(--brand);
+        }
+
+        .nav-cta {
+            background: var(--accent);
+            color: #fff !important;
+            padding: .55rem 1.2rem;
+            border-radius: var(--radius-pill);
+        }
+
+        .nav-cta:hover {
+            background: var(--accent-dark);
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: 0;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 26px;
+            height: 3px;
+            background: var(--heading);
+            border-radius: 2px;
+        }
+
+        /* =========================================================
+           HERO — focus sur LA personne
+           ========================================================= */
+        .hero {
+            background: var(--bg-alt);
+            padding: clamp(3rem, 8vw, 6rem) 0 0;
+            overflow: hidden;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.1fr .9fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.4rem, 6vw, 4.2rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 1.1rem;
+        }
+
+        .hero h1 .hl {
+            color: var(--brand);
+            position: relative;
+        }
+
+        .hero p.lead {
+            font-size: clamp(1.05rem, 2.3vw, 1.25rem);
+            color: var(--muted);
+            max-width: 30rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-photo {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        .hero-photo .blob {
+            position: absolute;
+            inset: auto;
+            width: 105%;
+            aspect-ratio: 1;
+            background: radial-gradient(circle at 30% 30%, var(--brand-light), var(--brand));
+            border-radius: 42% 58% 56% 44% / 48% 42% 58% 52%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -46%);
+            z-index: 0;
+        }
+
+        .hero-photo .dot-accent {
+            position: absolute;
+            top: 8%;
+            right: 6%;
+            width: 88px;
+            height: 88px;
+            background:
+                radial-gradient(circle, var(--accent) 28%, transparent 30%) 0 0 / 18px 18px;
+            opacity: .55;
+            z-index: 0;
+        }
+
+        .hero-photo img {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 360px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lift);
+        }
+
+        .hero-badge {
+            position: absolute;
+            z-index: 2;
+            bottom: 1.4rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            border-radius: var(--radius-pill);
+            padding: .55rem 1.1rem;
+            box-shadow: var(--shadow-soft);
+            font-family: var(--font-head);
+            font-weight: 700;
+            font-size: .85rem;
+            color: var(--heading);
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            white-space: nowrap;
+        }
+
+        .hero-badge i {
+            color: var(--accent);
+        }
+
+        /* ---------- Vague de séparation (signature Swirl) ---------- */
+        .wave {
+            display: block;
+            width: 100%;
+            height: 70px;
+            margin-top: 2.5rem;
+        }
+
+        .wave path {
+            fill: var(--bg);
+        }
+
+        .wave--alt path {
+            fill: var(--bg-alt);
+        }
+
+        /* =========================================================
+           SECTION HISTOIRE / PASSION
+           ========================================================= */
+        section {
+            padding: clamp(3rem, 7vw, 5.5rem) 0;
+        }
+
+        .section-head {
+            max-width: 42rem;
+            margin: 0 auto 3rem;
+            text-align: center;
+        }
+
+        .section-head h2 {
+            font-size: clamp(1.8rem, 4.5vw, 2.7rem);
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: .8rem;
+        }
+
+        .section-head p {
+            color: var(--muted);
+        }
+
+        .story {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .story h2 {
+            font-size: clamp(1.7rem, 4vw, 2.4rem);
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 1.2rem;
+        }
+
+        .story p + p {
+            margin-top: 1rem;
+        }
+
+        .story .quote {
+            border-left: 4px solid var(--accent);
+            padding-left: 1.1rem;
+            margin-top: 1.5rem;
+            font-style: italic;
+            color: var(--heading);
+            font-size: 1.15rem;
+        }
+
+        .story-visual {
+            background: var(--bg-alt);
+            border-radius: var(--radius);
+            padding: 2rem;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .stat {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 1.4rem;
+            box-shadow: var(--shadow-soft);
+            transition: var(--t);
+        }
+
+        .stat:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lift);
+        }
+
+        .stat .num {
+            font-family: var(--font-head);
+            font-weight: 900;
+            font-size: 2rem;
+            color: var(--brand);
+            line-height: 1;
+        }
+
+        .stat .num.accent {
+            color: var(--accent);
+        }
+
+        .stat .lbl {
+            font-size: .85rem;
+            color: var(--muted);
+            margin-top: .4rem;
+        }
+
+        /* =========================================================
+           SPÉCIALITÉS (cartes)
+           ========================================================= */
+        .alt-bg {
+            background: var(--bg-alt);
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 2rem 1.6rem;
+            box-shadow: var(--shadow-soft);
+            transition: var(--t);
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lift);
+        }
+
+        .card .ico {
+            width: 58px;
+            height: 58px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: #fff;
+            background: var(--brand);
+            margin-bottom: 1.2rem;
+        }
+
+        .card:nth-child(2) .ico {
+            background: var(--accent);
+        }
+
+        .card:nth-child(3) .ico {
+            background: var(--accent-soft);
+            color: var(--heading);
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: .5rem;
+        }
+
+        .card p {
+            color: var(--muted);
+            font-size: .95rem;
+        }
+
+        /* ---------- Bandeau crédits ---------- */
+        .creds {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2.5rem;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e7e5e0;
+        }
+
+        .cred {
+            text-align: center;
+        }
+
+        .cred .v {
+            font-family: var(--font-head);
+            font-weight: 800;
+            color: var(--heading);
+            font-size: 1.05rem;
+        }
+
+        .cred .k {
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--muted);
+        }
+
+        /* =========================================================
+           CTA TEAL
+           ========================================================= */
+        .cta {
+            background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+            color: #fff;
+            text-align: center;
+        }
+
+        .cta h2 {
+            color: #fff;
+            font-size: clamp(1.8rem, 4.5vw, 2.8rem);
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: .8rem;
+        }
+
+        .cta p {
+            max-width: 34rem;
+            margin: 0 auto 2rem;
+            opacity: .92;
+        }
+
+        /* =========================================================
+           FOOTER (intégré)
+           ========================================================= */
+        .site-footer {
+            background: var(--ink-dark);
+            color: #cfd2dd;
+            padding: 3.5rem 0 1.5rem;
+        }
+
+        .footer-top {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.4fr;
+            gap: 2rem;
+        }
+
+        .site-footer h4 {
+            font-family: var(--font-head);
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            font-size: .95rem;
+            margin-bottom: 1rem;
+        }
+
+        .site-footer ul {
+            list-style: none;
+        }
+
+        .site-footer li {
+            margin-bottom: .55rem;
+        }
+
+        .site-footer a {
+            color: #cfd2dd;
+            font-size: .92rem;
+            transition: var(--t);
+        }
+
+        .site-footer a:hover {
+            color: var(--accent-soft);
+        }
+
+        .footer-brand .flogo {
+            font-family: var(--font-head);
+            font-weight: 900;
+            font-size: 1.4rem;
+            color: #fff;
+            margin-bottom: .8rem;
+        }
+
+        .footer-brand .flogo span {
+            color: var(--brand-light);
+        }
+
+        .footer-brand p {
+            font-size: .92rem;
+            max-width: 22rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .fsocial {
+            display: flex;
+            gap: .7rem;
+        }
+
+        .fsocial a {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, .08);
+            color: #fff;
+        }
+
+        .fsocial a:hover {
+            background: var(--accent);
+        }
+
+        .footer-bottom {
+            margin-top: 2.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, .1);
+            font-size: .82rem;
+            color: #9aa0b3;
+            text-align: center;
+        }
+
+        /* =========================================================
+           RESPONSIVE
+           ========================================================= */
+        @media (max-width: 900px) {
+            .hero-grid,
+            .story {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-photo {
+                order: -1;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-top {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .footer-top {
+                grid-template-columns: 1fr;
+            }
+
+            .creds {
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===================== HEADER ===================== -->
+    <header class="site-header">
+        <div class="wrap nav">
+            <a href="#" class="nav-logo">
+                <img src="../img/2nd_logo.png" alt="JC Capital" onerror="this.style.display='none'">
+                JC<span>Capital</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#histoire">Mon histoire</a></li>
+                <li><a href="#specialites">Ce que je fais</a></li>
+                <li><a href="#valeurs">Mes valeurs</a></li>
+                <li><a href="#cta" class="nav-cta">Prendre un café</a></li>
+            </ul>
+            <button class="hamburger" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ===================== HERO ===================== -->
+    <section class="hero">
+        <div class="wrap hero-grid">
+            <div class="hero-text">
+                <span class="eyebrow">Faites connaissance</span>
+                <h1>Salut, moi c'est <span class="hl">Joël.</span></h1>
+                <p class="lead">
+                    Jeune conseiller en sécurité financière, passionné par l'idée de rendre les
+                    finances <strong>claires, humaines et accessibles</strong>. Pas de jargon, pas
+                    de cravate étouffante — juste des stratégies qui te ressemblent.
+                </p>
+                <div class="hero-actions">
+                    <a href="#cta" class="btn btn-accent"><i class="fas fa-mug-hot"></i> Jasons de tes projets</a>
+                    <a href="#histoire" class="btn btn-outline">Mon histoire</a>
+                </div>
+            </div>
+            <div class="hero-photo">
+                <span class="blob" aria-hidden="true"></span>
+                <span class="dot-accent" aria-hidden="true"></span>
+                <img src="../img/joel.jpg" alt="Joël Camiré"
+                    onerror="this.src='https://placehold.co/360x440/057485/ffffff?text=Joël'">
+                <div class="hero-badge"><i class="fas fa-shield-halved"></i> Inscrit à l'AMF · Québec</div>
+            </div>
+        </div>
+        <svg class="wave" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,35 C320,75 760,-5 1080,30 C1260,50 1380,40 1440,32 L1440,70 L0,70 Z"></path>
+        </svg>
+    </section>
+
+    <!-- ===================== HISTOIRE / PASSION ===================== -->
+    <section id="histoire">
+        <div class="wrap story">
+            <div class="story-text">
+                <span class="eyebrow">Mon parcours</span>
+                <h2>La passion d'abord, les chiffres ensuite</h2>
+                <p>
+                    J'ai fondé JC Capital pour une raison simple : trop de gens de ma génération
+                    pensent que la planification financière, « ce n'est pas pour eux ». Je suis
+                    là pour casser cette idée.
+                </p>
+                <p>
+                    Je mets autant d'énergie à comprendre <em>tes</em> objectifs qu'à bâtir la
+                    stratégie qui va avec — fiscalité, épargne, protection. Ce qui me motive, ce
+                    n'est pas la taille du portefeuille : c'est l'élan que ça donne à ta vie.
+                </p>
+                <p class="quote">
+                    « Mon job, c'est de transformer un sujet intimidant en quelque chose
+                    que tu as hâte de prendre en main. »
+                </p>
+            </div>
+            <div class="story-visual">
+                <div class="stat-grid">
+                    <div class="stat">
+                        <div class="num">100%</div>
+                        <div class="lbl">Dévoué à toi, pas à un quota</div>
+                    </div>
+                    <div class="stat">
+                        <div class="num accent">0</div>
+                        <div class="lbl">Jargon inutile</div>
+                    </div>
+                    <div class="stat">
+                        <div class="num">AMF</div>
+                        <div class="lbl">Conseiller inscrit &amp; certifié</div>
+                    </div>
+                    <div class="stat">
+                        <div class="num accent">∞</div>
+                        <div class="lbl">Café pour parler de tes projets</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <svg class="wave wave--alt" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,38 C360,0 1080,80 1440,35 L1440,70 L0,70 Z"></path>
+        </svg>
+    </section>
+
+    <!-- ===================== SPÉCIALITÉS ===================== -->
+    <section id="specialites" class="alt-bg">
+        <div class="wrap">
+            <div class="section-head">
+                <span class="eyebrow">Ce que je fais</span>
+                <h2>Des stratégies, pas des produits</h2>
+                <p>On part de ta réalité et on bâtit un plan concret, à ton rythme.</p>
+            </div>
+            <div class="cards">
+                <div class="card">
+                    <div class="ico"><i class="fas fa-seedling"></i></div>
+                    <h3>Épargne &amp; placement</h3>
+                    <p>REER, CELI, CELIAPP… on choisit les bons outils et on les fait travailler pour toi.</p>
+                </div>
+                <div class="card">
+                    <div class="ico"><i class="fas fa-calculator"></i></div>
+                    <h3>Optimisation fiscale</h3>
+                    <p>Garder plus de ce que tu gagnes : stratégies fiscales pour particuliers et entrepreneurs.</p>
+                </div>
+                <div class="card">
+                    <div class="ico"><i class="fas fa-umbrella"></i></div>
+                    <h3>Protection &amp; assurance</h3>
+                    <p>La tranquillité d'esprit pour toi et tes proches, sans payer pour ce dont tu n'as pas besoin.</p>
+                </div>
+            </div>
+
+            <div id="valeurs" class="creds">
+                <div class="cred">
+                    <div class="v">Joël Camiré</div>
+                    <div class="k">Fondateur</div>
+                </div>
+                <div class="cred">
+                    <div class="v">SFL Gestion de patrimoine</div>
+                    <div class="k">Partenaire</div>
+                </div>
+                <div class="cred">
+                    <div class="v">AMF · CSI</div>
+                    <div class="k">Inscriptions</div>
+                </div>
+                <div class="cred">
+                    <div class="v">Québec, QC</div>
+                    <div class="k">Région</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== CTA ===================== -->
+    <section id="cta" class="cta">
+        <div class="wrap">
+            <span class="eyebrow" style="color:#bfe6ec">On se parle ?</span>
+            <h2>Le premier café est pour moi</h2>
+            <p>Un appel sans pression, juste pour voir si on est sur la même longueur d'onde.
+                Tu repars avec au moins une idée concrète — promis.</p>
+            <div class="hero-actions" style="justify-content:center">
+                <a href="tel:+15813986747" class="btn btn-accent"><i class="fas fa-phone"></i> (581) 398-6747</a>
+                <a href="mailto:joelcamire@jccapital.ca" class="btn"
+                    style="background:#fff;color:var(--brand)"><i class="fas fa-envelope"></i> M'écrire</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== FOOTER ===================== -->
+    <footer class="site-footer">
+        <div class="wrap footer-top">
+            <div class="footer-brand">
+                <div class="flogo">JC<span>Capital</span></div>
+                <p>Stratégies financières et fiscales pour structurer, protéger et faire croître
+                    ton patrimoine — avec une approche jeune et humaine.</p>
+                <div class="fsocial">
+                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                </div>
+            </div>
+            <div>
+                <h4>Navigation</h4>
+                <ul>
+                    <li><a href="#histoire">Mon histoire</a></li>
+                    <li><a href="#specialites">Ce que je fais</a></li>
+                    <li><a href="#valeurs">Mes valeurs</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Outils</h4>
+                <ul>
+                    <li><a href="#">Intérêts composés</a></li>
+                    <li><a href="#">Économies fiscales</a></li>
+                    <li><a href="#">Bilan de protection</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <ul>
+                    <li><a href="tel:+15813986747"><i class="fas fa-phone"></i> (581) 398-6747</a></li>
+                    <li><a href="mailto:joelcamire@jccapital.ca"><i class="fas fa-envelope"></i> joelcamire@jccapital.ca</a></li>
+                    <li><a href="#"><i class="fas fa-map-marker-alt"></i> Québec, QC</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="wrap footer-bottom">
+            © 2026 JC Capital — maquette de design. Inscrit auprès de l'AMF, en partenariat avec SFL Gestion de patrimoine.
+        </div>
+    </footer>
+
+</body>
+
+</html>

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Logo JC Capital — atelier couleurs</title>
+    <link rel="icon" type="image/png" href="../img/2nd_logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700;800;900&family=Nunito+Sans:wght@300;400;600;700;900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --brand: #057485;
+            --brand-light: #4f9da6;
+            --accent: #ff715b;
+            --accent-soft: #ffb703;
+            --ink: #191919;
+            --muted: #6a7280;
+            --heading: #222e41;
+            --bg-alt: #f7f7f5;
+            --indigo: #1a0841;
+            --font-head: 'League Spartan', sans-serif;
+            --font-body: 'Nunito Sans', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--ink);
+            background: #eef0f2;
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        h1 {
+            font-family: var(--font-head);
+            font-weight: 900;
+            text-transform: uppercase;
+            color: var(--heading);
+            font-size: 1.8rem;
+            margin-bottom: .3rem;
+        }
+
+        .sub { color: var(--muted); margin-bottom: 1.6rem; }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 1.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(34, 46, 65, .08);
+            padding: 1.4rem;
+        }
+
+        /* ----- Aperçu ----- */
+        .stage {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 340px;
+            border-radius: 12px;
+            transition: background .25s ease;
+            padding: 2rem;
+            background: #f7f7f5;
+        }
+
+        .stage svg {
+            width: 100%;
+            max-width: 460px;
+            height: auto;
+        }
+
+        .bg-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+            margin-top: 1rem;
+        }
+
+        .bg-swatch {
+            width: 34px; height: 34px;
+            border-radius: 8px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px #d7dade;
+            cursor: pointer;
+        }
+        .bg-swatch.active { box-shadow: 0 0 0 2px var(--heading); }
+
+        /* ----- Contrôles ----- */
+        .panel h2 {
+            font-family: var(--font-head);
+            font-size: .85rem;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--muted);
+            margin: 1rem 0 .6rem;
+        }
+        .panel h2:first-child { margin-top: 0; }
+
+        .ctrl {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            align-items: center;
+            gap: .7rem;
+            padding: .45rem 0;
+            border-bottom: 1px solid #f0f1f3;
+        }
+
+        .ctrl label.name {
+            font-weight: 600;
+            font-size: .95rem;
+            color: var(--heading);
+        }
+
+        .ctrl input[type=color] {
+            width: 40px; height: 28px;
+            border: 1px solid #d7dade;
+            border-radius: 6px;
+            background: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            font-size: .8rem;
+            color: var(--muted);
+            cursor: pointer;
+            user-select: none;
+        }
+        .toggle input { accent-color: var(--brand); }
+
+        .presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+            margin-bottom: .4rem;
+        }
+
+        .btn {
+            font-family: var(--font-head);
+            font-weight: 700;
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            padding: .5rem .9rem;
+            border-radius: 999px;
+            border: 2px solid var(--brand);
+            background: #fff;
+            color: var(--brand);
+            cursor: pointer;
+            transition: .2s;
+        }
+        .btn:hover { background: var(--brand); color: #fff; }
+        .btn.alt { border-color: var(--muted); color: var(--muted); }
+        .btn.alt:hover { background: var(--muted); color: #fff; }
+
+        .export {
+            margin-top: 1rem;
+        }
+        .export textarea {
+            width: 100%;
+            min-height: 120px;
+            font-family: ui-monospace, Menlo, Consolas, monospace;
+            font-size: .8rem;
+            border: 1px solid #d7dade;
+            border-radius: 8px;
+            padding: .7rem;
+            resize: vertical;
+            color: var(--ink);
+        }
+
+        @media (max-width: 860px) {
+            .layout { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <div>
+            <h1>Atelier couleurs — logo JC</h1>
+            <p class="sub">Chaque élément du SVG est colorable et masquable indépendamment.
+                Teste un fond, applique un thème, puis copie le CSS généré.</p>
+
+            <div class="card">
+                <div id="stage" class="stage">
+                    <!-- le SVG est injecté ici par fetch (source unique : le .svg) -->
+                    <p id="loading" style="color:var(--muted)">Chargement du logo…</p>
+                </div>
+
+                <div>
+                    <h2 style="font-family:var(--font-head);font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:1rem 0 .4rem">Fond d'aperçu</h2>
+                    <div id="bgRow" class="bg-row"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card panel">
+            <h2>Thèmes rapides (contextes du site)</h2>
+            <div class="presets" id="presets"></div>
+
+            <h2>Éléments</h2>
+            <div id="controls"></div>
+
+            <div style="display:flex;gap:.5rem;margin-top:1rem">
+                <button class="btn alt" id="showAll">Tout afficher</button>
+                <button class="btn alt" id="copyCss">Copier le CSS</button>
+            </div>
+
+            <div class="export">
+                <textarea id="cssOut" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var SVG_URL = '../img/LogoJcCompletClean.svg';
+        var stage = document.getElementById('stage');
+        var svg = null;
+
+        // Groupes colorables : libellé + ids ciblés (+ sélecteur extra pour les sans-id)
+        var GROUPS = [
+            { key: 'bigJ',      label: 'Monogramme J',        ids: ['bigJ'],  color: '#ffffff' },
+            { key: 'bigC',      label: 'Monogramme C',        ids: ['bigC'],  color: '#ffffff' },
+            { key: 'Square',    label: 'Cadre carré',         ids: ['Square'],color: '#ffffff' },
+            { key: 'Barre1',    label: 'Barre 1 (courte)',    ids: ['Barre1'],color: '#22333b' },
+            { key: 'Barre2',    label: 'Barre 2 (moyenne)',   ids: ['Barre2'],color: '#c6ac8f' },
+            { key: 'Barre3',    label: 'Barre 3 (haute)',     ids: ['Barre3'],color: '#5e503f' },
+            { key: 'capital',   label: 'Mot « CAPITAL »',     ids: ['capital'],color: '#ffffff' },
+            { key: 'finance',   label: 'Tagline — finance',   ids: ['finance'],color: '#ffffff' },
+            { key: 'fiscalite', label: 'Tagline — fiscalité', ids: ['fiscalite'],color: '#ffffff' },
+            { key: 'assurance', label: 'Tagline — assurance', ids: ['assurance'],color: '#ffffff' },
+            { key: 'dots',      label: 'Points de séparation', ids: ['point1', 'point2'], color: '#ffffff' }
+        ];
+
+        // Thèmes selon le contexte du site
+        var PRESETS = {
+            'Original (fond noir)': { bigJ:'#ffffff',bigC:'#ffffff',Square:'#ffffff',Barre1:'#22333b',Barre2:'#c6ac8f',Barre3:'#5e503f',capital:'#ffffff',finance:'#ffffff',fiscalite:'#ffffff',assurance:'#ffffff',dots:'#ffffff' },
+            'Fond clair':  { bigJ:'#057485',bigC:'#057485',Square:'#222e41',Barre1:'#a2c2ec',Barre2:'#4f9da6',Barre3:'#ff715b',capital:'#222e41',finance:'#057485',fiscalite:'#057485',assurance:'#057485',dots:'#ff715b' },
+            'Hero sombre': { bigJ:'#ffffff',bigC:'#ffffff',Square:'#ffffff',Barre1:'#a2c2ec',Barre2:'#4f9da6',Barre3:'#ff715b',capital:'#ffffff',finance:'#e9eef0',fiscalite:'#e9eef0',assurance:'#e9eef0',dots:'#ff715b' },
+            'Footer indigo':{ bigJ:'#4f9da6',bigC:'#4f9da6',Square:'#ffffff',Barre1:'#a2c2ec',Barre2:'#4f9da6',Barre3:'#ff715b',capital:'#ffffff',finance:'#cfd2dd',fiscalite:'#cfd2dd',assurance:'#cfd2dd',dots:'#ffb703' }
+        };
+
+        var BACKGROUNDS = ['#000000', '#f7f7f5', '#ffffff', '#222e41', '#1a0841', '#057485', '#191919'];
+
+        // Fond d'aperçu associé à chaque thème
+        var PRESET_BG = {
+            'Original (fond noir)': '#000000',
+            'Fond clair':          '#f7f7f5',
+            'Hero sombre':         '#191919',
+            'Footer indigo':       '#1a0841',
+            'Monochrome teal':     '#ffffff'
+        };
+
+        function setStageBg(color) {
+            if (!color) return;
+            document.getElementById('stage').style.background = color;
+            document.querySelectorAll('#bgRow .bg-swatch').forEach(function (x) {
+                x.classList.toggle('active',
+                    x.dataset.color && x.dataset.color.toLowerCase() === color.toLowerCase());
+            });
+        }
+
+        function els(g) {
+            if (!svg) return [];
+            var list = [];
+            g.ids.forEach(function (id) {
+                var el = svg.getElementById(id);
+                if (el) list.push(el);
+            });
+            if (g.extra) {
+                svg.querySelectorAll(g.extra).forEach(function (el) { list.push(el); });
+            }
+            return list;
+        }
+
+        function setColor(g, val) {
+            els(g).forEach(function (el) { el.style.fill = val; });
+        }
+
+        function setVisible(g, show) {
+            els(g).forEach(function (el) { el.style.display = show ? '' : 'none'; });
+        }
+
+        function buildControls() {
+            var box = document.getElementById('controls');
+            box.innerHTML = '';
+            GROUPS.forEach(function (g) {
+                var row = document.createElement('div');
+                row.className = 'ctrl';
+
+                var name = document.createElement('label');
+                name.className = 'name';
+                name.textContent = g.label;
+
+                var color = document.createElement('input');
+                color.type = 'color';
+                color.value = g.color;
+                color.addEventListener('input', function () {
+                    g.color = color.value;
+                    setColor(g, color.value);
+                    updateCss();
+                });
+
+                var tog = document.createElement('label');
+                tog.className = 'toggle';
+                var chk = document.createElement('input');
+                chk.type = 'checkbox';
+                chk.checked = true;
+                chk.addEventListener('change', function () { setVisible(g, chk.checked); });
+                tog.appendChild(chk);
+                tog.appendChild(document.createTextNode('visible'));
+
+                row.appendChild(name);
+                row.appendChild(color);
+                row.appendChild(tog);
+                box.appendChild(row);
+                g._color = color;
+                g._chk = chk;
+            });
+        }
+
+        function applyAllColors() {
+            GROUPS.forEach(function (g) { setColor(g, g.color); });
+        }
+
+        function buildPresets() {
+            var box = document.getElementById('presets');
+            Object.keys(PRESETS).forEach(function (name) {
+                var b = document.createElement('button');
+                b.className = 'btn';
+                b.textContent = name;
+                b.addEventListener('click', function () {
+                    var map = PRESETS[name];
+                    GROUPS.forEach(function (g) {
+                        if (map[g.key]) {
+                            g.color = map[g.key];
+                            if (g._color) g._color.value = map[g.key];
+                            setColor(g, map[g.key]);
+                        }
+                    });
+                    setStageBg(PRESET_BG[name]); // le thème emporte son fond
+                    updateCss();
+                });
+                box.appendChild(b);
+            });
+        }
+
+        function buildBackgrounds() {
+            var row = document.getElementById('bgRow');
+            BACKGROUNDS.forEach(function (c, i) {
+                var s = document.createElement('div');
+                s.className = 'bg-swatch' + (i === 1 ? ' active' : '');
+                s.style.background = c;
+                s.dataset.color = c;
+                s.addEventListener('click', function () { setStageBg(c); });
+                row.appendChild(s);
+            });
+        }
+
+        function updateCss() {
+            var lines = ['/* Couleurs du logo JC — généré par l\'atelier */', '.jc-logo {'];
+            GROUPS.forEach(function (g) {
+                g.ids.forEach(function (id) { lines.push('  #' + id + ' { fill: ' + g.color + '; }'); });
+            });
+            lines.push('}');
+            document.getElementById('cssOut').value = lines.join('\n');
+        }
+
+        function init() {
+            svg.removeAttribute('width');
+            svg.removeAttribute('height');
+            svg.classList.add('jc-logo');
+            buildControls();
+            buildPresets();
+            buildBackgrounds();
+            applyAllColors();
+            updateCss();
+
+            document.getElementById('showAll').addEventListener('click', function () {
+                GROUPS.forEach(function (g) { setVisible(g, true); if (g._chk) g._chk.checked = true; });
+            });
+            document.getElementById('copyCss').addEventListener('click', function () {
+                var t = document.getElementById('cssOut');
+                t.select();
+                try { navigator.clipboard.writeText(t.value); } catch (e) { document.execCommand('copy'); }
+            });
+        }
+
+        fetch(SVG_URL)
+            .then(function (r) { return r.text(); })
+            .then(function (txt) {
+                stage.innerHTML = txt;
+                svg = stage.querySelector('svg');
+                if (!svg) throw new Error('SVG introuvable');
+                init();
+            })
+            .catch(function (e) {
+                stage.innerHTML = '<p style="color:#e0556b">Impossible de charger le SVG (' + e.message +
+                    ').<br>À ouvrir via le serveur (http), pas en file://.</p>';
+            });
+    </script>
+</body>
+
+</html>
