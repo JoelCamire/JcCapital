@@ -28,7 +28,7 @@ function load() {
 }
 
 const state = load();
-state.theme = localStorage.getItem(THEME_KEY) || 'light';
+state.theme = localStorage.getItem(THEME_KEY) || 'dark';
 const subs = new Set();
 let saveTimer = null;
 

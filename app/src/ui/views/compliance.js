@@ -9,8 +9,8 @@ import { kpi, card, legend } from '../widgets.js';
 const CAT_COLOR = {
   personal:     'var(--brand-500)',
   corporate:    'var(--accent)',
-  registered:   '#8e6fd6',
-  installment:  '#f5a623',
+  registered:   '#8A6E4C',
+  installment:  '#C2922F',
 };
 
 const CAT_LABEL = {
@@ -361,7 +361,7 @@ export function render({ client, jur }) {
 
       // Business-only chip
       isBiz
-        ? h('span', { class: 'chip', style: { flex: 'none', fontSize: '10px', background: 'var(--accent)', color: '#fff', opacity: '0.85' } },
+        ? h('span', { class: 'chip', style: { flex: 'none', fontSize: '10px', background: 'var(--accent)', color: 'var(--c-black)', opacity: '0.85' } },
             h('span', { html: icon('briefcase', 11) }),
             ' ', t('Entreprise', 'Business'),
           )
