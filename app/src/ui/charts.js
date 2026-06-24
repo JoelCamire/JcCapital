@@ -4,7 +4,8 @@
 // ============================================================
 import { svg } from './dom.js';
 
-export const PALETTE = ['#2473b3', '#16b8a6', '#f5a623', '#8e6fd6', '#e0556b', '#4cb5e6', '#6bbf59', '#d98a3a', '#b95da8', '#3d8fa0'];
+// Palette de marque (or, ardoise, brun, sauge, terracotta…) — accordée à jccapital.ca
+export const PALETTE = ['#C6AC8F', '#6E8CA0', '#8A6E4C', '#6F9461', '#B0573F', '#A98F70', '#4E6B74', '#C2922F', '#7A6855', '#9FB1A0'];
 
 export function chartEl(str) {
   const wrap = document.createElement('div');
