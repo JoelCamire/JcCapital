@@ -21,6 +21,7 @@ function normalize(c) {
   c.activities = c.activities || [];
   c.tasks = c.tasks || [];
   c.products = c.products || [];
+  c.compliance = c.compliance || {};
   c.updatedAt = c.updatedAt || c.createdAt || Date.now();
   return c;
 }

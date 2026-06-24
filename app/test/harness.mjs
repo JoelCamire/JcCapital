@@ -28,7 +28,7 @@ const decum = await import('../src/engine/decumulation.js');
 const health = await import('../src/engine/healthcheck.js');
 const suggest = await import('../src/engine/suggestions.js');
 
-const VIEWS = ['crmdash', 'clients', 'pipeline', 'tasks', 'activities', 'relation', 'clienttimeline', 'revenue', 'referrals', 'segments',
+const VIEWS = ['crmdash', 'clients', 'pipeline', 'tasks', 'activities', 'relation', 'clienttimeline', 'revenue', 'referrals', 'segments', 'kyc',
   'dashboard', 'healthcheck', 'profile', 'client', 'networth', 'nwtracker', 'cashflow', 'budget', 'debt',
   'business', 'succession', 'empbenefits', 'flowthrough', 'insurancestrat', 'advstructures', 'equity', 'realestate',
   'rentbuy', 'crypto', 'portfolio', 'feecompare', 'retirement', 'decumulation', 'montecarlo', 'scenarios',

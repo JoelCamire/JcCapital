@@ -145,6 +145,7 @@ export function newClient(name = 'Nouveau ménage', country = 'CA', region = 'QC
     activities: [],
     tasks: [],
     products: [],
+    compliance: {},        // KYC checklist: { itemKey: { status, date, notes } }
     assumptions: defaultAssumptions(),
   };
 }
@@ -250,6 +251,7 @@ export function seedClients() {
       newTask({ title: 'Préparer la revue de placements de Marc', due: '2026-07-15', priority: 'medium', category: 'review' }),
       newTask({ title: 'Réviser le testament (post-naissance Noah)', due: '2026-09-01', priority: 'low', category: 'admin' }),
     ],
+    compliance: { kyc: { status: 'done', date: '2025-09-15' }, riskprofile: { status: 'done', date: '2025-09-15' }, idverify: { status: 'done', date: '2019-03-01' }, beneficiary: { status: 'done', date: '2025-09-15' }, fatca: { status: 'todo', date: '' }, disclosure: { status: 'done', date: '2019-03-01' }, agreement: { status: 'done', date: '2019-03-01' } },
     products: [
       newProduct({ kind: 'life', carrier: 'Canada Vie', policyNumber: 'CV-8841201', insuredId: a, status: 'inforce',
         faceAmount: 500000, premium: 720, frequency: 'annual', issueDate: '2019-03-01', renewalDate: '2027-03-01',

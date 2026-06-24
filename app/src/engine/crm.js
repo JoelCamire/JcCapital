@@ -227,10 +227,13 @@ export function lastTouch(c) {
 export function revenueReport(clients) {
   const byKind = {}, byCarrier = {};
   const byMonth = Array.from({ length: 12 }, (_, i) => ({ month: i + 1, recurring: 0 }));
-  let recurring = 0, annualPremium = 0, aum = 0, faceTotal = 0;
+  let recurring = 0, annualPremium = 0, aum = 0, faceTotal = 0, firstYearYTD = 0;
   let wonPremiumYTD = 0, wonAumYTD = 0, wonCountYTD = 0;
+  const perClient = [];
+  const upcomingRenewals = [];
   const yr = new Date().getFullYear();
   for (const c of clients || []) {
+    let cRec = 0, cAum = 0;
     for (const p of (c.products || [])) {
       if (p.status === 'lapsed' || p.status === 'cancelled') continue;
       const k = p.kind || 'other';
@@ -241,19 +244,26 @@ export function revenueReport(clients) {
       byCarrier[carr] = byCarrier[carr] || { carrier: carr, recurring: 0, annualPremium: 0, aum: 0, count: 0 };
       byCarrier[carr].recurring += rec; byCarrier[carr].annualPremium += prem; byCarrier[carr].aum += fin(p.aum, 0); byCarrier[carr].count++;
       recurring += rec; annualPremium += prem; aum += fin(p.aum, 0); faceTotal += fin(p.faceAmount, 0);
+      cRec += rec; cAum += fin(p.aum, 0);
+      const issued = parseDate(p.issueDate); if (issued && issued.getFullYear() === yr) firstYearYTD += fin(p.firstYearCommission, 0);
       const rd = parseDate(p.renewalDate); if (rd) byMonth[rd.getMonth()].recurring += rec;
+      const rdays = daysUntil(p.renewalDate);
+      if (rdays != null && rdays >= 0 && rdays <= 90) upcomingRenewals.push({ clientId: c.id, clientName: c.name, carrier: carr, kind: k, date: p.renewalDate, days: rdays, recurring: rec });
     }
-    for (const o of (c.opportunities || [])) {
-      if (o.stage === 'won' && o.closedAt) {
-        const d = new Date(o.closedAt);
-        if (d.getFullYear() === yr) { wonCountYTD++; if (o.valueKind === 'premium') wonPremiumYTD += fin(o.value, 0); else wonAumYTD += fin(o.value, 0); }
-      }
+    if (cRec > 0 || cAum > 0) perClient.push({ id: c.id, name: c.name, contact: contactName(c), recurring: cRec, aum: cAum });
+  }
+  for (const c of clients || []) for (const o of (c.opportunities || [])) {
+    if (o.stage === 'won' && o.closedAt) {
+      const d = new Date(o.closedAt);
+      if (d.getFullYear() === yr) { wonCountYTD++; if (o.valueKind === 'premium') wonPremiumYTD += fin(o.value, 0); else wonAumYTD += fin(o.value, 0); }
     }
   }
   return {
     byKind: Object.values(byKind).sort((a, b) => b.recurring - a.recurring),
     byCarrier: Object.values(byCarrier).sort((a, b) => b.recurring - a.recurring),
-    byMonth, recurring, annualPremium, aum, faceTotal, wonPremiumYTD, wonAumYTD, wonCountYTD,
+    byMonth, recurring, annualPremium, aum, faceTotal, firstYearYTD, wonPremiumYTD, wonAumYTD, wonCountYTD,
+    perClient: perClient.sort((a, b) => (b.recurring + b.aum * 0.001) - (a.recurring + a.aum * 0.001)),
+    upcomingRenewals: upcomingRenewals.sort((a, b) => a.days - b.days),
   };
 }
 
@@ -308,6 +318,64 @@ export function buildSegments(clients) {
       pred: c => (c.products || []).some(p => p.status === 'lapsed' || p.status === 'cancelled') },
   ];
   return defs.map(d => { const list = (clients || []).filter(d.pred); return { key: d.key, label: d.label(), desc: d.desc(), clients: list, emails: [...new Set(list.flatMap(emailOf))] }; });
+}
+
+// ---------- Compliance / KYC ----------
+export const KYC_ITEMS = [
+  { key: 'kyc',         label: () => t('Formulaire KYC (connaissance du client)', 'KYC form (know-your-client)') },
+  { key: 'riskprofile', label: () => t('Profil d’investisseur / tolérance au risque', 'Investor profile / risk tolerance') },
+  { key: 'idverify',    label: () => t('Vérification d’identité', 'Identity verification') },
+  { key: 'beneficiary', label: () => t('Désignation de bénéficiaires', 'Beneficiary designation') },
+  { key: 'fatca',       label: () => t('Attestation de résidence fiscale (FATCA/CRS)', 'Tax residency certification (FATCA/CRS)') },
+  { key: 'disclosure',  label: () => t('Information sur la relation (divulgation)', 'Relationship disclosure') },
+  { key: 'agreement',   label: () => t('Convention de service signée', 'Signed service agreement') },
+];
+export function complianceStatus(c) {
+  const store = c.compliance || {};
+  const items = KYC_ITEMS.map(it => { const s = store[it.key] || {}; return { key: it.key, label: it.label(), status: s.status || 'todo', date: s.date || '' }; });
+  const applicable = items.filter(i => i.status !== 'na');
+  const done = applicable.filter(i => i.status === 'done').length;
+  const total = applicable.length || 1;
+  return { items, done, total, pct: done / total, missing: items.filter(i => i.status === 'todo') };
+}
+export function complianceOverview(clients) {
+  const byItem = {}; KYC_ITEMS.forEach(it => byItem[it.key] = { key: it.key, label: it.label(), missing: 0 });
+  const rows = [];
+  for (const c of clients || []) {
+    if (lifecycleOf(c) === 'prospect' || lifecycleOf(c) === 'lead') continue; // KYC applies to clients
+    const st = complianceStatus(c);
+    rows.push({ clientId: c.id, clientName: c.name, contact: contactName(c), pct: st.pct, done: st.done, total: st.total, missing: st.missing });
+    st.missing.forEach(m => { if (byItem[m.key]) byItem[m.key].missing++; });
+  }
+  rows.sort((a, b) => a.pct - b.pct);
+  const fullyCompliant = rows.filter(r => r.pct >= 1).length;
+  return { rows, byItem: Object.values(byItem).sort((a, b) => b.missing - a.missing), fullyCompliant, total: rows.length };
+}
+
+// ---------- Follow-up cadences (sequences) ----------
+function isoAddDays(iso, n) {
+  const base = iso ? new Date(iso + 'T00:00:00') : startOfToday();
+  if (isNaN(base.getTime())) return '';
+  base.setDate(base.getDate() + n);
+  return base.toISOString().slice(0, 10);
+}
+export const CADENCES = [
+  { key: 'prospect', label: () => t('Relance prospect', 'Prospect nurture'), desc: () => t('3 touches sur 10 jours', '3 touches over 10 days'),
+    steps: [ { offset: 1, category: 'followup', title: () => t('Premier suivi (courriel)', 'First follow-up (email)') },
+      { offset: 4, category: 'call', title: () => t('Appel de suivi', 'Follow-up call') },
+      { offset: 10, category: 'followup', title: () => t('Dernière relance', 'Final nudge') } ] },
+  { key: 'onboarding', label: () => t('Intégration client', 'Client onboarding'), desc: () => t('Bienvenue → documents → satisfaction', 'Welcome → docs → check-in'),
+    steps: [ { offset: 1, category: 'admin', title: () => t('Courriel de bienvenue', 'Welcome email') },
+      { offset: 14, category: 'compliance', title: () => t('Vérifier la réception des documents', 'Confirm documents received') },
+      { offset: 30, category: 'call', title: () => t('Appel de satisfaction', 'Satisfaction call') } ] },
+  { key: 'annualreview', label: () => t('Revue annuelle', 'Annual review'), desc: () => t('Préparer puis planifier', 'Prepare then schedule'),
+    steps: [ { offset: 0, category: 'review', title: () => t('Préparer la revue annuelle', 'Prepare the annual review') },
+      { offset: 2, category: 'meeting', title: () => t('Planifier la rencontre de revue', 'Schedule the review meeting') } ] },
+];
+/** Build (but do not persist) the task objects for a cadence applied from a date. */
+export function cadenceTasks(cadenceKey, fromISO) {
+  const cad = CADENCES.find(c => c.key === cadenceKey); if (!cad) return [];
+  return cad.steps.map(s => ({ title: s.title(), due: isoAddDays(fromISO, s.offset), category: s.category, priority: 'medium' }));
 }
 
 // ---------- Per-client merged timeline ----------

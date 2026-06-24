@@ -10,15 +10,32 @@ import { revenueReport } from '../../engine/crm.js';
 const MONTHS = () => [t('Jan', 'Jan'), t('Fév', 'Feb'), t('Mar', 'Mar'), t('Avr', 'Apr'), t('Mai', 'May'), t('Juin', 'Jun'), t('Juil', 'Jul'), t('Août', 'Aug'), t('Sep', 'Sep'), t('Oct', 'Oct'), t('Nov', 'Nov'), t('Déc', 'Dec')];
 const PALETTE = ['#C6AC8F', '#6E8CA0', '#8A6E4C', '#6F9461', '#B0573F', '#A98F70', '#4E6B74', '#C2922F', '#7A6855'];
 
-export function render({ store }) {
+export function render({ store, navigate }) {
+  const goto = (id) => { store.setActive(id); navigate('relation'); };
   const r = revenueReport(store.state.clients);
 
   const kpis = h('div', { class: 'grid cols-4' },
     kpi({ label: t('Commissions récurrentes', 'Recurring commissions'), value: money(r.recurring, { compact: true }), sub: t('par année', 'per year'), iconName: 'dollar', accent: 'var(--pos)' }),
+    kpi({ label: t('Commissions 1re année (à ce jour)', 'First-year commissions (YTD)'), value: money(r.firstYearYTD, { compact: true }), sub: t('nouvelles affaires', 'new business'), iconName: 'funnel', accent: 'var(--c-gold)' }),
     kpi({ label: t('Actifs sous gestion', 'Assets under management'), value: money(r.aum, { compact: true }), iconName: 'bank' }),
     kpi({ label: t('Primes en vigueur', 'In-force premium'), value: money(r.annualPremium, { compact: true }), sub: t('par année', 'per year'), iconName: 'insurance' }),
-    kpi({ label: t('Ventes gagnées (année)', 'Sales won (YTD)'), value: money(r.wonPremiumYTD + r.wonAumYTD, { compact: true }), sub: t(`${r.wonCountYTD} transaction(s)`, `${r.wonCountYTD} deal(s)`), iconName: 'funnel', accent: 'var(--c-gold)' }),
   );
+
+  // top clients by revenue
+  const topCard = card(t('Meilleurs clients (revenus)', 'Top clients (revenue)'), { sub: t('Commissions récurrentes + AUM', 'Recurring commissions + AUM') },
+    r.perClient.length ? h('div', { class: 'tbl-wrap' }, h('table', { class: 'tbl' },
+      h('thead', {}, h('tr', {}, h('th', {}, t('Client', 'Client')), h('th', { class: 'num' }, t('Récurrent', 'Recurring')), h('th', { class: 'num' }, 'AUM'))),
+      h('tbody', {}, ...r.perClient.slice(0, 12).map(p => h('tr', { style: { cursor: 'pointer' }, onClick: () => goto(p.id) },
+        h('td', {}, h('b', {}, p.name), h('div', { class: 'tiny muted' }, p.contact)),
+        h('td', { class: 'num mono' }, money(p.recurring, { compact: true })),
+        h('td', { class: 'num mono' }, money(p.aum, { compact: true })))))),
+    ) : h('div', { class: 'empty tiny' }, t('Aucun client avec produits', 'No clients with products')));
+
+  // upcoming renewals (90 days)
+  const renewCard = card(t('Renouvellements à venir (90 j)', 'Upcoming renewals (90d)'), { sub: `${r.upcomingRenewals.length}` },
+    r.upcomingRenewals.length ? h('div', {}, ...r.upcomingRenewals.map(rn => h('div', { class: 'flex between center', style: { padding: '8px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }, onClick: () => goto(rn.clientId) },
+      h('div', {}, h('div', { style: { fontWeight: '600', fontSize: '13px' } }, rn.clientName), h('div', { class: 'tiny muted' }, `${rn.carrier} · ${money(rn.recurring, { compact: true })}/an`)),
+      h('span', { class: 'chip ' + (rn.days <= 14 ? 'warn' : '') }, fmtDate(rn.date))))) : h('div', { class: 'empty tiny' }, t('Aucun renouvellement dans 90 jours', 'No renewals within 90 days')));
 
   // by kind — donut on recurring
   const kindSegs = r.byKind.filter(k => k.recurring > 0).map((k, i) => ({ label: k.label, value: k.recurring, color: PALETTE[i % PALETTE.length] }));
@@ -57,6 +74,7 @@ export function render({ store }) {
   return h('div', { class: 'grid', style: { gap: '18px' } },
     kpis,
     h('div', { class: 'grid cols-2' }, byKindCard, byCarrierCard),
+    h('div', { class: 'grid cols-2', style: { alignItems: 'start' } }, topCard, renewCard),
     monthCard,
   );
 }

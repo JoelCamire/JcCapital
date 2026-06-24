@@ -68,6 +68,7 @@ import * as revenue from './ui/views/revenue.js';
 import * as referrals from './ui/views/referrals.js';
 import * as segments from './ui/views/segments.js';
 import * as clienttimeline from './ui/views/clienttimeline.js';
+import * as kyc from './ui/views/kyc.js';
 
 // title/sub are functions so they re-translate on language switch
 const ROUTES = {
@@ -81,6 +82,7 @@ const ROUTES = {
   revenue: { title: () => t('Rapports de revenus', 'Revenue reports'), sub: () => t('Commissions par produit, assureur et mois', 'Commissions by product, carrier & month'), icon: 'dollar', view: revenue },
   referrals: { title: () => t('Réseau de références', 'Referral network'), sub: () => t('Référents, valeur générée et sources', 'Referrers, value generated & sources'), icon: 'users', view: referrals },
   segments: { title: () => t('Segments & campagnes', 'Segments & campaigns'), sub: () => t('Listes dynamiques et envois groupés', 'Dynamic lists & bulk outreach'), icon: 'funnel', view: segments },
+  kyc: { title: () => t('Conformité & KYC', 'Compliance & KYC'), sub: () => t('Complétude documentaire du book', 'Documentation completeness across the book'), icon: 'report', view: kyc },
   dashboard: { title: () => t('Tableau de bord', 'Dashboard'), sub: () => t('Vue d\'ensemble du plan financier', 'Financial plan overview'), icon: 'dashboard', view: dashboard },
   healthcheck: { title: () => t('Bilan de santé financière', 'Financial health check'), sub: () => t('Pointage global et plan d\'action priorisé', 'Overall score & prioritized action plan'), icon: 'check', view: healthcheck },
   profile: { title: () => t('Profil client', 'Client profile'), sub: () => t('Informations personnelles, à charge, documents', 'Personal info, dependents, documents'), icon: 'client', view: profile },
@@ -135,7 +137,7 @@ const ROUTES = {
 };
 
 const NAV = () => [
-  { group: t('CRM', 'CRM'), items: ['crmdash', 'clients', 'pipeline', 'tasks', 'activities', 'relation', 'clienttimeline', 'revenue', 'referrals', 'segments'] },
+  { group: t('CRM', 'CRM'), items: ['crmdash', 'clients', 'pipeline', 'tasks', 'activities', 'relation', 'clienttimeline', 'revenue', 'referrals', 'segments', 'kyc'] },
   { group: t('Planification', 'Planning'), items: ['dashboard', 'healthcheck', 'profile', 'client', 'networth', 'nwtracker', 'cashflow', 'budget', 'debt'] },
   { group: t('Entreprise', 'Business'), items: ['business', 'succession', 'empbenefits', 'flowthrough', 'insurancestrat', 'advstructures'] },
   { group: t('Entrepreneur & autonome', 'Entrepreneur & self-employed'), items: ['incorporation', 'selfemployed', 'farm', 'sred', 'treasury', 'borrowing'] },
