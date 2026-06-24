@@ -5,6 +5,7 @@ import { seedClients, newClient } from './models.js';
 
 const KEY = 'jc_planner_v1';
 const THEME_KEY = 'jc_planner_theme';
+const GOALS_KEY = 'jc_crm_goals';
 
 /** Ensure clients loaded from an older schema have all current fields. */
 function normalize(c) {
@@ -21,6 +22,7 @@ function normalize(c) {
   c.activities = c.activities || [];
   c.tasks = c.tasks || [];
   c.products = c.products || [];
+  c.compliance = c.compliance || {};
   c.updatedAt = c.updatedAt || c.createdAt || Date.now();
   return c;
 }
@@ -36,6 +38,8 @@ function load() {
 
 const state = load();
 state.theme = localStorage.getItem(THEME_KEY) || 'dark';
+function loadGoals() { try { const g = JSON.parse(localStorage.getItem(GOALS_KEY) || 'null'); if (g) return g; } catch (e) {} return { year: new Date().getFullYear(), aum: 5000000, recurring: 40000, firstYear: 60000 }; }
+state.crmGoals = loadGoals();
 const subs = new Set();
 let saveTimer = null;
 
@@ -74,6 +78,9 @@ export const store = {
   set(mutator) { mutator(state); persist(); notify(); },
 
   setActive(id) { state.activeId = id; persist(); notify(); },
+
+  /** CRM annual sales goals (stored separately from client data). */
+  setCrmGoals(g) { state.crmGoals = { ...state.crmGoals, ...g }; try { localStorage.setItem(GOALS_KEY, JSON.stringify(state.crmGoals)); } catch (e) {} notify(); },
 
   addClient(name, country, region) {
     const c = newClient(name, country, region);

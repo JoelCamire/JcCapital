@@ -7,8 +7,17 @@ import { kpi, card } from '../widgets.js';
 import { donutChart } from '../charts.js';
 import {
   pipelineSummary, taskBuckets, reminders, revenueSummary, activityFeed,
-  lifecycleCounts, LIFECYCLE_META, STAGE_META, ACTIVITY_META, daysUntil,
+  lifecycleCounts, LIFECYCLE_META, STAGE_META, ACTIVITY_META, daysUntil, revenueReport,
 } from '../../engine/crm.js';
+
+function goalBar(label, actual, target) {
+  const pct = target > 0 ? Math.min(1, actual / target) : 0;
+  return h('div', {},
+    h('div', { class: 'flex between', style: { marginBottom: '4px' } },
+      h('span', { class: 'tiny', style: { fontWeight: '600' } }, label),
+      h('span', { class: 'tiny muted mono' }, `${money(actual, { compact: true })}${target > 0 ? ' / ' + money(target, { compact: true }) : ''}`)),
+    h('div', { class: 'bar' }, h('span', { style: { width: `${Math.round(pct * 100)}%`, background: pct >= 1 ? 'var(--pos)' : 'var(--c-gold)' } })));
+}
 
 function relLabel(d) {
   if (d == null) return '';
@@ -108,8 +117,20 @@ export function render({ store, navigate }) {
       h('span', { class: 'tiny muted', style: { whiteSpace: 'nowrap' } }, fmtDate(a.date)),
     )) ) : h('div', { class: 'empty tiny' }, t('Aucune activité — commencez à consigner vos contacts', 'No activity — start logging your touches')));
 
+  // ---- Sales goals progress ----
+  const g = store.state.crmGoals || {};
+  const rr = revenueReport(clients);
+  const goalsStrip = (g.firstYear || g.recurring || g.aum)
+    ? card(t('Objectifs de ventes', 'Sales goals'), { sub: `${g.year || ''}`, right: h('a', { class: 'btn sm ghost', href: '#revenue' }, t('Détails', 'Details')) },
+        h('div', { class: 'grid cols-3' },
+          goalBar(t('Commissions 1re année', 'First-year commissions'), rr.firstYearYTD, g.firstYear || 0),
+          goalBar(t('Récurrent', 'Recurring'), rr.recurring, g.recurring || 0),
+          goalBar('AUM', rr.aum, g.aum || 0)))
+    : null;
+
   return h('div', { class: 'grid', style: { gap: '18px' } },
     kpis,
+    goalsStrip,
     h('div', { class: 'grid cols-2' }, funnel, lifeCard),
     h('div', { class: 'grid cols-2' }, tasksCard, remCard),
     feedCard,

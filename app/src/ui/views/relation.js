@@ -8,8 +8,9 @@ import { card } from '../widgets.js';
 import {
   primaryMember, contactName, lifecycleOf, LIFECYCLE_META, STAGE_META, STAGE_ORDER,
   ACTIVITY_META, PRODUCT_KIND_META, SOURCE_OPTIONS, annualizePremium,
+  complianceStatus, CADENCES, cadenceTasks,
 } from '../../engine/crm.js';
-import { newOpportunity, newTask, newProduct } from '../../state/models.js';
+import { newOpportunity, newTask, newProduct, newActivity, todayISO } from '../../state/models.js';
 import { openLog } from './activities.js';
 
 const ADVISOR = 'Joel Camire';
@@ -51,12 +52,31 @@ export function render({ store, client, navigate }) {
         onChange: e => up(x => { x.crm.tags = e.target.value.split(',').map(s => s.trim()).filter(Boolean); }) })),
     h('div', { class: 'inline', style: { marginTop: '12px', gap: '8px' } },
       h('button', { class: 'btn primary sm', html: icon('message', 14) + ' ' + t('Consigner', 'Log'), onClick: () => openLog(store, () => store.set(s => s), c.id) }),
-      m0.email ? h('button', { class: 'btn sm', html: icon('mail', 14) + ' ' + t('Courriel', 'Email'), onClick: () => openEmailTemplates(m0) }) : null,
+      m0.email ? h('button', { class: 'btn sm', html: icon('mail', 14) + ' ' + t('Courriel', 'Email'), onClick: () => openEmailTemplates(store, c.id, m0) }) : null,
       m0.phone ? h('a', { class: 'btn sm', href: `tel:${m0.phone}`, html: icon('phone', 14) + ' ' + t('Appeler', 'Call') }) : null,
       h('button', { class: 'btn sm', html: icon('calendar', 14) + ' ' + t('Agenda', 'Calendar'), onClick: () => openCalendar(c, m0) }),
+      h('button', { class: 'btn sm', html: icon('refresh', 14) + ' ' + t('Séquence de suivi', 'Follow-up sequence'), onClick: () => openCadence(store, c.id) }),
+      h('a', { class: 'btn sm ghost', href: '#clienttimeline', html: icon('timeline', 14) + ' ' + t('Ligne du temps', 'Timeline') }),
+      h('a', { class: 'btn sm ghost', href: '#crmsheet', html: icon('report', 14) + ' ' + t('Fiche imprimable', 'Printable sheet') }),
       h('a', { class: 'btn sm ghost', href: '#profile', html: icon('client', 14) + ' ' + t('Profil complet', 'Full profile') }),
     ),
   );
+
+  // ---------- Compliance / KYC ----------
+  const comp = complianceStatus(c);
+  const complianceCard = card(t('Conformité / KYC', 'Compliance / KYC'), {
+      sub: `${comp.done}/${comp.total} · ${Math.round(comp.pct * 100)} %`,
+      right: h('span', { class: 'bar', style: { width: '90px' } }, h('span', { style: { width: `${Math.round(comp.pct * 100)}%`, background: comp.pct >= 1 ? 'var(--pos)' : 'var(--warn)' } })) },
+    h('div', {}, ...comp.items.map(it => h('div', { class: 'flex between center', style: { padding: '7px 0', borderBottom: '1px solid var(--border)' } },
+      h('span', { class: 'tiny', style: { fontWeight: '500', maxWidth: '60%' } }, it.label),
+      h('div', { class: 'inline', style: { flexWrap: 'nowrap', gap: '6px' } },
+        it.date ? h('span', { class: 'tiny muted' }, fmtDate(it.date)) : null,
+        h('select', { style: { width: 'auto', fontSize: '12px' }, onChange: e => up(x => { x.compliance = x.compliance || {}; const cur = x.compliance[it.key] || {}; x.compliance[it.key] = { status: e.target.value, date: e.target.value === 'done' ? (cur.date || todayISO()) : (cur.date || '') }; }) },
+          h('option', { value: 'todo', selected: it.status === 'todo' }, t('À faire', 'To do')),
+          h('option', { value: 'done', selected: it.status === 'done' }, t('Complété', 'Done')),
+          h('option', { value: 'na', selected: it.status === 'na' }, t('S.O.', 'N/A'))),
+      ),
+    ))));
 
   // ---------- Opportunities ----------
   const ops = c.opportunities || [];
@@ -120,8 +140,33 @@ export function render({ store, client, navigate }) {
   return h('div', { class: 'grid', style: { gap: '18px' } },
     header,
     h('div', { class: 'grid cols-2' }, oppCard, prodCard),
-    h('div', { class: 'grid cols-2' }, taskCard, actCard),
+    h('div', { class: 'grid cols-2' }, taskCard, complianceCard),
+    actCard,
   );
+}
+
+function openCadence(store, clientId) {
+  let key = CADENCES[0].key, from = todayISO();
+  const preview = h('div', { class: 'tiny muted', style: { marginTop: '4px' } });
+  const refresh = () => { preview.replaceChildren(...cadenceTasks(key, from).map(x => h('div', { style: { padding: '2px 0' } }, `• ${x.title} — ${fmtDate(x.due)}`))); };
+  const cadSel = h('select', { onChange: e => { key = e.target.value; refresh(); } }, ...CADENCES.map(c => h('option', { value: c.key, selected: c.key === key }, `${c.label()} — ${c.desc()}`)));
+  const dateInp = h('input', { type: 'date', value: from, onInput: e => { from = e.target.value; refresh(); } });
+  refresh();
+  const m = modal({
+    title: t('Appliquer une séquence de suivi', 'Apply a follow-up sequence'),
+    body: h('div', { class: 'grid', style: { gap: '12px' } },
+      field(t('Séquence', 'Sequence'), cadSel),
+      field(t('Date de départ', 'Start date'), dateInp),
+      h('div', {}, h('div', { class: 'tiny', style: { fontWeight: '600' } }, t('Tâches qui seront créées :', 'Tasks that will be created:')), preview)),
+    footer: [
+      h('button', { class: 'btn ghost', onClick: () => m.close() }, t('Annuler', 'Cancel')),
+      h('button', { class: 'btn primary', onClick: () => {
+        const ts = cadenceTasks(key, from);
+        store.updateClient(clientId, c => { c.tasks = c.tasks || []; ts.forEach(x => c.tasks.push(newTask(x))); });
+        m.close(); toast(t(`${ts.length} tâche(s) ajoutée(s)`, `${ts.length} task(s) added`));
+      } }, t('Créer les tâches', 'Create tasks')),
+    ],
+  });
 }
 
 // ---------- small UI helpers ----------
@@ -209,12 +254,19 @@ const TEMPLATES = [
     body: (f) => t(`Bonjour ${f},\n\nToute l’équipe de ${FIRM} vous souhaite un très joyeux anniversaire !\n\n${ADVISOR}`,
       `Hi ${f},\n\nThe whole team at ${FIRM} wishes you a very happy birthday!\n\n${ADVISOR}`) },
 ];
-function openEmailTemplates(member) {
+function openEmailTemplates(store, clientId, member) {
   const first = (member.name || '').split(' ')[0] || '';
-  const send = (tpl) => { window.location.href = `mailto:${member.email}?subject=${encodeURIComponent(tpl.subj())}&body=${encodeURIComponent(tpl.body(first))}`; };
+  const send = (tpl) => {
+    window.location.href = `mailto:${member.email}?subject=${encodeURIComponent(tpl.subj())}&body=${encodeURIComponent(tpl.body(first))}`;
+    store.updateClient(clientId, cc => {
+      (cc.activities = cc.activities || []).push(newActivity({ type: 'email', subject: tpl.name(), date: todayISO(), body: t('Courriel envoyé (modèle).', 'Email sent (template).') }));
+      cc.crm = cc.crm || {}; cc.crm.lastContactAt = Date.now();
+    });
+    toast(t('Courriel ouvert et consigné ✓', 'Email opened and logged ✓'));
+  };
   const m = modal({ title: t('Modèles de courriel', 'Email templates'),
     body: h('div', { class: 'grid', style: { gap: '10px' } },
-      h('div', { class: 'tiny muted' }, t('Ouvre votre logiciel de messagerie avec le message pré-rempli.', 'Opens your mail app with the message pre-filled.')),
+      h('div', { class: 'tiny muted' }, t('Ouvre votre messagerie avec le message pré-rempli, et consigne l’envoi dans l’historique.', 'Opens your mail app pre-filled, and logs the send in the history.')),
       ...TEMPLATES.map(tpl => h('button', { class: 'btn', style: { justifyContent: 'flex-start' }, onClick: () => { send(tpl); m.close(); } },
         icon('mail', 14), ' ', tpl.name()))),
   });
