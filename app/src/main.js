@@ -6,6 +6,7 @@ import { getJurisdiction, JURISDICTIONS, COUNTRY_LIST } from './jurisdictions/in
 import { h, icon, clear, modal, toast, money, t, fmtDate } from './ui/dom.js';
 import { setLang, getLang, onLangChange } from './i18n.js';
 import { sync } from './sync.js';
+import { cloudEnabled } from './state/cloud-config.js';
 
 import * as dashboard from './ui/views/dashboard.js';
 import * as clients from './ui/views/clients.js';
@@ -158,6 +159,7 @@ function currentRoute() {
 }
 
 let contentEl, titleEl, subEl, sidebarClientEl, navEls = {};
+let _cloudAuthed = false;
 
 function buildShell() {
   const app = document.getElementById('app');
@@ -188,6 +190,8 @@ function buildShell() {
       buildLangToggle(),
       h('button', { class: 'btn icon ghost', title: t('Thème', 'Theme'), onClick: () => store.toggleTheme(),
         html: icon(store.state.theme === 'light' ? 'moon' : 'sun', 16) }),
+      _cloudAuthed ? h('button', { class: 'btn icon ghost', title: t('Se déconnecter', 'Sign out'), onClick: cloudLogout,
+        html: icon('logout', 16) }) : null,
     ),
   );
 
@@ -283,23 +287,75 @@ function exportPdf() {
   setTimeout(() => window.print(), 400);
 }
 
-// Boot
-buildShell();
-render();
-store.subscribe(() => render());
-onLangChange(() => { buildShell(); render(); });
-window.addEventListener('hashchange', render);
+// ---- Boot ----
+function startApp() {
+  buildShell();
+  render();
+  store.subscribe(() => render());
+  onLangChange(() => { buildShell(); render(); });
+  window.addEventListener('hashchange', render);
+}
 
-// ---- Cloud auto-sync (GitHub gist) ----
-let _pushTimer = null;
-function scheduleAutoPush() {
-  if (!(sync.auto && sync.configured)) return;
-  clearTimeout(_pushTimer);
-  _pushTimer = setTimeout(() => { sync.push(store.exportJSON()).catch(() => {}); }, 4000);
+// ---- Legacy single-user sync (private GitHub gist) — only when cloud auth is OFF ----
+function startGistSync() {
+  let _pushTimer = null;
+  function scheduleAutoPush() {
+    if (!(sync.auto && sync.configured)) return;
+    clearTimeout(_pushTimer);
+    _pushTimer = setTimeout(() => { sync.push(store.exportJSON()).catch(() => {}); }, 4000);
+  }
+  store.subscribe(scheduleAutoPush);
+  if (sync.auto && sync.configured) {
+    sync.pull().then(r => { if (r) { try { store.mergeJSON(r); toast(t('Dossiers synchronisés ✓', 'Files synced ✓')); } catch (e) {} } }).catch(() => {});
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && sync.auto && sync.configured) { sync.push(store.exportJSON()).catch(() => {}); } });
 }
-store.subscribe(scheduleAutoPush);
-if (sync.auto && sync.configured) {
-  sync.pull().then(r => { if (r) { try { store.mergeJSON(r); toast(t('Dossiers synchronisés ✓', 'Files synced ✓')); } catch (e) {} } }).catch(() => {});
+
+// ---- Supabase cloud auth + per-user sync (multi-user) ----
+let _cloud = null;
+function startCloudSync() {
+  let pushTimer = null;
+  store.subscribe(() => {
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(() => { _cloud.pushState(JSON.parse(store.exportJSON())).catch(() => {}); }, 2500);
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') _cloud.pushState(JSON.parse(store.exportJSON())).catch(() => {});
+  });
 }
-// Best-effort push when the tab is hidden so the last edits reach the cloud.
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && sync.auto && sync.configured) { sync.push(store.exportJSON()).catch(() => {}); } });
+async function hydrateFromCloud() {
+  try {
+    const remote = await _cloud.pullState();
+    if (remote && Array.isArray(remote.clients)) store.importJSON(JSON.stringify(remote));
+  } catch (e) { console.error('cloud pull failed', e); }
+}
+async function bootCloud() {
+  _cloud = await import('./state/cloud.js');
+  const { showAuthScreen } = await import('./ui/auth-screen.js');
+  const onAuthed = async () => {
+    _cloudAuthed = true;
+    await hydrateFromCloud();
+    startApp();
+    startCloudSync();
+  };
+  try {
+    const session = await _cloud.currentSession();
+    if (session) await onAuthed();
+    else showAuthScreen(onAuthed);
+  } catch (e) {
+    console.error('cloud boot failed — falling back to local', e);
+    startApp(); startGistSync();
+  }
+}
+async function cloudLogout() {
+  try { await _cloud.signOut(); } catch (e) {}
+  localStorage.removeItem('jc_planner_v1');
+  location.reload();
+}
+
+if (cloudEnabled()) {
+  bootCloud();
+} else {
+  startApp();
+  startGistSync();
+}

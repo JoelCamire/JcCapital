@@ -126,6 +126,8 @@ const I = {
   dollar: 'M12 2v20M16 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H7',
   funnel: 'M3 5h18l-7 8v6l-4-2v-4z',
   calendar: 'M4 5h16v16H4zM4 9h16M8 3v4M16 3v4',
+  logout: 'M15 3h4a1 1 0 011 1v16a1 1 0 01-1 1h-4M10 17l5-5-5-5M15 12H3',
+  lock: 'M6 11h12v10H6zM8 11V7a4 4 0 018 0v4',
 };
 export function icon(name, size = 18, extra = '') {
   const d = I[name] || I.doc;
