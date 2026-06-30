@@ -2649,3 +2649,8 @@ a[style*="border-radius"] { border-radius: 9px !important; }
     object-fit: cover !important;
     object-position: center 22% !important;
 }
+
+/* v3.3 — remonter le visage dans le cadre (plus de headroom) */
+.placeholder-img img, .member-img, .team-card img {
+    object-position: center 42% !important;
+}
