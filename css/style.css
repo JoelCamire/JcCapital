@@ -2654,3 +2654,60 @@ a[style*="border-radius"] { border-radius: 9px !important; }
 .placeholder-img img, .member-img, .team-card img {
     object-position: center 42% !important;
 }
+
+/* ============================================================
+   v4 — de la vie : icones de services + bande image
+   ============================================================ */
+
+/* Icones sur les cartes services / differenciateurs */
+.service-header { justify-content: flex-start !important; gap: 0; }
+.service-header .toggle-icon { margin-left: auto; }
+.card-ic {
+    color: var(--c-gold);
+    font-size: 1.15rem;
+    margin-right: 0.7rem;
+    flex-shrink: 0;
+    width: 1.5rem;
+    text-align: center;
+}
+
+/* Bande image pleine largeur */
+.image-band {
+    position: relative;
+    min-height: 52vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 1.5rem;
+    background-image: url('../img/field-agricole.jpg');
+    background-size: cover;
+    background-position: center 58%;
+    background-attachment: fixed;
+}
+.image-band-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(8, 12, 16, 0.55) 0%, rgba(8, 12, 16, 0.72) 100%);
+}
+.image-band-content { position: relative; z-index: 2; max-width: 860px; }
+.image-band-quote {
+    color: #fff;
+    font-size: clamp(1.5rem, 3.4vw, 2.4rem);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin: 0 0 1rem;
+    text-shadow: 0 2px 22px rgba(0, 0, 0, 0.45);
+}
+.image-band-sub {
+    color: var(--c-gold);
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    font-weight: 400;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+@media (max-width: 768px) {
+    .image-band { background-attachment: scroll; min-height: 44vh; padding: 3rem 1.2rem; }
+    .image-band-quote { font-size: clamp(1.3rem, 6vw, 1.8rem); }
+}
