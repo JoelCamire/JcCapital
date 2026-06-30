@@ -659,9 +659,9 @@
     <!-- Avertissement de conformité -->
     <div class="section-container" style="padding-top:0;">
       <p style="max-width:900px;margin:0 auto;padding:1.2rem 1.4rem;border:1px solid var(--c-gold);border-radius:10px;color:var(--c-light-beige);font-size:0.9rem;line-height:1.7;opacity:0.95;"
-        data-fr="⚠️ Ce bilan est fourni à titre informatif et éducatif seulement. Le montant de protection suggéré est une estimation basée sur les renseignements que vous fournissez; il ne constitue pas un conseil en assurance ni une recommandation de produit. Une analyse complète de vos besoins, réalisée avec votre représentant en assurance de personnes, est nécessaire avant toute décision."
-        data-en="⚠️ This assessment is provided for informational and educational purposes only. The suggested coverage amount is an estimate based on the information you provide; it does not constitute insurance advice or a product recommendation. A complete needs analysis, carried out with your personal-insurance representative, is required before any decision.">
-        ⚠️ Ce bilan est fourni à titre informatif et éducatif seulement. Le montant de protection suggéré est une estimation basée sur les renseignements que vous fournissez; il ne constitue pas un conseil en assurance ni une recommandation de produit. Une analyse complète de vos besoins, réalisée avec votre représentant en assurance de personnes, est nécessaire avant toute décision.
+        data-fr="Ce bilan est fourni à titre informatif et éducatif seulement. Le montant de protection suggéré est une estimation basée sur les renseignements que vous fournissez; il ne constitue pas un conseil en assurance ni une recommandation de produit. Une analyse complète de vos besoins, réalisée avec votre représentant en assurance de personnes, est nécessaire avant toute décision."
+        data-en="This assessment is provided for informational and educational purposes only. The suggested coverage amount is an estimate based on the information you provide; it does not constitute insurance advice or a product recommendation. A complete needs analysis, carried out with your personal-insurance representative, is required before any decision.">
+        Ce bilan est fourni à titre informatif et éducatif seulement. Le montant de protection suggéré est une estimation basée sur les renseignements que vous fournissez; il ne constitue pas un conseil en assurance ni une recommandation de produit. Une analyse complète de vos besoins, réalisée avec votre représentant en assurance de personnes, est nécessaire avant toute décision.
       </p>
     </div>
 
@@ -1107,7 +1107,7 @@ function finishProcess(emailFailed) {
     if (emailFailed) {
         const box = document.createElement('div');
         box.style.cssText = "background: rgba(239,68,68,0.12); border: 1px solid #ef4444; border-radius: 10px; padding: 15px 20px; margin-bottom: 20px; color: var(--c-light-beige); line-height: 1.5;";
-        box.innerHTML = '⚠️ <strong>Petit pépin technique :</strong> la transmission automatique de votre dossier a échoué. Pour être certain(e) d\'être rappelé(e), réservez directement votre consultation avec le bouton doré ci-dessous, ou appelez-nous au <a href="tel:+15813986747" style="color: var(--c-gold); font-weight:700;">581 398-6747</a>.';
+        box.innerHTML = '<strong>Petit pépin technique :</strong> la transmission automatique de votre dossier a échoué. Pour être certain(e) d\'être rappelé(e), réservez directement votre consultation avec le bouton doré ci-dessous, ou appelez-nous au <a href="tel:+15813986747" style="color: var(--c-gold); font-weight:700;">581 398-6747</a>.';
         const report = document.getElementById('sectionReport');
         report.insertBefore(box, report.firstChild);
     }
