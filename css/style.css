@@ -2643,3 +2643,9 @@ a[style*="border-radius"] { border-radius: 9px !important; }
 
 /* v3.1 — restaurer les bulles de reseaux sociaux en cercles */
 .social-bubble { border-radius: 50% !important; }
+
+/* v3.2 — affichage propre de la photo (portrait) */
+.placeholder-img img, .member-img, .team-card img {
+    object-fit: cover !important;
+    object-position: center 22% !important;
+}
