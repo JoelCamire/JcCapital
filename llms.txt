@@ -38,8 +38,9 @@ Québec, Lévis, Capitale-Nationale, Chaudière-Appalaches, Beauce, Portneuf, Mo
 
 ## Inscription
 
-- **Autorité des marchés financiers (AMF)** — Représentant en assurance de personnes (n° BDNI 4802631)
+- **Autorité des marchés financiers (AMF)** — Représentant en assurance de personnes
 - **Cabinet de rattachement** : SFL Gestion de patrimoine
+- **NEQ (Registraire des entreprises du Québec)** : 2281795627
 
 ## Pages principales
 
