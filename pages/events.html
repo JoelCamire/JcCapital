@@ -245,14 +245,6 @@
             }
         }
     </style>
-  <!-- JC AI Chatbot -->
-  <link rel="stylesheet" href="../LM/jc-chat.css">
-  <script defer src="../LM/jc-chat-data.js"></script>
-  <script defer src="../LM/jc-chat-quiz.js"></script>
-  <script defer src="../LM/jc-chat-engine.js"></script>
-  <script defer src="../LM/jc-llm-config.js"></script>
-    <script defer src="../LM/jc-llm.js"></script>
-    <script defer src="../LM/jc-chat-ui.js"></script>
 </head>
 
 <body>
@@ -306,93 +298,10 @@
     <div id="footer-placeholder"></div>
 
     <script>
-        // Fake Event Data
-        const eventsData = [
-            {
-                id: 1,
-                title_fr: "Conférence Fiscale",
-                title_en: "Tax Strategy Conference",
-                date: "2025-11-20",
-                displayDate_fr: "20 NOV",
-                displayDate_en: "NOV 20",
-                type: "conference",
-                desc_fr: "Décryptez les nouvelles mesures fiscales et optimisez votre fin d'année.",
-                desc_en: "Decode the new tax measures and optimize your year-end.",
-                icon: "fa-calculator"
-            },
-            {
-                id: 2,
-                title_fr: "Webinaire Retraite",
-                title_en: "Retirement Webinar",
-                date: "2025-12-05",
-                displayDate_fr: "05 DÉC",
-                displayDate_en: "DEC 05",
-                type: "webinar",
-                desc_fr: "Comment bâtir un revenu passif durable pour votre retraite.",
-                desc_en: "How to build sustainable passive income for your retirement.",
-                icon: "fa-umbrella-beach"
-            },
-            {
-                id: 3,
-                title_fr: "Gala Annuel JC Capital",
-                title_en: "JC Capital Annual Gala",
-                date: "2026-01-15",
-                displayDate_fr: "15 JAN",
-                displayDate_en: "JAN 15",
-                type: "networking",
-                desc_fr: "Une soirée exclusive pour célébrer nos clients et partenaires.",
-                desc_en: "An exclusive evening to celebrate our clients and partners.",
-                icon: "fa-champagne-glasses"
-            },
-            {
-                id: 4,
-                title_fr: "Masterclass Immobilier",
-                title_en: "Real Estate Masterclass",
-                date: "2026-02-10",
-                displayDate_fr: "10 FÉV",
-                displayDate_en: "FEB 10",
-                type: "conference",
-                desc_fr: "Stratégies avancées d'investissement immobilier multi-logements.",
-                desc_en: "Advanced strategies for multi-unit real estate investment.",
-                icon: "fa-building"
-            },
-            {
-                id: 5,
-                title_fr: "Sommet Investissement",
-                title_en: "Investment Summit",
-                date: "2026-03-22",
-                displayDate_fr: "22 MAR",
-                displayDate_en: "MAR 22",
-                type: "conference",
-                desc_fr: "Analyse des marchés boursiers : perspectives 2026.",
-                desc_en: "Stock market analysis: 2026 outlook.",
-                icon: "fa-chart-line"
-            },
-            {
-                id: 6,
-                title_fr: "5 à 7 des Entrepreneurs",
-                title_en: "Entrepreneurs' Networking",
-                date: "2026-04-18",
-                displayDate_fr: "18 AVR",
-                displayDate_en: "APR 18",
-                type: "networking",
-                desc_fr: "Rencontrez d'autres leaders d'affaires locaux autour d'un verre.",
-                desc_en: "Meet other local business leaders over a drink.",
-                icon: "fa-handshake"
-            },
-            {
-                id: 7,
-                title_fr: "Optimisation Agricole",
-                title_en: "Agricultural Optimization",
-                date: "2026-05-12",
-                displayDate_fr: "12 MAI",
-                displayDate_en: "MAY 12",
-                type: "webinar",
-                desc_fr: "Transfert de ferme et protection du patrimoine agricole.",
-                desc_en: "Farm transfer and agricultural wealth protection.",
-                icon: "fa-wheat-awn"
-            }
-        ];
+        // Aucun événement pour le moment. Pour en ajouter, remplir ce tableau
+        // avec des objets { id, title_fr, title_en, date, displayDate_fr,
+        // displayDate_en, type, desc_fr, desc_en, icon }.
+        const eventsData = [];
 
         function renderEvents() {
             const grid = document.getElementById('eventsGrid');
@@ -416,7 +325,7 @@
             });
 
             if (filtered.length === 0) {
-                grid.innerHTML = `<div class="no-results">${currentLang === 'fr' ? 'Aucun événement trouvé.' : 'No events found.'}</div>`;
+                grid.innerHTML = `<div class="no-results">${currentLang === 'fr' ? "Aucun événement n'est prévu pour le moment. Abonnez-vous à nos réseaux sociaux ou écrivez-nous pour être informé des prochaines conférences et webinaires." : 'No events are scheduled at the moment. Follow us on social media or contact us to be informed of upcoming conferences and webinars.'}</div>`;
                 return;
             }
 
