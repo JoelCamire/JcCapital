@@ -52,7 +52,57 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Reveal the fixed nav once the user scrolls past the hero
     initNavReveal();
+
+    // Reveal sections/cards as they enter the viewport
+    initScrollReveal();
 });
+
+// Scroll reveal — progressive enhancement: elements only get the hidden state
+// once JS runs, so the page is fully visible if JS fails or is disabled.
+function initScrollReveal() {
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return; // respect users who prefer no motion
+
+    var selector = [
+        '.section-heading',
+        '.service-bubble',
+        '.team-card',
+        '.member-card',
+        '.event-card',
+        '.events-empty',
+        '.content-wrapper',
+        '.process-step',
+        '.social-bubble',
+        '.booking-intro',
+        '.calendly-inline-widget'
+    ].join(',');
+
+    var els = Array.prototype.slice.call(document.querySelectorAll(selector));
+    if (!els.length) return;
+
+    els.forEach(function (el, i) {
+        el.classList.add('jc-reveal');
+        // subtle stagger for grids
+        el.style.transitionDelay = (Math.min(i % 6, 5) * 60) + 'ms';
+    });
+
+    if (!('IntersectionObserver' in window)) {
+        // Fallback: just show everything
+        els.forEach(function (el) { el.classList.add('jc-reveal--visible'); });
+        return;
+    }
+
+    var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('jc-reveal--visible');
+                obs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+
+    els.forEach(function (el) { obs.observe(el); });
+}
 
 // --- Robust body scroll lock ---
 // Plain `overflow:hidden` does NOT reliably lock scrolling on mobile Safari, so we

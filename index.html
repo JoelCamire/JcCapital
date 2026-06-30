@@ -253,6 +253,13 @@
 
   <!-- HERO SECTION -->
   <header id="home" class="hero-section">
+    <!-- Video montage background (champs de la région + rencontres entrepreneurs) -->
+    <div class="hero-video-wrap" aria-hidden="true">
+      <video class="hero-video" muted playsinline preload="auto" poster="img/wall.webp"></video>
+      <video class="hero-video" muted playsinline preload="none"></video>
+      <video class="hero-video" muted playsinline preload="none"></video>
+      <div class="hero-video-overlay"></div>
+    </div>
     <div class="hero-bg"></div>
     <div class="hero-content glass-panel">
       <div class="brand-container">
@@ -410,6 +417,40 @@
     </div>
   </section>
 
+  <!-- PROCESS SECTION -->
+  <section id="processus" class="section-container">
+    <h2 class="section-heading" data-fr="Mon processus en 3 étapes" data-en="My 3-Step Process">Mon processus en 3 étapes</h2>
+    <div class="process-grid">
+      <div class="process-step glass-panel">
+        <div class="process-num">1</div>
+        <i class="fas fa-comments process-icon" aria-hidden="true"></i>
+        <h3 data-fr="Rencontre découverte" data-en="Discovery Meeting">Rencontre découverte</h3>
+        <p data-fr="On fait le point sur votre situation, vos objectifs et vos préoccupations. Une première consultation gratuite, sans engagement."
+          data-en="We review your situation, goals and concerns. A free, no-obligation first consultation.">On fait le point sur votre situation, vos objectifs et vos préoccupations. Une première consultation gratuite, sans engagement.</p>
+      </div>
+      <div class="process-step glass-panel">
+        <div class="process-num">2</div>
+        <i class="fas fa-drafting-compass process-icon" aria-hidden="true"></i>
+        <h3 data-fr="Stratégie sur mesure" data-en="Tailored Strategy">Stratégie sur mesure</h3>
+        <p data-fr="Je bâtis, avec les spécialistes du réseau SFL au besoin, une stratégie claire couvrant protection, placement et planification, adaptée à votre réalité."
+          data-en="With the SFL network specialists when needed, I build a clear strategy covering protection, investments and planning, tailored to your reality.">Je bâtis, avec les spécialistes du réseau SFL au besoin, une stratégie claire couvrant protection, placement et planification, adaptée à votre réalité.</p>
+      </div>
+      <div class="process-step glass-panel">
+        <div class="process-num">3</div>
+        <i class="fas fa-arrows-rotate process-icon" aria-hidden="true"></i>
+        <h3 data-fr="Mise en place & suivi" data-en="Implementation & Follow-up">Mise en place &amp; suivi</h3>
+        <p data-fr="On met le plan en action et je reste à vos côtés avec un suivi régulier pour ajuster au fil de votre évolution."
+          data-en="We put the plan into action and I stay by your side with regular follow-ups to adjust as your life evolves.">On met le plan en action et je reste à vos côtés avec un suivi régulier pour ajuster au fil de votre évolution.</p>
+      </div>
+    </div>
+    <div style="text-align:center; margin-top:2.5rem;">
+      <a href="index.html#booking" class="btn-text"
+        style="background-color: var(--c-gold); color: var(--c-dark-blue); padding: 12px 26px; border-radius: 8px; font-weight: bold; text-decoration: none; display: inline-block; transition: transform 0.2s;"
+        onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
+        data-fr="Commencer — consultation gratuite" data-en="Start — free consultation">Commencer — consultation gratuite</a>
+    </div>
+  </section>
+
   <!-- TEAM SECTION -->
   <section id="team" class="section-container">
     <h2 class="section-heading" data-fr="Votre conseiller" data-en="Your Advisor">Votre conseiller</h2>
@@ -498,6 +539,57 @@
 
   <!-- Footer placeholder - loaded dynamically -->
   <div id="footer-placeholder"></div>
+
+  <!-- Hero video montage controller (crossfade + mobile/reduced-motion fallback) -->
+  <script>
+    (function () {
+      var wrap = document.querySelector('.hero-video-wrap');
+      if (!wrap) return;
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var small = window.matchMedia('(max-width: 768px)').matches;
+      // On small screens or reduced-motion, skip the video and keep the CSS gradient/poster.
+      if (reduce || small) { wrap.parentNode.classList.add('hero-no-video'); return; }
+
+      var vids = Array.prototype.slice.call(wrap.querySelectorAll('.hero-video'));
+      var srcs = ['video/hero-1-champs.mp4', 'video/hero-2-rencontre.mp4', 'video/hero-3-poignee.mp4'];
+      if (vids.length < srcs.length) return;
+      var cur = 0, switching = false;
+
+      vids[0].src = srcs[0];
+      vids[0].classList.add('active');
+      var play0 = vids[0].play();
+      if (play0 && play0.catch) play0.catch(function () { wrap.parentNode.classList.add('hero-no-video'); });
+
+      // Load the next clips only after the page has loaded (keeps first paint light).
+      window.addEventListener('load', function () {
+        vids[1].src = srcs[1]; vids[1].load();
+        vids[2].src = srcs[2]; vids[2].load();
+      });
+
+      function go(next) {
+        switching = true;
+        var v = vids[next];
+        try { v.currentTime = 0; } catch (e) {}
+        var p = v.play();
+        if (p && p.catch) p.catch(function () {});
+        vids.forEach(function (x, i) { x.classList.toggle('active', i === next); });
+        cur = next;
+        setTimeout(function () { switching = false; }, 1300);
+      }
+
+      vids.forEach(function (v, i) {
+        v.addEventListener('timeupdate', function () {
+          if (i !== cur || switching) return;
+          if (v.duration && v.currentTime >= v.duration - 0.9) {
+            go((cur + 1) % vids.length);
+          }
+        });
+        v.addEventListener('ended', function () {
+          if (i === cur && !switching) go((cur + 1) % vids.length);
+        });
+      });
+    })();
+  </script>
 
 
 </body>
