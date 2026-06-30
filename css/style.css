@@ -2640,3 +2640,6 @@ a[style*="border-radius"] { border-radius: 9px !important; }
     .subtitle { font-size: 0.98rem !important; }
     .sub-title { font-size: 0.9rem !important; }
 }
+
+/* v3.1 — restaurer les bulles de reseaux sociaux en cercles */
+.social-bubble { border-radius: 50% !important; }
