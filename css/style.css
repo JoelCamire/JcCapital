@@ -2584,3 +2584,59 @@ a[style*="border-radius"] { border-radius: 2px !important; }
         min-height: 46px; display: inline-flex; align-items: center; justify-content: center;
     }
 }
+
+/* ============================================================
+   v3 — coins arrondis + aucune coupure de mots + titre mobile
+   Override (loaded last). 2026-06-30.
+   ============================================================ */
+
+/* AUCUNE cesure / coupure de mot nulle part */
+h1, h2, h3, h4, h5, h6, p, a, li, span, div,
+.main-title, .subtitle, .sub-title, .section-heading {
+    -webkit-hyphens: none !important;
+    hyphens: none !important;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+/* Coins arrondis (preference de Joel) */
+.glass-panel { border-radius: 14px !important; }
+.service-bubble, .process-step, .event-card, .team-card, .content-wrapper,
+.carousel-container, .events-empty, .tax-card, .input-panel, .result-panel {
+    border-radius: 14px !important;
+}
+.hero-content.glass-panel { border-radius: 18px !important; }
+.btn-text, .nav-cta, .btn-register, .btn-register-full, .footer-cta,
+.btn-calculate, .btn-sim, .social-bubble {
+    border-radius: 9px !important;
+}
+a[style*="border-radius"] { border-radius: 9px !important; }
+
+/* Section processus : cartes arrondies separees (fin du look hairline colle) */
+.process-grid {
+    gap: 1.2rem;
+    background: none;
+    border: 0;
+    overflow: visible;
+}
+.process-step {
+    border: 1px solid rgba(198, 172, 143, 0.16) !important;
+    border-radius: 14px !important;
+    background: rgba(20, 30, 38, 0.96) !important;
+}
+
+/* Titre hero : plus raisonnable, jamais coupe */
+.main-title {
+    font-size: clamp(1.7rem, 4.4vw, 2.8rem);
+    overflow-wrap: normal !important;
+    word-break: keep-all !important;
+}
+
+@media (max-width: 768px) {
+    .main-title {
+        font-size: clamp(1.35rem, 6.2vw, 1.85rem) !important;
+        line-height: 1.2 !important;
+    }
+    .subtitle { font-size: 0.98rem !important; }
+    .sub-title { font-size: 0.9rem !important; }
+}
