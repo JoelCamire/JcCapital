@@ -2711,3 +2711,15 @@ a[style*="border-radius"] { border-radius: 9px !important; }
     .image-band { background-attachment: scroll; min-height: 44vh; padding: 3rem 1.2rem; }
     .image-band-quote { font-size: clamp(1.3rem, 6vw, 1.8rem); }
 }
+
+/* v5 — 2e bande (affaires) + icones du cycle de vie */
+.image-band--biz {
+    background-image: url('../img/biz-affaires.jpg') !important;
+    background-position: center 42% !important;
+}
+.process-step .card-ic {
+    display: block;
+    font-size: 1.5rem;
+    width: auto;
+    margin: 0.2rem 0 0.7rem;
+}
