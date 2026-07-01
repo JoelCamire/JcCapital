@@ -2732,3 +2732,39 @@ a[style*="border-radius"] { border-radius: 9px !important; }
         object-fit: cover !important;
     }
 }
+
+/* ============================================================
+   v6 — PREMIUM POP : dore plus riche + halos + voile chaud
+   ============================================================ */
+:root { --c-gold-bright: #D2A857; }
+
+/* Boutons premium : degrade dore + halo lumineux */
+.btn-text, .nav-cta, .btn-register, .btn-register-full, .footer-cta {
+    background: linear-gradient(135deg, var(--c-gold-bright), var(--c-gold)) !important;
+    color: var(--c-black) !important;
+    border: none !important;
+    box-shadow: 0 4px 18px rgba(210, 168, 87, 0.28) !important;
+}
+.btn-text:hover, .nav-cta:hover, .footer-cta:hover {
+    filter: brightness(1.06);
+    box-shadow: 0 6px 24px rgba(210, 168, 87, 0.42) !important;
+}
+a[style*="var(--c-gold)"] {
+    background: linear-gradient(135deg, var(--c-gold-bright), var(--c-gold)) !important;
+    box-shadow: 0 4px 14px rgba(210, 168, 87, 0.25);
+}
+
+/* Accents dores plus vifs */
+.card-ic { color: var(--c-gold-bright) !important; }
+.process-num { color: var(--c-gold-bright) !important; }
+.section-heading::after {
+    background: var(--c-gold-bright) !important;
+    height: 3px !important;
+    width: 62px !important;
+}
+.image-band-quote { text-shadow: 0 2px 26px rgba(0, 0, 0, 0.55); }
+
+/* Salle de conference : voile chaud pour rester dans la palette */
+.image-band--biz .image-band-overlay {
+    background: linear-gradient(180deg, rgba(28, 20, 8, 0.52) 0%, rgba(12, 11, 10, 0.74) 100%) !important;
+}
