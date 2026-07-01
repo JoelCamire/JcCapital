@@ -253,7 +253,7 @@
   <header id="home" class="hero-section">
     <!-- Video montage background (champs de la région + rencontres entrepreneurs) -->
     <div class="hero-video-wrap" aria-hidden="true">
-      <video class="hero-video" muted playsinline preload="auto" poster="img/wall.webp"></video>
+      <video class="hero-video" muted playsinline autoplay preload="auto" poster="img/wall.webp"></video>
       <video class="hero-video" muted playsinline preload="none"></video>
       <video class="hero-video" muted playsinline preload="none"></video>
       <div class="hero-video-overlay"></div>
@@ -565,9 +565,9 @@
       var wrap = document.querySelector('.hero-video-wrap');
       if (!wrap) return;
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var small = window.matchMedia('(max-width: 768px)').matches;
-      // On small screens or reduced-motion, skip the video and keep the image/gradient.
-      if (reduce || small) { wrap.parentNode.classList.add('hero-no-video'); return; }
+      // Only skip the video for users who prefer reduced motion (accessibility).
+      // Video now plays on mobile too (muted, inline, autoplay).
+      if (reduce) { wrap.parentNode.classList.add('hero-no-video'); return; }
 
       var vids = Array.prototype.slice.call(wrap.querySelectorAll('.hero-video'));
       var srcs = ['video/hero-1-champs.mp4', 'video/hero-2-affaires.mp4', 'video/hero-3-poignee.mp4'];

@@ -2723,3 +2723,12 @@ a[style*="border-radius"] { border-radius: 9px !important; }
     width: auto;
     margin: 0.2rem 0 0.7rem;
 }
+
+/* v5.1 — la video du hero joue aussi sur mobile : garder le bon dimensionnement */
+@media (max-width: 768px) {
+    .hero-video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
+}
