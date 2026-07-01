@@ -2768,3 +2768,63 @@ a[style*="var(--c-gold)"] {
 .image-band--biz .image-band-overlay {
     background: linear-gradient(180deg, rgba(28, 20, 8, 0.52) 0%, rgba(12, 11, 10, 0.74) 100%) !important;
 }
+
+/* ============================================================
+   v7 — bande credibilite + mouvement cinematique + hero reveal
+   ============================================================ */
+
+/* Bande de credibilite */
+.credibility-band {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(198, 172, 143, 0.14);
+    border-top: 1px solid rgba(198, 172, 143, 0.18);
+    border-bottom: 1px solid rgba(198, 172, 143, 0.18);
+}
+.cred-item {
+    background: var(--c-black);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.6rem;
+    padding: 1.9rem 1rem;
+}
+.cred-item i { color: var(--c-gold-bright); font-size: 1.5rem; }
+.cred-item span { color: var(--c-light-beige); font-size: 0.9rem; font-weight: 500; letter-spacing: 0.02em; line-height: 1.35; }
+@media (max-width: 700px) {
+    .credibility-band { grid-template-columns: repeat(2, 1fr); }
+    .cred-item { padding: 1.4rem 0.8rem; }
+    .cred-item span { font-size: 0.82rem; }
+}
+
+/* Mouvement cinematique (Ken Burns) sur les bandes image */
+.image-band { overflow: hidden; background: var(--c-black) !important; }
+.image-band::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: url('../img/field-agricole.jpg');
+    background-size: cover;
+    background-position: center 58%;
+    animation: jcKenburns 28s ease-in-out infinite alternate;
+    transform-origin: center;
+}
+.image-band--biz::before {
+    background-image: url('../img/biz-affaires.jpg');
+    background-position: center 45%;
+}
+.image-band > .image-band-overlay { z-index: 1; }
+.image-band > .image-band-content { z-index: 2; }
+@keyframes jcKenburns { from { transform: scale(1.001); } to { transform: scale(1.09); } }
+
+/* Apparition douce du contenu hero */
+.hero-content { animation: heroReveal 0.9s ease both; }
+@keyframes heroReveal { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .image-band::before { animation: none; }
+    .hero-content { animation: none; }
+}
