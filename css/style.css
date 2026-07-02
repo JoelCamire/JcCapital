@@ -3116,3 +3116,6 @@ a[style*="var(--c-gold)"] { background: linear-gradient(135deg, #E7D3B6, #C6AC8F
     .image-band { min-height: 52vh !important; }
     .image-band-quote { font-size: clamp(1.5rem, 7vw, 2rem) !important; }
 }
+
+/* v14 — 3e bande : ville doree */
+.image-band--city .image-band-bg { background-image: url('../img/city-dore.jpg'); background-position: center 35%; }
