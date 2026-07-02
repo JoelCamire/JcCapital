@@ -22,8 +22,8 @@
   <meta name="application-name" content="JC Capital">
   <meta name="apple-mobile-web-app-title" content="JC Capital">
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="img/logo_icon.ico">
-  <link rel="apple-touch-icon" href="img/logo_icon.ico">
+  <link rel="icon" type="image/png" href="img/favicon-32.png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 
   <!-- Open Graph Meta Tags -->
   <meta property="og:title" content="JC Capital — Structurer, protéger et faire croître votre patrimoine">
@@ -110,14 +110,16 @@
       "founder": { "@id": "https://jccapital.ca/#joel" },
       "employee": { "@id": "https://jccapital.ca/#joel" },
       "areaServed": [
+        { "@type": "State", "name": "Québec, Canada" },
+        { "@type": "City", "name": "Montréal" },
         { "@type": "City", "name": "Québec" },
         { "@type": "City", "name": "Lévis" },
-        { "@type": "AdministrativeArea", "name": "Capitale-Nationale" },
-        { "@type": "AdministrativeArea", "name": "Chaudière-Appalaches" },
-        { "@type": "AdministrativeArea", "name": "Beauce" },
-        { "@type": "AdministrativeArea", "name": "Portneuf" },
-        { "@type": "City", "name": "Montréal" },
-        { "@type": "Country", "name": "Canada" }
+        { "@type": "AdministrativeArea", "name": "Grand Montréal et Montérégie" },
+        { "@type": "AdministrativeArea", "name": "Capitale-Nationale et Portneuf" },
+        { "@type": "AdministrativeArea", "name": "Chaudière-Appalaches et Beauce" },
+        { "@type": "AdministrativeArea", "name": "Estrie" },
+        { "@type": "AdministrativeArea", "name": "Centre-du-Québec et Mauricie" },
+        { "@type": "AdministrativeArea", "name": "Bas-Saint-Laurent" }
       ],
       "serviceType": [
         "Assurance de personnes",
@@ -236,7 +238,7 @@
   <link rel="stylesheet" href="animation/anim-mobile.css">
   <!-- CSS Split -->
   <link rel="stylesheet" href="css/_tokens.css">
-  <link rel="stylesheet" href="css/style.css?v=18">
+  <link rel="stylesheet" href="css/style.css?v=19">
   <!-- Font Awesome 6 for social icons (includes X/Twitter) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <!-- SweetAlert2 for beautiful notifications -->
@@ -246,7 +248,7 @@
   <link rel="stylesheet" href="https://assets.calendly.com/assets/external/widget.css">
   <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
   <!-- COMPONENT LOADERS -->
-  <script defer src="js/components.js?v=18"></script>
+  <script defer src="js/components.js?v=19"></script>
   <script defer src="js/main.js"></script>
 </head>
 
@@ -293,7 +295,7 @@
   <section id="services" class="section-container">
     <h2 class="section-heading" data-fr="Nos Services" data-en="Our Services">Nos Services</h2>
     <div class="services-wrapper">
-      <div class="service-bubble glass-panel" onclick="toggleService(this)" role="button" tabindex="0" aria-expanded="false" aria-label="Optimisation fiscale">
+      <div class="service-bubble glass-panel" onclick="toggleService(this)" role="button" tabindex="0" aria-expanded="false" aria-label="Optimisation fiscale"><i class="fas fa-file-invoice-dollar bubble-wm" aria-hidden="true"></i>
         <div class="service-header">
           <i class="fas fa-file-invoice-dollar card-ic" aria-hidden="true"></i><h3 data-fr="Optimisation fiscale" data-en="Tax Optimisation">Optimisation fiscale</h3><span
             class="toggle-icon">+</span>
@@ -304,7 +306,7 @@
             fiscal, élaborées en collaboration avec les fiscalistes et comptables du réseau SFL.</p>
         </div>
       </div>
-      <div class="service-bubble glass-panel" onclick="toggleService(this)" role="button" tabindex="0" aria-expanded="false" aria-label="Transfert, achat et vente">
+      <div class="service-bubble glass-panel" onclick="toggleService(this)" role="button" tabindex="0" aria-expanded="false" aria-label="Transfert, achat et vente"><i class="fas fa-handshake bubble-wm" aria-hidden="true"></i>
         <div class="service-header">
           <i class="fas fa-handshake card-ic" aria-hidden="true"></i><h3 data-fr="Transfert, achat & vente" data-en="Transfer, Purchase & Sale">Transfert, achat & vente</h3><span
             class="toggle-icon">+</span>
@@ -315,7 +317,7 @@
           </p>
         </div>
       </div>
-      <div class="service-bubble glass-panel" onclick="toggleService(this)" role="button" tabindex="0" aria-expanded="false" aria-label="Planification financière et retraite">
+      <div class="service-bubble glass-panel" onclick="toggleService(this)" role="button" tabindex="0" aria-expanded="false" aria-label="Planification financière et retraite"><i class="fas fa-chart-line bubble-wm" aria-hidden="true"></i>
         <div class="service-header">
           <i class="fas fa-chart-line card-ic" aria-hidden="true"></i><h3 data-fr="Planification financière / Retraite" data-en="Financial Planning / Retirement">Planification
             financière / Retraite</h3><span class="toggle-icon">+</span>
@@ -326,7 +328,7 @@
             votre retraite.</p>
         </div>
       </div>
-      <div class="service-bubble glass-panel" onclick="toggleService(this)" role="button" tabindex="0" aria-expanded="false" aria-label="Placement">
+      <div class="service-bubble glass-panel" onclick="toggleService(this)" role="button" tabindex="0" aria-expanded="false" aria-label="Placement"><i class="fas fa-arrow-trend-up bubble-wm" aria-hidden="true"></i>
         <div class="service-header">
           <i class="fas fa-arrow-trend-up card-ic" aria-hidden="true"></i><h3 data-fr="Placement" data-en="Investment">Placement</h3><span class="toggle-icon">+</span>
         </div>
@@ -336,7 +338,7 @@
             structurées et adaptées à votre profil d'investisseur et à votre tolérance au risque.</p>
         </div>
       </div>
-      <div class="service-bubble glass-panel" onclick="toggleService(this)" role="button" tabindex="0" aria-expanded="false" aria-label="Protection et assurance">
+      <div class="service-bubble glass-panel" onclick="toggleService(this)" role="button" tabindex="0" aria-expanded="false" aria-label="Protection et assurance"><i class="fas fa-shield-halved bubble-wm" aria-hidden="true"></i>
         <div class="service-header">
           <i class="fas fa-shield-halved card-ic" aria-hidden="true"></i><h3 data-fr="Protection (Assurance)" data-en="Protection (Insurance)">Protection (Assurance)</h3><span
             class="toggle-icon">+</span>
@@ -350,7 +352,7 @@
             data-fr="Découvrir" data-en="Discover">Découvrir</a>
         </div>
       </div>
-      <div class="service-bubble glass-panel" onclick="toggleService(this)" role="button" tabindex="0" aria-expanded="false" aria-label="Gestion de patrimoine agricole">
+      <div class="service-bubble glass-panel" onclick="toggleService(this)" role="button" tabindex="0" aria-expanded="false" aria-label="Gestion de patrimoine agricole"><i class="fas fa-wheat-awn bubble-wm" aria-hidden="true"></i>
         <div class="service-header">
           <i class="fas fa-wheat-awn card-ic" aria-hidden="true"></i><h3 data-fr="Gestion de patrimoine agricole" data-en="Agricultural Wealth Management">Gestion de patrimoine
             agricole</h3><span class="toggle-icon">+</span>

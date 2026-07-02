@@ -3134,3 +3134,19 @@ a[style*="var(--c-gold)"] { background: linear-gradient(135deg, #E7D3B6, #C6AC8F
 /* v18 — bande 3 : tours vues de loin (nouvelle image) + parallaxe plus ample */
 .image-band--city .image-band-bg { background-image: url('../img/tours.jpg') !important; background-position: center 45% !important; }
 .image-band-bg { top: -42% !important; height: 184% !important; }
+
+/* v19 — filigrane subtil par bulle de service (image qui "fitte" le service) */
+.service-bubble { position: relative; overflow: hidden; }
+.bubble-wm {
+    position: absolute;
+    right: -8px;
+    bottom: -18px;
+    font-size: 6.5rem;
+    line-height: 1;
+    color: rgba(198, 172, 143, 0.08);
+    pointer-events: none;
+    z-index: 0;
+    transition: color .3s ease, transform .3s ease;
+}
+.service-bubble:hover .bubble-wm { color: rgba(220, 195, 162, 0.15); transform: scale(1.06) rotate(-4deg); }
+.service-header, .service-body { position: relative; z-index: 1; }
