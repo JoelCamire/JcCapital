@@ -3182,3 +3182,8 @@ a[style*="var(--c-gold)"] { background: linear-gradient(135deg, #E7D3B6, #C6AC8F
     .regions-wrap { grid-template-columns: 1fr; }
     .regions-map { aspect-ratio: 16 / 12; }
 }
+
+/* v21 — carte Leaflet des regions (hauteur + fond) */
+#map-regions { width: 100%; height: 100%; background: #1a2630; }
+.regions-map { aspect-ratio: 16 / 12; }
+.leaflet-container { font-family: 'Outfit', sans-serif; }

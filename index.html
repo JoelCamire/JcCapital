@@ -238,9 +238,12 @@
   <link rel="stylesheet" href="animation/anim-mobile.css">
   <!-- CSS Split -->
   <link rel="stylesheet" href="css/_tokens.css">
-  <link rel="stylesheet" href="css/style.css?v=20">
+  <link rel="stylesheet" href="css/style.css?v=21">
   <!-- Font Awesome 6 for social icons (includes X/Twitter) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Leaflet (carte interactive, sans cookies) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <!-- SweetAlert2 for beautiful notifications -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -248,7 +251,7 @@
   <link rel="stylesheet" href="https://assets.calendly.com/assets/external/widget.css">
   <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
   <!-- COMPONENT LOADERS -->
-  <script defer src="js/components.js?v=20"></script>
+  <script defer src="js/components.js?v=21"></script>
   <script defer src="js/main.js"></script>
 </head>
 
@@ -561,7 +564,7 @@
       data-en="All of populated Quebec — from Montreal to the gateway of New Brunswick. In person in the greater Quebec City area and by video call everywhere else.">Tout le Québec habité — de Montréal jusqu'aux portes du Nouveau-Brunswick. En personne dans la grande région de Québec et par visioconférence partout ailleurs.</p>
     <div class="regions-wrap">
       <div class="regions-map">
-        <iframe src="https://maps.google.com/maps?q=Qu%C3%A9bec%2C%20QC%2C%20Canada&z=6&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Carte des régions desservies par JC Capital"></iframe>
+        <div id="map-regions" role="img" aria-label="Carte de la zone desservie par JC Capital au Québec"></div>
       </div>
       <div class="regions-tags">
         <span>Grand Montréal</span>
@@ -671,6 +674,33 @@
       }
       schedule();
     })();
+  </script>
+
+  <!-- Carte des régions desservies (Leaflet + zone surlignée) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var el = document.getElementById('map-regions');
+      if (!el || typeof L === 'undefined') return;
+      var map = L.map('map-regions', { scrollWheelZoom: false, zoomControl: true, attributionControl: true });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 12, attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+      // Zone desservie : sud + centre du Québec, toute la Beauce (jusqu'à la frontière US),
+      // est jusqu'aux portes du Nouveau-Brunswick, nord jusqu'au Saguenay–Lac-Saint-Jean.
+      var zone = [
+        [45.00, -74.40], [45.05, -72.00], [45.10, -70.80], [46.00, -70.00],
+        [47.30, -68.40], [48.60, -68.60], [49.30, -70.20], [49.55, -72.20],
+        [49.30, -74.20], [47.60, -74.90], [45.80, -74.70]
+      ];
+      var poly = L.polygon(zone, {
+        color: '#DCC3A2', weight: 3, opacity: 0.95,
+        fillColor: '#C6AC8F', fillOpacity: 0.28
+      }).addTo(map);
+      L.circleMarker([46.8385, -71.2936], { radius: 7, color: '#fff', weight: 2, fillColor: '#C6AC8F', fillOpacity: 1 })
+        .addTo(map).bindPopup('JC Capital — Québec');
+      map.fitBounds(poly.getBounds(), { padding: [18, 18] });
+      setTimeout(function () { map.invalidateSize(); }, 250);
+    });
   </script>
 
 
