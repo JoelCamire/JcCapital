@@ -75,7 +75,7 @@ function initBandParallax() {
             var rect = band.getBoundingClientRect();
             if (rect.bottom < -100 || rect.top > vh + 100) return; // offscreen, skip
             var progress = (rect.top + rect.height / 2 - vh / 2) / vh; // ~ -1..1
-            var offset = -(progress * 150); // px of parallax travel (ample = bien visible)
+            var offset = -(progress * 190); // px of parallax travel (tres visible)
             bg.style.transform = 'translate3d(0,' + offset.toFixed(1) + 'px,0)';
         });
         ticking = false;

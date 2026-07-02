@@ -3130,3 +3130,7 @@ a[style*="var(--c-gold)"] { background: linear-gradient(135deg, #E7D3B6, #C6AC8F
 
 /* v17 — forcer le rechargement de l'image de la bande 3 (cache image) */
 .image-band--city .image-band-bg { background-image: url('../img/construction.jpg?v=2') !important; }
+
+/* v18 — bande 3 : tours vues de loin (nouvelle image) + parallaxe plus ample */
+.image-band--city .image-band-bg { background-image: url('../img/tours.jpg') !important; background-position: center 45% !important; }
+.image-band-bg { top: -42% !important; height: 184% !important; }
