@@ -3096,3 +3096,23 @@ a[style*="var(--c-gold)"] { background: linear-gradient(135deg, #E7D3B6, #C6AC8F
     animation: heroOrbDrift 14s ease-in-out infinite alternate !important;
     width: 90% !important; height: 90% !important;
 }
+
+/* ============================================================
+   v13 — parallaxe AMPLE + bandes plus grandes + texte plus fort
+   ============================================================ */
+.image-band { min-height: 62vh !important; }
+.image-band-bg { top: -34% !important; height: 168% !important; }
+.image-band-quote { font-size: clamp(1.9rem, 4.4vw, 3.1rem) !important; line-height: 1.18 !important; }
+.image-band-sub-line {
+    display: block;
+    margin-top: 1rem;
+    color: var(--c-gold-bright);
+    font-size: clamp(1rem, 2vw, 1.35rem);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-shadow: 0 2px 14px rgba(0,0,0,0.5);
+}
+@media (max-width: 768px) {
+    .image-band { min-height: 52vh !important; }
+    .image-band-quote { font-size: clamp(1.5rem, 7vw, 2rem) !important; }
+}
