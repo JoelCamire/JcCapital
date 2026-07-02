@@ -55,7 +55,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Reveal sections/cards as they enter the viewport
     initScrollReveal();
+
+    // Thin gold scroll-progress bar at the top
+    initScrollProgress();
 });
+
+// Scroll progress bar (premium touch)
+function initScrollProgress() {
+    if (document.getElementById('scroll-progress')) return;
+    var bar = document.createElement('div');
+    bar.id = 'scroll-progress';
+    document.body.appendChild(bar);
+    function update() {
+        var h = document.documentElement;
+        var max = h.scrollHeight - h.clientHeight;
+        var pct = max > 0 ? (h.scrollTop || document.body.scrollTop) / max : 0;
+        bar.style.width = Math.max(0, Math.min(1, pct)) * 100 + '%';
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+}
 
 // Scroll reveal — progressive enhancement: elements only get the hidden state
 // once JS runs, so the page is fully visible if JS fails or is disabled.

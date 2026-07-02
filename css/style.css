@@ -2876,3 +2876,82 @@ a[style*="var(--c-gold)"] {
     body { padding-bottom: 60px; }
     .global-fabs { bottom: 74px !important; }
 }
+
+/* ============================================================
+   v9 — MODE MAXIMUM : animations vives + couleurs "clic" + fond clair
+   ============================================================ */
+
+:root { --c-gold-bright: #E8B44A; --c-cream: #F6F2EA; }
+
+/* --- Images qui BOUGENT vraiment (Ken Burns ample : zoom + pan) --- */
+.image-band::before {
+    background-image: url('../img/field-agricole.jpg') !important;
+    animation: jcKB 18s ease-in-out infinite alternate !important;
+}
+.image-band--biz::before { background-image: url('../img/biz-affaires.jpg') !important; }
+@keyframes jcKB {
+    0%   { transform: scale(1.04) translate(0%, 0%); }
+    100% { transform: scale(1.17) translate(-2.5%, -1.8%); }
+}
+
+/* --- CTA : or lumineux + halo pulsé + reflet qui balaie (envie de cliquer) --- */
+.hero-cta, .cta-strip-btn, .mobile-book-bar,
+.btn-text, .nav-cta, .footer-cta {
+    background: linear-gradient(135deg, #F3CB63 0%, var(--c-gold-bright) 55%, #C99A2E 100%) !important;
+    color: #1a1408 !important;
+    position: relative;
+    overflow: hidden;
+}
+.hero-cta, .mobile-book-bar { animation: ctaPulse 2.6s ease-in-out infinite; }
+@keyframes ctaPulse {
+    0%, 100% { box-shadow: 0 6px 22px rgba(232, 180, 74, 0.38); }
+    50%      { box-shadow: 0 10px 40px rgba(232, 180, 74, 0.7); }
+}
+.hero-cta::after, .cta-strip-btn::after, .mobile-book-bar::after {
+    content: "";
+    position: absolute;
+    top: 0; left: -75%;
+    width: 45%; height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    transform: skewX(-20deg);
+    animation: jcShine 4s ease-in-out infinite;
+}
+@keyframes jcShine { 0% { left: -75%; } 55%, 100% { left: 135%; } }
+
+/* --- Bande "ce qui me différencie" sur FOND CLAIR (contraste qui pop) --- */
+.credibility-band {
+    background: rgba(94, 80, 63, 0.18) !important;
+    border-top: 1px solid rgba(94, 80, 63, 0.22) !important;
+    border-bottom: 1px solid rgba(94, 80, 63, 0.22) !important;
+}
+.cred-item { background: var(--c-cream) !important; }
+.cred-item i { color: #B5892B !important; font-size: 1.7rem; transition: transform .3s ease; }
+.cred-item:hover i { transform: translateY(-4px) scale(1.08); }
+.cred-item span { color: var(--c-dark-blue) !important; font-weight: 600 !important; }
+
+/* --- Barre de progression de défilement (haut de page) --- */
+#scroll-progress {
+    position: fixed; top: 0; left: 0; height: 3px; width: 0;
+    background: linear-gradient(90deg, var(--c-gold-bright), #F3CB63);
+    z-index: 3000; transition: width .08s linear;
+    box-shadow: 0 0 10px rgba(232, 180, 74, 0.6);
+}
+
+/* --- Lift premium subtil au survol des cartes --- */
+.service-bubble, .process-step, .team-card, .event-card {
+    transition: transform .3s cubic-bezier(.2,.7,.2,1), border-color .3s ease, box-shadow .3s ease;
+}
+.service-bubble:hover, .process-step:hover, .team-card:hover, .event-card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.4) !important;
+    border-color: rgba(232, 180, 74, 0.55) !important;
+}
+
+/* --- Filet doré des titres qui se déploie à l'apparition --- */
+.section-heading::after { transition: width .8s ease .2s; }
+.jc-reveal .section-heading::after, .section-heading.jc-reveal::after { width: 0 !important; }
+.jc-reveal--visible.section-heading::after { width: 62px !important; }
+
+@media (prefers-reduced-motion: reduce) {
+    .image-band::before, .hero-cta, .mobile-book-bar, .hero-cta::after, .cta-strip-btn::after, .mobile-book-bar::after { animation: none !important; }
+}
