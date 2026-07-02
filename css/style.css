@@ -3127,3 +3127,6 @@ a[style*="var(--c-gold)"] { background: linear-gradient(135deg, #E7D3B6, #C6AC8F
 /* v16 — bande 3 : tour moderne eclatante, voile neutre (pas chaud) */
 .image-band--city .image-band-bg { background-position: center 25% !important; }
 .image-band--city .image-band-overlay { background: linear-gradient(180deg, rgba(8,12,16,0.48) 0%, rgba(8,12,16,0.72) 100%) !important; }
+
+/* v17 — forcer le rechargement de l'image de la bande 3 (cache image) */
+.image-band--city .image-band-bg { background-image: url('../img/construction.jpg?v=2') !important; }
