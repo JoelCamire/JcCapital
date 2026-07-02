@@ -80,9 +80,6 @@ function initScrollProgress() {
 // Scroll reveal — progressive enhancement: elements only get the hidden state
 // once JS runs, so the page is fully visible if JS fails or is disabled.
 function initScrollReveal() {
-    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) return; // respect users who prefer no motion
-
     var selector = [
         '.section-heading',
         '.service-bubble',

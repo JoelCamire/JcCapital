@@ -2955,3 +2955,55 @@ a[style*="var(--c-gold)"] {
 @media (prefers-reduced-motion: reduce) {
     .image-band::before, .hero-cta, .mobile-book-bar, .hero-cta::after, .cta-strip-btn::after, .mobile-book-bar::after { animation: none !important; }
 }
+
+/* ============================================================
+   v10 — ACCENT EMERAUDE + animations FORCEES + plus de vie
+   ============================================================ */
+:root {
+    --c-gold: #4E9E77;         /* accent emeraude (elements var-based) */
+    --c-gold-bright: #17C27C;  /* emeraude vif (CTA, icones, halos) */
+}
+
+/* Boutons en vert emeraude vif */
+.hero-cta, .cta-strip-btn, .mobile-book-bar,
+.btn-text, .nav-cta, .footer-cta {
+    background: linear-gradient(135deg, #22DD90 0%, #12AC6A 55%, #0A8150 100%) !important;
+    color: #04140c !important;
+}
+a[style*="var(--c-gold)"] { background: linear-gradient(135deg, #22DD90, #12AC6A) !important; color: #04140c !important; }
+
+/* Halo pulse vert (redefinition) */
+@keyframes ctaPulse {
+    0%, 100% { box-shadow: 0 6px 22px rgba(23, 194, 124, 0.42); }
+    50%      { box-shadow: 0 12px 44px rgba(23, 194, 124, 0.8); }
+}
+
+/* Ken Burns plus ample (redefinition) */
+@keyframes jcKB {
+    0%   { transform: scale(1.05) translate(0%, 0%); }
+    100% { transform: scale(1.20) translate(-3%, -2.2%); }
+}
+
+/* FORCER les animations (le client veut du mouvement, on ignore reduce-motion) */
+.image-band::before { animation: jcKB 16s ease-in-out infinite alternate !important; }
+.hero-cta, .mobile-book-bar { animation: ctaPulse 2.6s ease-in-out infinite !important; }
+.hero-cta::after, .cta-strip-btn::after, .mobile-book-bar::after { animation: jcShine 3.6s ease-in-out infinite !important; }
+.jc-reveal { transition: opacity .8s ease, transform .8s ease !important; }
+
+/* Accents verts + bords verts */
+.card-ic, .process-num, .perk i, .social-icon { color: var(--c-gold-bright) !important; }
+.section-heading::after { background: var(--c-gold-bright) !important; }
+.glass-panel { border-color: rgba(23, 194, 124, 0.18) !important; }
+.service-bubble:hover, .process-step:hover, .team-card:hover, .event-card:hover, .social-bubble:hover {
+    border-color: rgba(34, 221, 144, 0.6) !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.42) !important;
+}
+#scroll-progress { background: linear-gradient(90deg, #12AC6A, #22DD90) !important; box-shadow: 0 0 12px rgba(34, 221, 144, 0.65) !important; }
+
+/* Logo hero : leger flottement (vie) */
+.logo { animation: jcFloat 5.5s ease-in-out infinite; }
+@keyframes jcFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+/* Fleche de defilement : rebond doux */
+.scroll-indicator span { animation: jcBounce 1.8s ease-in-out infinite; display: inline-block; }
+@keyframes jcBounce { 0%, 100% { transform: translateY(0); opacity: .7; } 50% { transform: translateY(8px); opacity: 1; } }

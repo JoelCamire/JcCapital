@@ -232,7 +232,7 @@
   <link rel="stylesheet" href="animation/anim-mobile.css">
   <!-- CSS Split -->
   <link rel="stylesheet" href="css/_tokens.css">
-  <link rel="stylesheet" href="css/style.css?v=9">
+  <link rel="stylesheet" href="css/style.css?v=10">
   <!-- Font Awesome 6 for social icons (includes X/Twitter) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <!-- SweetAlert2 for beautiful notifications -->
@@ -242,7 +242,7 @@
   <link rel="stylesheet" href="https://assets.calendly.com/assets/external/widget.css">
   <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
   <!-- COMPONENT LOADERS -->
-  <script defer src="js/components.js?v=9"></script>
+  <script defer src="js/components.js?v=10"></script>
   <script defer src="js/main.js"></script>
 </head>
 
@@ -285,26 +285,6 @@
   <div id="header-placeholder"></div>
 
   <main>
-  <!-- CREDIBILITY BAND -->
-  <section class="credibility-band" aria-label="Points forts">
-    <div class="cred-item">
-      <i class="fas fa-building-shield" aria-hidden="true"></i>
-      <span data-fr="Toutes les compagnies d'assurance et de fonds" data-en="Every insurance &amp; fund provider">Toutes les compagnies d'assurance et de fonds</span>
-    </div>
-    <div class="cred-item">
-      <i class="fas fa-people-group" aria-hidden="true"></i>
-      <span data-fr="Le réseau d'experts SFL" data-en="The SFL expert network">Le réseau d'experts SFL</span>
-    </div>
-    <div class="cred-item">
-      <i class="fas fa-arrows-to-circle" aria-hidden="true"></i>
-      <span data-fr="Une approche 360°" data-en="A 360° approach">Une approche 360°</span>
-    </div>
-    <div class="cred-item">
-      <i class="fas fa-fingerprint" aria-hidden="true"></i>
-      <span data-fr="Une stratégie sur mesure" data-en="A tailored strategy">Une stratégie sur mesure</span>
-    </div>
-  </section>
-
   <!-- SERVICES SECTION -->
   <section id="services" class="section-container">
     <h2 class="section-heading" data-fr="Nos Services" data-en="Our Services">Nos Services</h2>
@@ -604,11 +584,6 @@
     (function () {
       var wrap = document.querySelector('.hero-video-wrap');
       if (!wrap) return;
-      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      // Only skip the video for users who prefer reduced motion (accessibility).
-      // Video now plays on mobile too (muted, inline, autoplay).
-      if (reduce) { wrap.parentNode.classList.add('hero-no-video'); return; }
-
       var vids = Array.prototype.slice.call(wrap.querySelectorAll('.hero-video'));
       var srcs = ['video/hero-1-champs.mp4', 'video/hero-2-affaires.mp4', 'video/hero-3-poignee.mp4'];
       var durations = [3800, 6000, 6000]; // ms each clip stays on screen (tight cuts)
