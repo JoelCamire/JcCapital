@@ -232,7 +232,7 @@
   <link rel="stylesheet" href="animation/anim-mobile.css">
   <!-- CSS Split -->
   <link rel="stylesheet" href="css/_tokens.css">
-  <link rel="stylesheet" href="css/style.css?v=15">
+  <link rel="stylesheet" href="css/style.css?v=16">
   <!-- Font Awesome 6 for social icons (includes X/Twitter) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <!-- SweetAlert2 for beautiful notifications -->
@@ -242,7 +242,7 @@
   <link rel="stylesheet" href="https://assets.calendly.com/assets/external/widget.css">
   <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
   <!-- COMPONENT LOADERS -->
-  <script defer src="js/components.js?v=15"></script>
+  <script defer src="js/components.js?v=16"></script>
   <script defer src="js/main.js"></script>
 </head>
 
@@ -608,7 +608,7 @@
       if (!wrap) return;
       var vids = Array.prototype.slice.call(wrap.querySelectorAll('.hero-video'));
       var srcs = ['video/hero-1-champs.mp4', 'video/hero-2-affaires.mp4', 'video/hero-3-poignee.mp4'];
-      var durations = [3800, 6000, 6000]; // ms each clip stays on screen (tight cuts)
+      var durations = [2600, 3800, 3800]; // ms each clip stays on screen (cuts plus rapides)
       if (vids.length < srcs.length) return;
 
       vids.forEach(function (v) { v.loop = true; }); // avoid freeze if a clip is short
