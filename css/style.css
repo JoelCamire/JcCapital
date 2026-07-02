@@ -3119,3 +3119,7 @@ a[style*="var(--c-gold)"] { background: linear-gradient(135deg, #E7D3B6, #C6AC8F
 
 /* v14 — 3e bande : ville doree */
 .image-band--city .image-band-bg { background-image: url('../img/city-dore.jpg'); background-position: center 35%; }
+
+/* v15 — 3e bande : construction grandiose (remplace la ville) */
+.image-band--city .image-band-bg { background-image: url('../img/construction.jpg') !important; background-position: center 30% !important; }
+.image-band--city .image-band-overlay { background: linear-gradient(180deg, rgba(26,19,9,0.5) 0%, rgba(10,11,12,0.72) 100%) !important; }
