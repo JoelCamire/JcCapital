@@ -3007,3 +3007,66 @@ a[style*="var(--c-gold)"] { background: linear-gradient(135deg, #22DD90, #12AC6A
 /* Fleche de defilement : rebond doux */
 .scroll-indicator span { animation: jcBounce 1.8s ease-in-out infinite; display: inline-block; }
 @keyframes jcBounce { 0%, 100% { transform: translateY(0); opacity: .7; } 50% { transform: translateY(8px); opacity: 1; } }
+
+/* ============================================================
+   v11 — ACCENT CHAMPAGNE (palette du logo) + plus de mouvement
+   Annule le vert de v10.
+   ============================================================ */
+:root {
+    --c-gold: #C6AC8F;         /* champagne du logo (accent) */
+    --c-gold-bright: #DCC3A2;  /* champagne clair (CTA/halos) */
+}
+
+/* Boutons : champagne elegant (harmonise avec le logo) */
+.hero-cta, .cta-strip-btn, .mobile-book-bar,
+.btn-text, .nav-cta, .footer-cta {
+    background: linear-gradient(135deg, #E7D3B6 0%, #C6AC8F 55%, #AC9376 100%) !important;
+    color: #1c2830 !important;
+}
+a[style*="var(--c-gold)"] { background: linear-gradient(135deg, #E7D3B6, #C6AC8F) !important; color: #1c2830 !important; }
+
+/* Halo pulse champagne (redefinition) */
+@keyframes ctaPulse {
+    0%, 100% { box-shadow: 0 6px 22px rgba(220, 195, 162, 0.4); }
+    50%      { box-shadow: 0 12px 44px rgba(220, 195, 162, 0.72); }
+}
+
+/* Accents / bords champagne (annule le vert) */
+.card-ic, .process-num, .perk i, .social-icon { color: var(--c-gold-bright) !important; }
+.section-heading::after { background: linear-gradient(90deg, #C6AC8F, #E7D3B6, #C6AC8F) !important; background-size: 200% 100% !important; animation: jcShimmer 3.5s linear infinite; }
+.glass-panel { border-color: rgba(198, 172, 143, 0.2) !important; }
+.service-bubble:hover, .process-step:hover, .team-card:hover, .event-card:hover, .social-bubble:hover {
+    border-color: rgba(220, 195, 162, 0.6) !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.42) !important;
+}
+#scroll-progress { background: linear-gradient(90deg, #C6AC8F, #E7D3B6) !important; box-shadow: 0 0 12px rgba(220, 195, 162, 0.6) !important; }
+
+/* ---- PLUS DE MOUVEMENT ---- */
+
+/* Ken Burns plus ample et plus rapide */
+@keyframes jcKB {
+    0%   { transform: scale(1.06) translate(0%, 0%); }
+    100% { transform: scale(1.24) translate(-3.5%, -2.6%); }
+}
+.image-band::before { animation: jcKB 14s ease-in-out infinite alternate !important; }
+
+/* Apparitions plus dynamiques (glisse + leger zoom) */
+.jc-reveal { opacity: 0; transform: translateY(30px) scale(0.985); }
+.jc-reveal--visible { opacity: 1; transform: none; }
+
+/* Filet de titre qui scintille */
+@keyframes jcShimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+
+/* Icones qui respirent doucement */
+.card-ic { animation: jcIconPulse 2.6s ease-in-out infinite; display: inline-block; }
+@keyframes jcIconPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.13); } }
+
+/* Cartes services : leger flottement en continu (decale) */
+.service-bubble { animation: jcCardFloat 6s ease-in-out infinite; }
+.service-bubble:nth-child(2n) { animation-delay: .8s; }
+.service-bubble:nth-child(3n) { animation-delay: 1.6s; }
+@keyframes jcCardFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+/* v11.1 — retirer le flottement continu des cartes (garde le survol propre) */
+.service-bubble { animation: none !important; }
+@keyframes jcIconPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.09); } }
