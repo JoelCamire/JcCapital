@@ -3070,3 +3070,29 @@ a[style*="var(--c-gold)"] { background: linear-gradient(135deg, #E7D3B6, #C6AC8F
 /* v11.1 — retirer le flottement continu des cartes (garde le survol propre) */
 .service-bubble { animation: none !important; }
 @keyframes jcIconPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.09); } }
+
+/* ============================================================
+   v12 — PARALLAXE des bandes (image bouge au defilement) + halo hero
+   ============================================================ */
+.image-band { position: relative; overflow: hidden; }
+.image-band::before { display: none !important; content: none !important; }
+.image-band-bg {
+    position: absolute;
+    left: 0; right: 0; top: -18%;
+    height: 136%;
+    background-image: url('../img/field-agricole.jpg');
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+    will-change: transform;
+}
+.image-band--biz .image-band-bg { background-image: url('../img/biz-affaires.jpg'); }
+.image-band > .image-band-overlay { z-index: 1; }
+.image-band > .image-band-content { z-index: 2; }
+
+/* Halo champagne mouvant dans le hero (mouvement ambiant) */
+.hero-bg {
+    background: radial-gradient(circle, rgba(220, 195, 162, 0.20) 0%, transparent 62%) !important;
+    animation: heroOrbDrift 14s ease-in-out infinite alternate !important;
+    width: 90% !important; height: 90% !important;
+}

@@ -58,7 +58,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Thin gold scroll-progress bar at the top
     initScrollProgress();
+
+    // Parallax on image bands (image moves as you scroll — works on mobile too)
+    initBandParallax();
 });
+
+function initBandParallax() {
+    var bgs = Array.prototype.slice.call(document.querySelectorAll('.image-band-bg'));
+    if (!bgs.length) return;
+    var ticking = false;
+    function apply() {
+        var vh = window.innerHeight || document.documentElement.clientHeight;
+        bgs.forEach(function (bg) {
+            var band = bg.parentElement;
+            if (!band) return;
+            var rect = band.getBoundingClientRect();
+            if (rect.bottom < -100 || rect.top > vh + 100) return; // offscreen, skip
+            var progress = (rect.top + rect.height / 2 - vh / 2) / vh; // ~ -1..1
+            var offset = -(progress * 70); // px of parallax travel
+            bg.style.transform = 'translate3d(0,' + offset.toFixed(1) + 'px,0)';
+        });
+        ticking = false;
+    }
+    function onScroll() {
+        if (!ticking) { window.requestAnimationFrame(apply); ticking = true; }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    apply();
+}
 
 // Scroll progress bar (premium touch)
 function initScrollProgress() {
