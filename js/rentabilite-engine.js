@@ -80,10 +80,12 @@
             maxTotal: 1000,
             rate: 0.01
         },
-        // FSS employeur (PME, masse salariale ≤ 1 M$)
+        // FSS employeur (taux réduits : PME, masse salariale ≤ 1 M$;
+        // le taux grimpe progressivement jusqu'à 4,26 % au-delà)
         fssEmployer: {
             serviceRate: 0.0165,       // secteurs des services et de la construction
-            primaryRate: 0.0125        // secteurs primaire et manufacturier
+            primaryRate: 0.0125,       // secteurs primaire et manufacturier
+            largeRate: 0.0426          // grandes entreprises et secteur public
         },
         corporate: {
             fedSmallRate: 0.09,        // fédéral, DPE (≤ 500 000 $)

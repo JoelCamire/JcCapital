@@ -94,7 +94,7 @@
     <!-- Component Loader -->
     <script defer src="../js/components.js?v=21"></script>
     <!-- Moteur de calcul (API locale : window.JCProfitEngine) -->
-    <script src="../js/rentabilite-engine.js?v=1"></script>
+    <script src="../js/rentabilite-engine.js?v=2"></script>
 
     <style>
         .page-content {
@@ -480,11 +480,11 @@
                         <select id="sector" class="form-select"></select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="fssSector" data-fr="Type de secteur (FSS employeur)" data-en="Sector type (employer HSF)">Type de secteur (FSS employeur)</label>
-                        <select id="fssSector" class="form-select">
-                            <option value="service" data-fr="Services / construction (1,65 %)" data-en="Services / construction (1.65%)">Services / construction (1,65 %)</option>
-                            <option value="primary" data-fr="Primaire / manufacturier (1,25 %)" data-en="Primary / manufacturing (1.25%)">Primaire / manufacturier (1,25 %)</option>
-                        </select>
+                        <label class="form-label" for="fssSector">
+                            <span data-fr="Type d'entreprise (FSS employeur)" data-en="Business type (employer HSF)">Type d'entreprise (FSS employeur)</span>
+                            <span class="hint" data-fr="Taux PME (masse salariale ≤ 1 M$); grimpe jusqu'à 4,26 % au-delà" data-en="SMB rate (payroll ≤ $1M); climbs to 4.26% above">Taux PME (masse salariale ≤ 1 M$); grimpe jusqu'à 4,26 % au-delà</span>
+                        </label>
+                        <select id="fssSector" class="form-select"></select>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="otherPayroll">
@@ -788,19 +788,58 @@
         // (moyennes indicatives; l'utilisateur peut tout modifier)
         // ------------------------------------------------------------
         const SECTORS = {
-            resto:        { fr: 'Restauration / bar',            en: 'Restaurant / bar',              fss: 'service', r: { cogs: 32, salaires: 34, loyer: 9,  marketing: 3,   assurances: 2,   telecom: 1,   vehicule: 0.5, honoraires: 1.5, interets: 1,   entretien: 3, autres: 5,   amort: 3   }, benchGross: [62, 72], benchNet: [2, 6]   },
-            commerce:     { fr: 'Commerce de détail',            en: 'Retail store',                  fss: 'service', r: { cogs: 55, salaires: 15, loyer: 7,  marketing: 4,   assurances: 1,   telecom: 1,   vehicule: 0.5, honoraires: 1,   interets: 1,   entretien: 1, autres: 5,   amort: 2   }, benchGross: [40, 50], benchNet: [2, 7]   },
-            construction: { fr: 'Construction / métiers',        en: 'Construction / trades',         fss: 'service', r: { cogs: 50, salaires: 22, loyer: 2,  marketing: 1.5, assurances: 3.5, telecom: 1,   vehicule: 4,   honoraires: 1.5, interets: 1,   entretien: 2, autres: 2,   amort: 3   }, benchGross: [42, 55], benchNet: [4, 10]  },
-            services:     { fr: 'Services professionnels',       en: 'Professional services',         fss: 'service', r: { cogs: 5,  salaires: 42, loyer: 6,  marketing: 4,   assurances: 2,   telecom: 2.5, vehicule: 1.5, honoraires: 2,   interets: 0.5, entretien: 1, autres: 6,   amort: 2   }, benchGross: [90, 96], benchNet: [15, 30] },
-            techno:       { fr: 'Techno / SaaS / numérique',     en: 'Tech / SaaS / digital',         fss: 'service', r: { cogs: 12, salaires: 48, loyer: 3,  marketing: 10,  assurances: 1.5, telecom: 3,   vehicule: 0,   honoraires: 2.5, interets: 0.5, entretien: 0.5, autres: 4, amort: 2   }, benchGross: [80, 90], benchNet: [5, 20]  },
-            ecommerce:    { fr: 'Commerce en ligne',             en: 'E-commerce',                    fss: 'service', r: { cogs: 45, salaires: 10, loyer: 2.5, marketing: 12, assurances: 1,   telecom: 2,   vehicule: 0.5, honoraires: 1,   interets: 1,   entretien: 0.5, autres: 14, amort: 1.5 }, benchGross: [45, 60], benchNet: [3, 10]  },
-            transport:    { fr: 'Transport / camionnage',        en: 'Transport / trucking',          fss: 'service', r: { cogs: 38, salaires: 25, loyer: 2,  marketing: 1,   assurances: 6,   telecom: 1,   vehicule: 9,   honoraires: 1,   interets: 2,   entretien: 2, autres: 1,   amort: 7   }, benchGross: [55, 65], benchNet: [3, 8]   },
-            beaute:       { fr: 'Beauté / bien-être (salon, spa)', en: 'Beauty / wellness (salon, spa)', fss: 'service', r: { cogs: 12, salaires: 45, loyer: 11, marketing: 3.5, assurances: 1.5, telecom: 1.5, vehicule: 0.5, honoraires: 1, interets: 0.5, entretien: 3, autres: 5.5, amort: 3   }, benchGross: [82, 90], benchNet: [5, 12]  },
-            sante:        { fr: 'Santé (clinique, dentaire, physio)', en: 'Health (clinic, dental, physio)', fss: 'service', r: { cogs: 8, salaires: 40, loyer: 8, marketing: 2, assurances: 2.5, telecom: 2, vehicule: 0.5, honoraires: 2.5, interets: 1, entretien: 1.5, autres: 6, amort: 4 }, benchGross: [85, 94], benchNet: [10, 25] },
-            agriculture:  { fr: 'Agriculture / agroalimentaire', en: 'Agriculture / agri-food',       fss: 'primary', r: { cogs: 48, salaires: 12, loyer: 2,  marketing: 0.5, assurances: 3.5, telecom: 0.5, vehicule: 4,   honoraires: 1.5, interets: 2.5, entretien: 6, autres: 1.5, amort: 10  }, benchGross: [45, 60], benchNet: [4, 15]  },
-            manufacture:  { fr: 'Fabrication / manufacture',     en: 'Manufacturing',                 fss: 'primary', r: { cogs: 52, salaires: 18, loyer: 4,  marketing: 2,   assurances: 2,   telecom: 1,   vehicule: 1,   honoraires: 1.5, interets: 1.5, entretien: 3, autres: 1.5, amort: 5   }, benchGross: [40, 55], benchNet: [4, 10]  },
-            autre:        { fr: 'Autre / personnalisé',          en: 'Other / custom',                fss: 'service', r: null, benchGross: null, benchNet: [5, 15] }
+            resto:        { fr: 'Restauration / bar',            en: 'Restaurant / bar',              fss: 'resto', r: { cogs: 32, salaires: 34, loyer: 9,  marketing: 3,   assurances: 2,   telecom: 1,   vehicule: 0.5, honoraires: 1.5, interets: 1,   entretien: 3, autres: 5,   amort: 3   }, benchGross: [62, 72], benchNet: [2, 6]   },
+            commerce:     { fr: 'Commerce de détail',            en: 'Retail store',                  fss: 'detail', r: { cogs: 55, salaires: 15, loyer: 7,  marketing: 4,   assurances: 1,   telecom: 1,   vehicule: 0.5, honoraires: 1,   interets: 1,   entretien: 1, autres: 5,   amort: 2   }, benchGross: [40, 50], benchNet: [2, 7]   },
+            construction: { fr: 'Construction / métiers',        en: 'Construction / trades',         fss: 'construction', r: { cogs: 50, salaires: 22, loyer: 2,  marketing: 1.5, assurances: 3.5, telecom: 1,   vehicule: 4,   honoraires: 1.5, interets: 1,   entretien: 2, autres: 2,   amort: 3   }, benchGross: [42, 55], benchNet: [4, 10]  },
+            services:     { fr: 'Services professionnels',       en: 'Professional services',         fss: 'pro', r: { cogs: 5,  salaires: 42, loyer: 6,  marketing: 4,   assurances: 2,   telecom: 2.5, vehicule: 1.5, honoraires: 2,   interets: 0.5, entretien: 1, autres: 6,   amort: 2   }, benchGross: [90, 96], benchNet: [15, 30] },
+            techno:       { fr: 'Techno / SaaS / numérique',     en: 'Tech / SaaS / digital',         fss: 'ti', r: { cogs: 12, salaires: 48, loyer: 3,  marketing: 10,  assurances: 1.5, telecom: 3,   vehicule: 0,   honoraires: 2.5, interets: 0.5, entretien: 0.5, autres: 4, amort: 2   }, benchGross: [80, 90], benchNet: [5, 20]  },
+            ecommerce:    { fr: 'Commerce en ligne',             en: 'E-commerce',                    fss: 'detail', r: { cogs: 45, salaires: 10, loyer: 2.5, marketing: 12, assurances: 1,   telecom: 2,   vehicule: 0.5, honoraires: 1,   interets: 1,   entretien: 0.5, autres: 14, amort: 1.5 }, benchGross: [45, 60], benchNet: [3, 10]  },
+            transport:    { fr: 'Transport / camionnage',        en: 'Transport / trucking',          fss: 'transport', r: { cogs: 38, salaires: 25, loyer: 2,  marketing: 1,   assurances: 6,   telecom: 1,   vehicule: 9,   honoraires: 1,   interets: 2,   entretien: 2, autres: 1,   amort: 7   }, benchGross: [55, 65], benchNet: [3, 8]   },
+            beaute:       { fr: 'Beauté / bien-être (salon, spa)', en: 'Beauty / wellness (salon, spa)', fss: 'perso', r: { cogs: 12, salaires: 45, loyer: 11, marketing: 3.5, assurances: 1.5, telecom: 1.5, vehicule: 0.5, honoraires: 1, interets: 0.5, entretien: 3, autres: 5.5, amort: 3   }, benchGross: [82, 90], benchNet: [5, 12]  },
+            sante:        { fr: 'Santé (clinique, dentaire, physio)', en: 'Health (clinic, dental, physio)', fss: 'sante', r: { cogs: 8, salaires: 40, loyer: 8, marketing: 2, assurances: 2.5, telecom: 2, vehicule: 0.5, honoraires: 2.5, interets: 1, entretien: 1.5, autres: 6, amort: 4 }, benchGross: [85, 94], benchNet: [10, 25] },
+            agriculture:  { fr: 'Agriculture / agroalimentaire', en: 'Agriculture / agri-food',       fss: 'agri', r: { cogs: 48, salaires: 12, loyer: 2,  marketing: 0.5, assurances: 3.5, telecom: 0.5, vehicule: 4,   honoraires: 1.5, interets: 2.5, entretien: 6, autres: 1.5, amort: 10  }, benchGross: [45, 60], benchNet: [4, 15]  },
+            manufacture:  { fr: 'Fabrication / manufacture',     en: 'Manufacturing',                 fss: 'fabrication', r: { cogs: 52, salaires: 18, loyer: 4,  marketing: 2,   assurances: 2,   telecom: 1,   vehicule: 1,   honoraires: 1.5, interets: 1.5, entretien: 3, autres: 1.5, amort: 5   }, benchGross: [40, 55], benchNet: [4, 10]  },
+            autre:        { fr: 'Autre / personnalisé',          en: 'Other / custom',                fss: 'autresServices', r: null, benchGross: null, benchNet: [5, 15] }
         };
+
+        // ------------------------------------------------------------
+        // TYPES D'ENTREPRISES — FSS employeur
+        // cat: 'primary' (1,25 %) | 'service' (1,65 %) | 'large' (4,26 %)
+        // Taux réduits = PME dont la masse salariale totale ≤ 1 M$
+        // ------------------------------------------------------------
+        const FSS_TYPES = {
+            // Secteurs primaire et manufacturier — 1,25 %
+            agri:          { cat: 'primary', fr: 'Agriculture / foresterie / pêche',                 en: 'Agriculture / forestry / fishing' },
+            mines:         { cat: 'primary', fr: 'Mines / carrières / extraction',                   en: 'Mining / quarrying / extraction' },
+            fabrication:   { cat: 'primary', fr: 'Fabrication / manufacture',                        en: 'Manufacturing' },
+            agroalim:      { cat: 'primary', fr: 'Transformation agroalimentaire',                   en: 'Food processing' },
+            // Services et autres PME — 1,65 %
+            construction:  { cat: 'service', fr: 'Construction / métiers spécialisés',               en: 'Construction / skilled trades' },
+            detail:        { cat: 'service', fr: 'Commerce de détail / en ligne',                    en: 'Retail / e-commerce' },
+            gros:          { cat: 'service', fr: 'Commerce de gros / distribution',                  en: 'Wholesale / distribution' },
+            resto:         { cat: 'service', fr: 'Restauration / bar / traiteur',                    en: 'Restaurant / bar / catering' },
+            hebergement:   { cat: 'service', fr: 'Hébergement / tourisme',                           en: 'Accommodation / tourism' },
+            transport:     { cat: 'service', fr: 'Transport / entreposage / logistique',             en: 'Transport / warehousing / logistics' },
+            ti:            { cat: 'service', fr: 'Technologies de l\'information / SaaS',            en: 'Information technology / SaaS' },
+            pro:           { cat: 'service', fr: 'Services professionnels (conseil, compta, droit)', en: 'Professional services (consulting, accounting, legal)' },
+            finance:       { cat: 'service', fr: 'Finance / assurance / courtage',                   en: 'Finance / insurance / brokerage' },
+            immobilier:    { cat: 'service', fr: 'Immobilier / gestion immobilière',                 en: 'Real estate / property management' },
+            sante:         { cat: 'service', fr: 'Santé et services sociaux (privé)',                en: 'Health & social services (private)' },
+            education:     { cat: 'service', fr: 'Éducation / formation (privé)',                    en: 'Education / training (private)' },
+            arts:          { cat: 'service', fr: 'Arts / divertissement / loisirs',                  en: 'Arts / entertainment / recreation' },
+            perso:         { cat: 'service', fr: 'Services personnels (salon, esthétique, entretien)', en: 'Personal services (salon, esthetics, cleaning)' },
+            reparation:    { cat: 'service', fr: 'Réparation / entretien (auto, machinerie)',        en: 'Repair / maintenance (auto, machinery)' },
+            autresServices:{ cat: 'service', fr: 'Autres services / PME',                            en: 'Other services / SMB' },
+            // Grandes entreprises et secteur public — 4,26 %
+            grande:        { cat: 'large',   fr: 'Grande entreprise (masse salariale élevée)',       en: 'Large business (high payroll)' },
+            public:        { cat: 'large',   fr: 'Secteur public / parapublic',                      en: 'Public / parapublic sector' }
+        };
+
+        const FSS_GROUPS = [
+            { cat: 'primary', fr: 'Primaire / manufacturier — 1,25 %', en: 'Primary / manufacturing — 1.25%' },
+            { cat: 'service', fr: 'Services et autres PME — 1,65 %',   en: 'Services & other SMBs — 1.65%' },
+            { cat: 'large',   fr: 'Grande entreprise / public — 4,26 %', en: 'Large business / public — 4.26%' }
+        ];
 
         // Textes dynamiques (les libellés statiques utilisent data-fr/data-en)
         const L = {
@@ -861,6 +900,25 @@
                 sel.appendChild(opt);
             }
             sel.value = current && SECTORS[current] ? current : 'services';
+        }
+
+        function populateFssTypes() {
+            const sel = $('fssSector');
+            const current = sel.value;
+            sel.innerHTML = '';
+            FSS_GROUPS.forEach(function (g) {
+                const grp = document.createElement('optgroup');
+                grp.label = g[lang()];
+                for (const key of Object.keys(FSS_TYPES)) {
+                    if (FSS_TYPES[key].cat !== g.cat) continue;
+                    const opt = document.createElement('option');
+                    opt.value = key;
+                    opt.textContent = FSS_TYPES[key][lang()];
+                    grp.appendChild(opt);
+                }
+                sel.appendChild(grp);
+            });
+            sel.value = current && FSS_TYPES[current] ? current : 'pro';
         }
 
         function applySectorRatios() {
@@ -949,8 +1007,12 @@
             const opts = {
                 qcSbdEligible: $('qcSbd').checked,
                 afterApril2026: $('afterApril').checked,
-                fssEmployerRate: $('fssSector').value === 'primary'
-                    ? E.TAX2026.fssEmployer.primaryRate : E.TAX2026.fssEmployer.serviceRate,
+                fssEmployerRate: (function () {
+                    const type = FSS_TYPES[$('fssSector').value] || FSS_TYPES.autresServices;
+                    return { primary: E.TAX2026.fssEmployer.primaryRate,
+                             service: E.TAX2026.fssEmployer.serviceRate,
+                             large: E.TAX2026.fssEmployer.largeRate }[type.cat];
+                })(),
                 otherPayrollPct: val('otherPayroll') / 100
             };
 
@@ -1077,6 +1139,7 @@
         // ------------------------------------------------------------
         document.addEventListener('DOMContentLoaded', function () {
             populateSectors();
+            populateFssTypes();
             $('applySector').addEventListener('click', applySectorRatios);
             ['revenue', 'cogs', 'otherPayroll'].concat(EXPENSE_IDS).concat(['expAmort']).forEach(function (id) {
                 $(id).addEventListener('input', recalc);
@@ -1098,6 +1161,7 @@
         // Re-rendu lors du changement de langue (components.js émet 'languageChanged')
         document.addEventListener('languageChanged', function () {
             populateSectors();
+            populateFssTypes();
             recalc();
         });
     </script>
