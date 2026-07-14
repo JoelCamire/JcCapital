@@ -732,6 +732,123 @@
                 </div>
             </div>
 
+            <!-- ================= VALORISATION : ACHAT / VENTE / FUSION ================= -->
+            <div class="calc-card">
+                <h2><i class="fa-solid fa-handshake" style="margin-right:0.5rem;"></i><span data-fr="Acheter, vendre ou fusionner — Valeur de l'entreprise" data-en="Buy, Sell or Merge — Business Valuation">Acheter, vendre ou fusionner — Valeur de l'entreprise</span></h2>
+                <p class="card-sub"
+                   data-fr="Estimez la valeur marchande de l'entreprise (la vôtre, ou une cible d'achat/fusion) par la méthode des multiples de BAIIA normalisé — la plus utilisée pour les PME. Ajustez le BAIIA pour les redressements typiques, puis validez la capacité de financement comme le ferait un prêteur."
+                   data-en="Estimate the market value of the business (yours, or an acquisition/merger target) using normalized-EBITDA multiples — the most common SMB method. Adjust EBITDA for typical add-backs, then test financing capacity the way a lender would.">
+                    Estimez la valeur marchande de l'entreprise (la vôtre, ou une cible d'achat/fusion) par la méthode
+                    des multiples de BAIIA normalisé — la plus utilisée pour les PME. Ajustez le BAIIA pour les
+                    redressements typiques, puis validez la capacité de financement comme le ferait un prêteur.</p>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="valAddbacks">
+                            <span data-fr="Redressements au BAIIA ($)" data-en="EBITDA add-backs ($)">Redressements au BAIIA ($)</span>
+                            <span class="hint" data-fr="Rémunération excédentaire du proprio, dépenses discrétionnaires, loyer hors marché…" data-en="Excess owner compensation, discretionary expenses, off-market rent…">Rémunération excédentaire du proprio, dépenses discrétionnaires, loyer hors marché…</span>
+                        </label>
+                        <input type="number" id="valAddbacks" class="form-input" value="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="valMultLow" data-fr="Multiple bas (× BAIIA)" data-en="Low multiple (× EBITDA)">Multiple bas (× BAIIA)</label>
+                        <input type="number" id="valMultLow" class="form-input" value="2" step="0.1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="valMultHigh" data-fr="Multiple haut (× BAIIA)" data-en="High multiple (× EBITDA)">Multiple haut (× BAIIA)</label>
+                        <input type="number" id="valMultHigh" class="form-input" value="4" step="0.1" min="0">
+                    </div>
+                </div>
+                <p style="font-size:0.78rem; color:var(--c-light-beige); opacity:0.6; margin-top:0.6rem;" id="multHint"></p>
+
+                <div class="kpi-row" style="margin-top:1.2rem;">
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="BAIIA normalisé" data-en="Normalized EBITDA">BAIIA normalisé</div>
+                        <div class="kpi-value" id="valEbitda">—</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Valeur basse" data-en="Low value">Valeur basse</div>
+                        <div class="kpi-value" id="valLow">—</div>
+                    </div>
+                    <div class="kpi-card" style="border-color:var(--c-gold);">
+                        <div class="kpi-label" data-fr="Valeur médiane (prix suggéré)" data-en="Mid value (suggested price)">Valeur médiane (prix suggéré)</div>
+                        <div class="kpi-value green" id="valMid">—</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Valeur haute" data-en="High value">Valeur haute</div>
+                        <div class="kpi-value" id="valHigh">—</div>
+                    </div>
+                </div>
+
+                <!-- Financement d'une acquisition -->
+                <h3 style="color:var(--c-gold); font-size:1.1rem; margin:1.8rem 0 0.4rem;"
+                    data-fr="💰 Financer l'achat ou la fusion" data-en="💰 Financing the purchase or merger">💰 Financer l'achat ou la fusion</h3>
+                <p class="card-sub"
+                   data-fr="Le BAIIA de la cible doit couvrir le service de la dette : les prêteurs exigent en général un ratio de couverture (DSCR) d'au moins 1,25."
+                   data-en="The target's EBITDA must cover debt service: lenders generally require a debt-service coverage ratio (DSCR) of at least 1.25.">
+                    Le BAIIA de la cible doit couvrir le service de la dette : les prêteurs exigent en général un ratio
+                    de couverture (DSCR) d'au moins 1,25.</p>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="acqPrice">
+                            <span data-fr="Prix d'achat ($)" data-en="Purchase price ($)">Prix d'achat ($)</span>
+                            <span class="hint" data-fr="Laissez vide pour utiliser la valeur médiane" data-en="Leave blank to use the mid value">Laissez vide pour utiliser la valeur médiane</span>
+                        </label>
+                        <input type="number" id="acqPrice" class="form-input" placeholder="—" step="5000" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="acqDown" data-fr="Mise de fonds (%)" data-en="Down payment (%)">Mise de fonds (%)</label>
+                        <input type="number" id="acqDown" class="form-input" value="25" step="5" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="acqRate" data-fr="Taux d'intérêt (%)" data-en="Interest rate (%)">Taux d'intérêt (%)</label>
+                        <input type="number" id="acqRate" class="form-input" value="7" step="0.25" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="acqYears" data-fr="Amortissement (années)" data-en="Amortization (years)">Amortissement (années)</label>
+                        <input type="number" id="acqYears" class="form-input" value="7" step="1" min="1" max="25">
+                    </div>
+                </div>
+
+                <div class="kpi-row" style="margin-top:1.2rem;">
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Mise de fonds requise" data-en="Down payment required">Mise de fonds requise</div>
+                        <div class="kpi-value" id="acqDownAmt">—</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Service de la dette annuel" data-en="Annual debt service">Service de la dette annuel</div>
+                        <div class="kpi-value" id="acqDebt">—</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Couverture de la dette (DSCR)" data-en="Debt coverage (DSCR)">Couverture de la dette (DSCR)</div>
+                        <div class="kpi-value" id="acqDscr">—</div>
+                        <div class="bench-badge" id="acqVerdict" style="display:none;"></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Liquidités après dette / rendement mise de fonds" data-en="Cash after debt / cash-on-cash return">Liquidités après dette / rendement mise de fonds</div>
+                        <div class="kpi-value" id="acqCash">—</div>
+                        <div class="kpi-label" id="acqCoC" style="margin-top:0.3rem;"></div>
+                    </div>
+                </div>
+
+                <div class="info-note"
+                     data-fr="🏷️ <strong>Vous vendez ?</strong> La fourchette ci-dessus est votre point de départ de négociation. Si vous vendez les <strong>actions</strong> d'une SPCC admissible (actions de petite entreprise), l'exonération cumulative des gains en capital (ECGC) peut mettre à l'abri de l'impôt jusqu'à environ <strong>1,25 M$</strong> de gain par actionnaire — souvent la différence la plus importante entre une vente d'actions et une vente d'actifs. Une transaction se planifie idéalement 24 mois d'avance (critères de détention et d'actifs admissibles)."
+                     data-en="🏷️ <strong>Selling?</strong> The range above is your negotiation starting point. If you sell the <strong>shares</strong> of an eligible CCPC (qualified small business shares), the lifetime capital gains exemption (LCGE) can shelter up to about <strong>$1.25M</strong> of gain per shareholder — often the biggest difference between a share sale and an asset sale. Ideally plan the transaction 24 months ahead (holding-period and asset tests).">
+                    🏷️ <strong>Vous vendez ?</strong> La fourchette ci-dessus est votre point de départ de négociation.
+                    Si vous vendez les <strong>actions</strong> d'une SPCC admissible (actions de petite entreprise),
+                    l'exonération cumulative des gains en capital (ECGC) peut mettre à l'abri de l'impôt jusqu'à environ
+                    <strong>1,25 M$</strong> de gain par actionnaire — souvent la différence la plus importante entre une
+                    vente d'actions et une vente d'actifs. Une transaction se planifie idéalement 24 mois d'avance
+                    (critères de détention et d'actifs admissibles).</div>
+                <div class="info-note"
+                     data-fr="🤝 <strong>Fusion :</strong> évaluez chaque entreprise séparément avec cet outil, puis comparez les valeurs pour établir le ratio d'échange. Les synergies (dépenses en double éliminées, pouvoir d'achat accru) s'ajoutent au BAIIA combiné — soyez prudent, elles sont souvent surestimées."
+                     data-en="🤝 <strong>Merger:</strong> value each business separately with this tool, then compare the values to set the exchange ratio. Synergies (eliminated duplicate costs, better purchasing power) add to the combined EBITDA — be careful, they are often overestimated.">
+                    🤝 <strong>Fusion :</strong> évaluez chaque entreprise séparément avec cet outil, puis comparez les
+                    valeurs pour établir le ratio d'échange. Les synergies (dépenses en double éliminées, pouvoir
+                    d'achat accru) s'ajoutent au BAIIA combiné — soyez prudent, elles sont souvent surestimées.</div>
+            </div>
+
             <!-- ================= SEO CONTENT ================= -->
             <section class="seo-content" style="margin: 3rem auto 1rem; max-width: 850px; padding: 0 20px;">
                 <h2 style="color:var(--c-gold); margin-bottom: 1rem;"
@@ -788,18 +905,18 @@
         // (moyennes indicatives; l'utilisateur peut tout modifier)
         // ------------------------------------------------------------
         const SECTORS = {
-            resto:        { fr: 'Restauration / bar',            en: 'Restaurant / bar',              fss: 'resto', r: { cogs: 32, salaires: 34, loyer: 9,  marketing: 3,   assurances: 2,   telecom: 1,   vehicule: 0.5, honoraires: 1.5, interets: 1,   entretien: 3, autres: 5,   amort: 3   }, benchGross: [62, 72], benchNet: [2, 6]   },
-            commerce:     { fr: 'Commerce de détail',            en: 'Retail store',                  fss: 'detail', r: { cogs: 55, salaires: 15, loyer: 7,  marketing: 4,   assurances: 1,   telecom: 1,   vehicule: 0.5, honoraires: 1,   interets: 1,   entretien: 1, autres: 5,   amort: 2   }, benchGross: [40, 50], benchNet: [2, 7]   },
-            construction: { fr: 'Construction / métiers',        en: 'Construction / trades',         fss: 'construction', r: { cogs: 50, salaires: 22, loyer: 2,  marketing: 1.5, assurances: 3.5, telecom: 1,   vehicule: 4,   honoraires: 1.5, interets: 1,   entretien: 2, autres: 2,   amort: 3   }, benchGross: [42, 55], benchNet: [4, 10]  },
-            services:     { fr: 'Services professionnels',       en: 'Professional services',         fss: 'pro', r: { cogs: 5,  salaires: 42, loyer: 6,  marketing: 4,   assurances: 2,   telecom: 2.5, vehicule: 1.5, honoraires: 2,   interets: 0.5, entretien: 1, autres: 6,   amort: 2   }, benchGross: [90, 96], benchNet: [15, 30] },
-            techno:       { fr: 'Techno / SaaS / numérique',     en: 'Tech / SaaS / digital',         fss: 'ti', r: { cogs: 12, salaires: 48, loyer: 3,  marketing: 10,  assurances: 1.5, telecom: 3,   vehicule: 0,   honoraires: 2.5, interets: 0.5, entretien: 0.5, autres: 4, amort: 2   }, benchGross: [80, 90], benchNet: [5, 20]  },
-            ecommerce:    { fr: 'Commerce en ligne',             en: 'E-commerce',                    fss: 'detail', r: { cogs: 45, salaires: 10, loyer: 2.5, marketing: 12, assurances: 1,   telecom: 2,   vehicule: 0.5, honoraires: 1,   interets: 1,   entretien: 0.5, autres: 14, amort: 1.5 }, benchGross: [45, 60], benchNet: [3, 10]  },
-            transport:    { fr: 'Transport / camionnage',        en: 'Transport / trucking',          fss: 'transport', r: { cogs: 38, salaires: 25, loyer: 2,  marketing: 1,   assurances: 6,   telecom: 1,   vehicule: 9,   honoraires: 1,   interets: 2,   entretien: 2, autres: 1,   amort: 7   }, benchGross: [55, 65], benchNet: [3, 8]   },
-            beaute:       { fr: 'Beauté / bien-être (salon, spa)', en: 'Beauty / wellness (salon, spa)', fss: 'perso', r: { cogs: 12, salaires: 45, loyer: 11, marketing: 3.5, assurances: 1.5, telecom: 1.5, vehicule: 0.5, honoraires: 1, interets: 0.5, entretien: 3, autres: 5.5, amort: 3   }, benchGross: [82, 90], benchNet: [5, 12]  },
-            sante:        { fr: 'Santé (clinique, dentaire, physio)', en: 'Health (clinic, dental, physio)', fss: 'sante', r: { cogs: 8, salaires: 40, loyer: 8, marketing: 2, assurances: 2.5, telecom: 2, vehicule: 0.5, honoraires: 2.5, interets: 1, entretien: 1.5, autres: 6, amort: 4 }, benchGross: [85, 94], benchNet: [10, 25] },
-            agriculture:  { fr: 'Agriculture / agroalimentaire', en: 'Agriculture / agri-food',       fss: 'agri', r: { cogs: 48, salaires: 12, loyer: 2,  marketing: 0.5, assurances: 3.5, telecom: 0.5, vehicule: 4,   honoraires: 1.5, interets: 2.5, entretien: 6, autres: 1.5, amort: 10  }, benchGross: [45, 60], benchNet: [4, 15]  },
-            manufacture:  { fr: 'Fabrication / manufacture',     en: 'Manufacturing',                 fss: 'fabrication', r: { cogs: 52, salaires: 18, loyer: 4,  marketing: 2,   assurances: 2,   telecom: 1,   vehicule: 1,   honoraires: 1.5, interets: 1.5, entretien: 3, autres: 1.5, amort: 5   }, benchGross: [40, 55], benchNet: [4, 10]  },
-            autre:        { fr: 'Autre / personnalisé',          en: 'Other / custom',                fss: 'autresServices', r: null, benchGross: null, benchNet: [5, 15] }
+            resto:        { fr: 'Restauration / bar',            en: 'Restaurant / bar',              fss: 'resto', r: { cogs: 32, salaires: 34, loyer: 9,  marketing: 3,   assurances: 2,   telecom: 1,   vehicule: 0.5, honoraires: 1.5, interets: 1,   entretien: 3, autres: 5,   amort: 3   }, benchGross: [62, 72], benchNet: [2, 6], mult: [1.5, 3]   },
+            commerce:     { fr: 'Commerce de détail',            en: 'Retail store',                  fss: 'detail', r: { cogs: 55, salaires: 15, loyer: 7,  marketing: 4,   assurances: 1,   telecom: 1,   vehicule: 0.5, honoraires: 1,   interets: 1,   entretien: 1, autres: 5,   amort: 2   }, benchGross: [40, 50], benchNet: [2, 7], mult: [2, 3.5]   },
+            construction: { fr: 'Construction / métiers',        en: 'Construction / trades',         fss: 'construction', r: { cogs: 50, salaires: 22, loyer: 2,  marketing: 1.5, assurances: 3.5, telecom: 1,   vehicule: 4,   honoraires: 1.5, interets: 1,   entretien: 2, autres: 2,   amort: 3   }, benchGross: [42, 55], benchNet: [4, 10], mult: [2, 4]  },
+            services:     { fr: 'Services professionnels',       en: 'Professional services',         fss: 'pro', r: { cogs: 5,  salaires: 42, loyer: 6,  marketing: 4,   assurances: 2,   telecom: 2.5, vehicule: 1.5, honoraires: 2,   interets: 0.5, entretien: 1, autres: 6,   amort: 2   }, benchGross: [90, 96], benchNet: [15, 30], mult: [2, 4] },
+            techno:       { fr: 'Techno / SaaS / numérique',     en: 'Tech / SaaS / digital',         fss: 'ti', r: { cogs: 12, salaires: 48, loyer: 3,  marketing: 10,  assurances: 1.5, telecom: 3,   vehicule: 0,   honoraires: 2.5, interets: 0.5, entretien: 0.5, autres: 4, amort: 2   }, benchGross: [80, 90], benchNet: [5, 20], mult: [4, 8]  },
+            ecommerce:    { fr: 'Commerce en ligne',             en: 'E-commerce',                    fss: 'detail', r: { cogs: 45, salaires: 10, loyer: 2.5, marketing: 12, assurances: 1,   telecom: 2,   vehicule: 0.5, honoraires: 1,   interets: 1,   entretien: 0.5, autres: 14, amort: 1.5 }, benchGross: [45, 60], benchNet: [3, 10], mult: [2.5, 4.5]  },
+            transport:    { fr: 'Transport / camionnage',        en: 'Transport / trucking',          fss: 'transport', r: { cogs: 38, salaires: 25, loyer: 2,  marketing: 1,   assurances: 6,   telecom: 1,   vehicule: 9,   honoraires: 1,   interets: 2,   entretien: 2, autres: 1,   amort: 7   }, benchGross: [55, 65], benchNet: [3, 8], mult: [2.5, 4.5]   },
+            beaute:       { fr: 'Beauté / bien-être (salon, spa)', en: 'Beauty / wellness (salon, spa)', fss: 'perso', r: { cogs: 12, salaires: 45, loyer: 11, marketing: 3.5, assurances: 1.5, telecom: 1.5, vehicule: 0.5, honoraires: 1, interets: 0.5, entretien: 3, autres: 5.5, amort: 3   }, benchGross: [82, 90], benchNet: [5, 12], mult: [1.5, 3]  },
+            sante:        { fr: 'Santé (clinique, dentaire, physio)', en: 'Health (clinic, dental, physio)', fss: 'sante', r: { cogs: 8, salaires: 40, loyer: 8, marketing: 2, assurances: 2.5, telecom: 2, vehicule: 0.5, honoraires: 2.5, interets: 1, entretien: 1.5, autres: 6, amort: 4 }, benchGross: [85, 94], benchNet: [10, 25], mult: [3, 5] },
+            agriculture:  { fr: 'Agriculture / agroalimentaire', en: 'Agriculture / agri-food',       fss: 'agri', r: { cogs: 48, salaires: 12, loyer: 2,  marketing: 0.5, assurances: 3.5, telecom: 0.5, vehicule: 4,   honoraires: 1.5, interets: 2.5, entretien: 6, autres: 1.5, amort: 10  }, benchGross: [45, 60], benchNet: [4, 15], mult: [3, 6]  },
+            manufacture:  { fr: 'Fabrication / manufacture',     en: 'Manufacturing',                 fss: 'fabrication', r: { cogs: 52, salaires: 18, loyer: 4,  marketing: 2,   assurances: 2,   telecom: 1,   vehicule: 1,   honoraires: 1.5, interets: 1.5, entretien: 3, autres: 1.5, amort: 5   }, benchGross: [40, 55], benchNet: [4, 10], mult: [3, 5.5]  },
+            autre:        { fr: 'Autre / personnalisé',          en: 'Other / custom',                fss: 'autresServices', r: null, benchGross: null, benchNet: [5, 15], mult: [2, 4] }
         };
 
         // ------------------------------------------------------------
@@ -852,7 +969,10 @@
                 gstNo: '🧾 <strong>TPS/TVQ :</strong> sous 30 000 $ de revenus, vous êtes « petit fournisseur » — l\'inscription TPS/TVQ est facultative (mais elle permet de récupérer les taxes payées sur vos achats).',
                 chartExpenses: ['Coût des ventes', 'Salaires employés', 'Loyer', 'Marketing', 'Assurances', 'Télécom/logiciels', 'Véhicules', 'Honoraires', 'Intérêts', 'Entretien', 'Autres', 'Amortissement', 'Bénéfice'],
                 chartScenarios: ['Travailleur autonome', 'Société — salaire', 'Société — dividendes'],
-                dsNet: 'Net dans vos poches', dsRetained: 'Conservé dans la société', dsTax: 'Impôts et cotisations'
+                dsNet: 'Net dans vos poches', dsRetained: 'Conservé dans la société', dsTax: 'Impôts et cotisations',
+                multHint: (lo, hi, name) => 'Multiples typiques pour « ' + name + ' » : ' + lo + '× à ' + hi + '× le BAIIA. Les entreprises plus grosses, en croissance, peu dépendantes du proprio et aux revenus récurrents se vendent dans le haut de la fourchette.',
+                dscrOk: 'Finançable (≥ 1,25)', dscrTight: 'Serré (1,0 – 1,25)', dscrBad: 'Non finançable (< 1,0)',
+                cocLabel: 'Rendement mise de fonds : ', perYear: '/an'
             },
             en: {
                 ofRevenue: 'of revenue', safety: 'Safety margin: ', unreachable: 'unreachable',
@@ -863,7 +983,10 @@
                 gstNo: '🧾 <strong>GST/QST:</strong> below $30,000 of revenue you are a “small supplier” — GST/QST registration is optional (but lets you recover taxes paid on purchases).',
                 chartExpenses: ['Cost of goods sold', 'Employee wages', 'Rent', 'Marketing', 'Insurance', 'Telecom/software', 'Vehicles', 'Professional fees', 'Interest', 'Maintenance', 'Other', 'Depreciation', 'Profit'],
                 chartScenarios: ['Self-employed', 'Corporation — salary', 'Corporation — dividends'],
-                dsNet: 'Net in your pocket', dsRetained: 'Retained in corporation', dsTax: 'Taxes & contributions'
+                dsNet: 'Net in your pocket', dsRetained: 'Retained in corporation', dsTax: 'Taxes & contributions',
+                multHint: (lo, hi, name) => 'Typical multiples for “' + name + '”: ' + lo + '× to ' + hi + '× EBITDA. Larger, growing businesses with recurring revenue and low owner-dependence sell at the top of the range.',
+                dscrOk: 'Financeable (≥ 1.25)', dscrTight: 'Tight (1.0 – 1.25)', dscrBad: 'Not financeable (< 1.0)',
+                cocLabel: 'Cash-on-cash return: ', perYear: '/yr'
             }
         };
 
@@ -931,6 +1054,7 @@
             });
             $('expAmort').value = Math.round(rev * (s.r.amort || 0) / 100);
             $('fssSector').value = s.fss;
+            if (s.mult) { $('valMultLow').value = s.mult[0]; $('valMultHigh').value = s.mult[1]; }
             recalc();
         }
 
@@ -1068,6 +1192,43 @@
                 ? t.gstYes(fmtMoney(gst.gstToCollect), fmtMoney(gst.qstToCollect))
                 : t.gstNo;
 
+            // --- Valorisation : acheter, vendre, fusionner ---
+            const multLow = val('valMultLow'), multHigh = Math.max(val('valMultHigh'), val('valMultLow'));
+            if (s.mult) { $('multHint').textContent = t.multHint(s.mult[0], s.mult[1], s[lang()]); }
+            else { $('multHint').textContent = ''; }
+
+            const valuation = E.businessValuation(ebitda, val('valAddbacks'), multLow, multHigh);
+            $('valEbitda').textContent = fmtMoney(valuation.normalizedEbitda);
+            $('valLow').textContent = fmtMoney(valuation.low);
+            $('valMid').textContent = fmtMoney(valuation.mid);
+            $('valHigh').textContent = fmtMoney(valuation.high);
+
+            const priceInput = parseFloat($('acqPrice').value);
+            const price = (isNaN(priceInput) || priceInput <= 0) ? valuation.mid : priceInput;
+            const acq = E.acquisitionAnalysis({
+                price: price,
+                downPct: val('acqDown') / 100,
+                rate: val('acqRate') / 100,
+                years: val('acqYears'),
+                normalizedEbitda: Math.max(0, valuation.normalizedEbitda)
+            });
+            $('acqDownAmt').textContent = fmtMoney(acq.downPayment);
+            $('acqDebt').textContent = fmtMoney(acq.annualDebtService) + t.perYear;
+            $('acqDscr').textContent = isFinite(acq.dscr) ? acq.dscr.toFixed(2) : '—';
+            $('acqCash').textContent = fmtMoney(acq.cashAfterDebt);
+            $('acqCoC').textContent = isFinite(acq.cashOnCash) ? t.cocLabel + fmtPct(acq.cashOnCash) : '';
+
+            const verdict = $('acqVerdict');
+            if (price > 0 && isFinite(acq.dscr)) {
+                verdict.style.display = 'inline-block';
+                verdict.className = 'bench-badge';
+                if (acq.dscr >= 1.25) { verdict.classList.add('bench-good'); verdict.textContent = t.dscrOk; }
+                else if (acq.dscr >= 1.0) { verdict.classList.add('bench-mid'); verdict.textContent = t.dscrTight; }
+                else { verdict.classList.add('bench-bad'); verdict.textContent = t.dscrBad; }
+            } else {
+                verdict.style.display = 'none';
+            }
+
             drawExpenseChart(cogs, expenses, amort, Math.max(0, profit));
             drawScenarioChart(se, sal, div);
         }
@@ -1141,7 +1302,8 @@
             populateSectors();
             populateFssTypes();
             $('applySector').addEventListener('click', applySectorRatios);
-            ['revenue', 'cogs', 'otherPayroll'].concat(EXPENSE_IDS).concat(['expAmort']).forEach(function (id) {
+            ['revenue', 'cogs', 'otherPayroll', 'valAddbacks', 'valMultLow', 'valMultHigh',
+             'acqPrice', 'acqDown', 'acqRate', 'acqYears'].concat(EXPENSE_IDS).concat(['expAmort']).forEach(function (id) {
                 $(id).addEventListener('input', recalc);
             });
             ['sector', 'fssSector'].forEach(function (id) { $(id).addEventListener('change', recalc); });

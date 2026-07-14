@@ -416,6 +416,62 @@
     }
 
     // ---------------------------------------------------------------
+    // VALORISATION — Acheter, vendre ou fusionner une entreprise
+    // ---------------------------------------------------------------
+    /**
+     * Valeur marchande estimée par multiple de BAIIA normalisé.
+     * @param {number} ebitda    BAIIA de l'état des résultats
+     * @param {number} addbacks  redressements (rémunération excédentaire du proprio,
+     *                           dépenses discrétionnaires, loyer hors marché, etc.)
+     * @param {number} multLow   multiple bas du secteur
+     * @param {number} multHigh  multiple haut du secteur
+     */
+    function businessValuation(ebitda, addbacks, multLow, multHigh) {
+        const normalized = ebitda + (addbacks || 0);
+        const base = clamp0(normalized);
+        return {
+            normalizedEbitda: normalized,
+            low: base * multLow,
+            high: base * multHigh,
+            mid: base * (multLow + multHigh) / 2
+        };
+    }
+
+    /** Paiement annuel d'un prêt amorti (annuités constantes) */
+    function annualPayment(principal, rate, years) {
+        if (principal <= 0 || years <= 0) return 0;
+        if (rate <= 0) return principal / years;
+        const f = Math.pow(1 + rate, years);
+        return principal * rate * f / (f - 1);
+    }
+
+    /**
+     * Analyse d'acquisition (achat ou fusion) financée par emprunt.
+     * @param {Object} p { price, downPct (0–1), rate, years, normalizedEbitda }
+     * @returns ratios clés que les prêteurs (banques, BDC) examinent
+     */
+    function acquisitionAnalysis(p) {
+        const price = clamp0(p.price);
+        const down = price * Math.min(Math.max(p.downPct, 0), 1);
+        const loan = price - down;
+        const debtService = annualPayment(loan, p.rate, p.years);
+        const ebitda = p.normalizedEbitda || 0;
+        const cashAfterDebt = ebitda - debtService;
+        return {
+            downPayment: down,
+            loan: loan,
+            annualDebtService: debtService,
+            // DSCR : BAIIA / service de la dette — les prêteurs exigent ≥ 1,25 en général
+            dscr: debtService > 0 ? ebitda / debtService : Infinity,
+            cashAfterDebt: cashAfterDebt,
+            impliedMultiple: ebitda > 0 ? price / ebitda : Infinity,
+            // Rendement sur mise de fonds (cash-on-cash) et récupération
+            cashOnCash: down > 0 ? cashAfterDebt / down : Infinity,
+            paybackYears: ebitda > 0 ? price / ebitda : Infinity
+        };
+    }
+
+    // ---------------------------------------------------------------
     // TPS / TVQ
     // ---------------------------------------------------------------
     function salesTaxInfo(revenue) {
@@ -445,6 +501,9 @@
         scenarioSalary: scenarioSalary,
         scenarioDividends: scenarioDividends,
         breakEven: breakEven,
+        businessValuation: businessValuation,
+        annualPayment: annualPayment,
+        acquisitionAnalysis: acquisitionAnalysis,
         salesTaxInfo: salesTaxInfo
     };
 
