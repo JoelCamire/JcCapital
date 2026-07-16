@@ -42,7 +42,6 @@ JC_Capital/
 - **Responsive Design**: Mobile-first approach with dedicated CSS.
 - **Financial Tools**:
     - **Compound Interest Calculator**: Visual growth projections (`pages/compound.html`).
-    - **Business Profitability Calculator**: Full income statement, break-even point and 2026 Canada/Quebec tax comparison — self-employed vs corporation, salary vs dividends (`pages/rentabilite.html`, pure-function engine in `js/rentabilite-engine.js`).
 - **Project Sentinelle**: Specialized investment tracking dashboard (`Sentinelle/`).
 - **Interactive Elements**:
     - EmailJS contact forms.
