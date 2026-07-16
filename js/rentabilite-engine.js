@@ -8,6 +8,18 @@
  *  et elles pourront être déplacées telles quelles vers un backend
  *  (Cloudflare Worker / Node) si une vraie API est ajoutée plus tard.
  *
+ *  Options communes des scénarios (opts) :
+ *   - qcSbdEligible   : DPE Québec (critère 5 500 heures rémunérées)
+ *   - afterApril2026  : année d'imposition débutant après le 29 avril 2026
+ *   - fssEmployerRate : taux FSS employeur (0.0125 / 0.0165 / 0.0426)
+ *   - otherPayrollPct : autres charges patronales (CNESST, normes…)
+ *   - owners          : nb de propriétaires actifs se partageant le bénéfice
+ *                       (parts égales, même situation personnelle chacun)
+ *   - baseIncome      : autres revenus personnels de CHAQUE propriétaire
+ *                       (salaire d'emploi T4 — coordonne RRQ/RQAP et tranches)
+ *   - passiveIncome   : revenus de placement passifs de la société (année préc.)
+ *                       → réduction du plafond DPE (5 $ par 1 $ > 50 000 $)
+ *
  *  Sources des paramètres 2026 :
  *   - ARC : tranches fédérales 2026 (indexation 2,0 %), taux minimal 14 %
  *   - MFQ : paramètres du régime d'imposition 2026 (indexation 2,05 %)
@@ -39,7 +51,7 @@
             bpaPhaseStart: 181440,
             bpaPhaseEnd: 258482,
             abatementQc: 0.165,        // abattement du Québec sur l'impôt fédéral de base
-            canadaEmploymentAmount: 1471 // montant canadien pour emploi (salariés seulement)
+            canadaEmploymentAmount: 1500 // montant canadien pour emploi 2026 (salariés)
         },
         quebec: {
             brackets: [
@@ -73,6 +85,8 @@
             employerRate: 0.00602
         },
         // FSS particulier (annexe F) — seuils 2026 estimés (indexation ~2,05 %)
+        // S'applique au revenu autre que d'emploi : entreprise (TA), dividendes
+        // imposables (majorés), gains en capital imposables.
         fssIndividual: {
             threshold1: 18500,
             max1: 150,
@@ -88,12 +102,13 @@
             largeRate: 0.0426          // grandes entreprises et secteur public
         },
         corporate: {
-            fedSmallRate: 0.09,        // fédéral, DPE (≤ 500 000 $)
+            fedSmallRate: 0.09,        // fédéral, DPE (≤ plafond des affaires)
             fedGeneralRate: 0.15,      // fédéral, taux général (net de l'abattement)
             qcSmallRateBefore: 0.032,  // Québec, DPE — année débutant avant le 30 avril 2026
             qcSmallRateAfter: 0.022,   // Québec, DPE — année débutant après le 29 avril 2026
             qcGeneralRate: 0.115,
             businessLimit: 500000,
+            passiveGrindThreshold: 50000, // revenus passifs : réduction 5:1 au-delà
             minPaidHoursForQcSbd: 5500 // critère d'heures rémunérées pour la DPE Québec
         },
         dividends: {
@@ -101,7 +116,7 @@
             eligible: { grossUp: 0.38, fedDtc: 0.150198, qcDtc: 0.117 }
         },
         salesTax: { gst: 0.05, qst: 0.09975, registrationThreshold: 30000 },
-        rrsp: { rate: 0.18, dollarLimit: 34150 }, // plafond REER 2026 (approx.)
+        rrsp: { rate: 0.18, dollarLimit: 33810 }, // plafond REER 2026
         lcge: 1250000, // ECGC — actions admissibles de petite entreprise (~2026)
         capitalGainsInclusion: 0.5
     };
@@ -110,6 +125,7 @@
     // OUTILS
     // ---------------------------------------------------------------
     function clamp0(x) { return x > 0 ? x : 0; }
+    function num(x, dflt) { return (typeof x === 'number' && isFinite(x)) ? x : (dflt || 0); }
 
     /** Impôt progressif sur des tranches { upTo, rate } */
     function bracketTax(income, brackets) {
@@ -174,14 +190,42 @@
         return { fed: fed, qc: qc, total: fed + qc, taxable: taxable };
     }
 
+    /**
+     * Impôt de référence sur les « autres revenus personnels » seuls
+     * (salaire d'emploi T4). Sert au calcul INCRÉMENTAL des scénarios :
+     * l'impôt attribuable à l'entreprise = impôt(total) − impôt(base).
+     */
+    function baseTaxProfile(baseIncome) {
+        const base = clamp0(baseIncome || 0);
+        if (base === 0) {
+            return { tax: { fed: 0, qc: 0, total: 0 }, ordinaryNet: 0, creditBase: 0, isEmployee: false };
+        }
+        const qppB = qppEmployee(base);
+        const qpipB = qpipEmployee(base);
+        const creditBase = qppB.creditBase + qpipB.creditBase;
+        const ordinaryNet = clamp0(base - qppB.deductible);
+        const tax = personalTax({ ordinaryIncome: ordinaryNet, extraCreditBase: creditBase, isEmployee: true });
+        return { tax: tax, ordinaryNet: ordinaryNet, creditBase: creditBase, isEmployee: true };
+    }
+
     // ---------------------------------------------------------------
     // COTISATIONS SOCIALES
     // ---------------------------------------------------------------
-    /** RRQ du travailleur autonome (2 parts). Retourne aussi les portions déductible / crédit. */
-    function qppSelfEmployed(netBusinessIncome) {
+    /**
+     * RRQ du travailleur autonome, coordonné avec un salaire d'emploi déjà
+     * cotisé (baseSalary) : l'assiette TA occupe l'espace restant sous les
+     * plafonds. Retourne aussi les portions déductible / crédit.
+     */
+    function qppSelfEmployed(netBusinessIncome, baseSalary) {
         const c = TAX2026.qpp;
-        const pensionable = clamp0(Math.min(netBusinessIncome, c.ympe) - c.exemption);
-        const band2 = clamp0(Math.min(netBusinessIncome, c.yampe) - c.ympe);
+        const base = clamp0(baseSalary || 0);
+        const total = base + clamp0(netBusinessIncome);
+        const band1Base = clamp0(Math.min(base, c.ympe) - c.exemption);
+        const band1All = clamp0(Math.min(total, c.ympe) - c.exemption);
+        const band2Base = clamp0(Math.min(base, c.yampe) - c.ympe);
+        const band2All = clamp0(Math.min(total, c.yampe) - c.ympe);
+        const pensionable = clamp0(band1All - band1Base);
+        const band2 = clamp0(band2All - band2Base);
         const part1 = pensionable * c.selfRate1;   // base + 1re suppl.
         const part2 = band2 * c.selfRate2;         // 2e suppl.
         // Déduction : moitié « employeur » de la base (5,3/12,6) + 1re suppl. (2/12,6) + 2e suppl. au complet
@@ -191,11 +235,21 @@
         return { total: part1 + part2, deductible: deductible, creditBase: creditBase };
     }
 
-    /** RRQ part employé (salarié) */
-    function qppEmployee(salary) {
+    /**
+     * RRQ part employé (salarié), coordonné avec un autre salaire déjà
+     * cotisé (baseSalary) — l'excédent est remboursé à la déclaration,
+     * on calcule donc le coût annuel réel.
+     */
+    function qppEmployee(salary, baseSalary) {
         const c = TAX2026.qpp;
-        const pensionable = clamp0(Math.min(salary, c.ympe) - c.exemption);
-        const band2 = clamp0(Math.min(salary, c.yampe) - c.ympe);
+        const base = clamp0(baseSalary || 0);
+        const total = base + clamp0(salary);
+        const band1Base = clamp0(Math.min(base, c.ympe) - c.exemption);
+        const band1All = clamp0(Math.min(total, c.ympe) - c.exemption);
+        const band2Base = clamp0(Math.min(base, c.yampe) - c.ympe);
+        const band2All = clamp0(Math.min(total, c.yampe) - c.ympe);
+        const pensionable = clamp0(band1All - band1Base);
+        const band2 = clamp0(band2All - band2Base);
         const part1 = pensionable * c.employeeRate1;
         const part2 = band2 * c.employeeRate2;
         // 1re suppl. (1 %/6,3 %) et 2e suppl. : déduction; base (5,3 %) : crédit
@@ -204,7 +258,10 @@
         return { total: part1 + part2, deductible: deductible, creditBase: creditBase };
     }
 
-    /** RRQ part employeur (coût pour la société) */
+    /**
+     * RRQ part employeur (coût pour la société). PAS de coordination avec
+     * les autres employeurs du salarié : l'employeur n'est jamais remboursé.
+     */
     function qppEmployer(salary) {
         const c = TAX2026.qpp;
         const pensionable = clamp0(Math.min(salary, c.ympe) - c.exemption);
@@ -212,19 +269,21 @@
         return pensionable * c.employerRate1 + band2 * c.employerRate2;
     }
 
-    /** RQAP travailleur autonome */
-    function qpipSelfEmployed(netBusinessIncome) {
+    /** RQAP travailleur autonome, coordonné avec un salaire d'emploi */
+    function qpipSelfEmployed(netBusinessIncome, baseSalary) {
         const c = TAX2026.qpip;
-        const insurable = Math.min(clamp0(netBusinessIncome), c.maxInsurable);
+        const base = Math.min(clamp0(baseSalary || 0), c.maxInsurable);
+        const insurable = clamp0(Math.min(base + clamp0(netBusinessIncome), c.maxInsurable) - base);
         const total = insurable * c.selfRate;
         // Portion équivalente « employé » : crédit; excédent : déduction
         const creditBase = insurable * c.employeeRate;
         return { total: total, deductible: total - creditBase, creditBase: creditBase };
     }
 
-    function qpipEmployee(salary) {
+    function qpipEmployee(salary, baseSalary) {
         const c = TAX2026.qpip;
-        const insurable = Math.min(clamp0(salary), c.maxInsurable);
+        const base = Math.min(clamp0(baseSalary || 0), c.maxInsurable);
+        const insurable = clamp0(Math.min(base + clamp0(salary), c.maxInsurable) - base);
         const total = insurable * c.employeeRate;
         return { total: total, deductible: 0, creditBase: total };
     }
@@ -234,7 +293,11 @@
         return Math.min(clamp0(salary), c.maxInsurable) * c.employerRate;
     }
 
-    /** FSS du particulier (annexe F) — revenu d'entreprise d'un TA */
+    /**
+     * FSS du particulier (annexe F) — s'applique au revenu autre que
+     * d'emploi : revenu d'entreprise du TA, dividendes imposables
+     * (montant MAJORÉ), gains en capital imposables.
+     */
     function fssIndividual(income) {
         const c = TAX2026.fssIndividual;
         if (income <= c.threshold1) return 0;
@@ -246,19 +309,30 @@
     // ---------------------------------------------------------------
     // IMPÔT DES SOCIÉTÉS (SPCC — revenu d'entreprise exploitée activement)
     // ---------------------------------------------------------------
+    /** Plafond des affaires réduit par les revenus de placement passifs (5:1 > 50 k$) */
+    function adjustedBusinessLimit(passiveIncome) {
+        const c = TAX2026.corporate;
+        const reduction = 5 * clamp0(num(passiveIncome) - c.passiveGrindThreshold);
+        return clamp0(c.businessLimit - reduction);
+    }
+
     /**
      * @param {number} profit  bénéfice imposable de la société
-     * @param {Object} opts { qcSbdEligible:boolean, afterApril2026:boolean }
-     * @returns {{fed, qc, total, afterTax, sbdPortion, generalPortion, afterTaxSbd, afterTaxGeneral, effRate}}
+     * @param {Object} opts { qcSbdEligible, afterApril2026, passiveIncome, businessLimit }
+     * @returns {{fed, qc, total, afterTax, sbdPortion, generalPortion, afterTaxSbd, afterTaxGeneral, effRate, businessLimit}}
      */
     function corporateTax(profit, opts) {
+        opts = opts || {};
         const c = TAX2026.corporate;
         profit = clamp0(profit);
-        const sbdPortion = Math.min(profit, c.businessLimit);
-        const generalPortion = clamp0(profit - c.businessLimit);
+        const limit = (opts.businessLimit != null)
+            ? clamp0(opts.businessLimit)
+            : adjustedBusinessLimit(opts.passiveIncome);
+        const sbdPortion = Math.min(profit, limit);
+        const generalPortion = clamp0(profit - limit);
 
         const qcSmallRate = opts.afterApril2026 ? c.qcSmallRateAfter : c.qcSmallRateBefore;
-        // DPE Québec : exige ≥ 5 500 heures rémunérées (sinon taux général au QC même ≤ 500 k$)
+        // DPE Québec : exige ≥ 5 500 heures rémunérées (sinon taux général au QC même sous le plafond)
         const qcRateOnSbd = opts.qcSbdEligible ? qcSmallRate : c.qcGeneralRate;
 
         const fed = sbdPortion * c.fedSmallRate + generalPortion * c.fedGeneralRate;
@@ -275,88 +349,51 @@
             afterTax: profit - total,
             sbdPortion: sbdPortion, generalPortion: generalPortion,
             afterTaxSbd: afterTaxSbd, afterTaxGeneral: afterTaxGeneral,
-            effRate: profit > 0 ? total / profit : 0
+            effRate: profit > 0 ? total / profit : 0,
+            businessLimit: limit
         };
     }
 
     // ---------------------------------------------------------------
-    // SCÉNARIO 1 — TRAVAILLEUR AUTONOME (entreprise non incorporée)
-    // ---------------------------------------------------------------
-    function scenarioSelfEmployed(profit) {
-        profit = clamp0(profit);
-        const qpp = qppSelfEmployed(profit);
-        const qpip = qpipSelfEmployed(profit);
-        const fss = fssIndividual(profit);
-
-        const taxableIncome = clamp0(profit - qpp.deductible - qpip.deductible);
-        const tax = personalTax({
-            ordinaryIncome: taxableIncome,
-            extraCreditBase: qpp.creditBase + qpip.creditBase
-        });
-
-        const totalLevies = tax.total + qpp.total + qpip.total + fss;
-        return {
-            profit: profit,
-            incomeTax: tax.total, fedTax: tax.fed, qcTax: tax.qc,
-            qpp: qpp.total, qpip: qpip.total, fss: fss,
-            totalLevies: totalLevies,
-            netCash: profit - totalLevies,
-            retainedInCorp: 0,
-            totalAfterTax: profit - totalLevies,
-            effRate: profit > 0 ? totalLevies / profit : 0
-        };
-    }
-
-    // ---------------------------------------------------------------
-    // SCÉNARIO 2 — SOCIÉTÉ : RÉMUNÉRATION EN SALAIRE
+    // SCÉNARIO 1 — TRAVAILLEUR AUTONOME / SOCIÉTÉ DE PERSONNES
     // ---------------------------------------------------------------
     /**
-     * @param {number} profit         bénéfice avant impôts et avant salaire du proprio
-     * @param {number} withdrawalPct  fraction (0–1) du bénéfice convertie en salaire brut
-     * @param {Object} opts { qcSbdEligible, afterApril2026, fssEmployerRate, otherPayrollPct }
+     * @param {number} profit  bénéfice avant impôts (total, tous propriétaires)
+     * @param {Object} opts { owners, baseIncome }
+     * Les montants retournés sont des TOTAUX pour l'ensemble des propriétaires.
      */
-    function scenarioSalary(profit, withdrawalPct, opts) {
+    function scenarioSelfEmployed(profit, opts) {
+        opts = opts || {};
         profit = clamp0(profit);
-        const fssRate = (opts.fssEmployerRate != null) ? opts.fssEmployerRate : TAX2026.fssEmployer.serviceRate;
-        const otherPct = opts.otherPayrollPct || 0;
+        const N = Math.max(1, Math.round(num(opts.owners, 1)));
+        const base = clamp0(num(opts.baseIncome));
+        const share = profit / N;
 
-        // Salaire visé = % du bénéfice; on plafonne pour que salaire + charges ≤ bénéfice
-        let salary = profit * withdrawalPct;
-        let employerCosts = qppEmployer(salary) + qpipEmployer(salary) + salary * (fssRate + otherPct);
-        if (salary + employerCosts > profit && salary > 0) {
-            // Ajustement itératif simple (les charges dépendent du salaire)
-            for (let i = 0; i < 25; i++) {
-                salary = clamp0(profit - employerCosts);
-                employerCosts = qppEmployer(salary) + qpipEmployer(salary) + salary * (fssRate + otherPct);
-            }
-        }
+        const baseP = baseTaxProfile(base);
+        const qpp = qppSelfEmployed(share, base);
+        const qpip = qpipSelfEmployed(share, base);
+        const fss = fssIndividual(share);
 
-        const corpTaxable = clamp0(profit - salary - employerCosts);
-        const corp = corporateTax(corpTaxable, opts);
-
-        // Côté particulier (salarié)
-        const qppEmp = qppEmployee(salary);
-        const qpipEmp = qpipEmployee(salary);
-        const tax = personalTax({
-            ordinaryIncome: clamp0(salary - qppEmp.deductible),
-            extraCreditBase: qppEmp.creditBase + qpipEmp.creditBase,
-            isEmployee: true
+        const extraOrdinary = clamp0(share - qpp.deductible - qpip.deductible);
+        const full = personalTax({
+            ordinaryIncome: baseP.ordinaryNet + extraOrdinary,
+            extraCreditBase: baseP.creditBase + qpp.creditBase + qpip.creditBase,
+            isEmployee: baseP.isEmployee
         });
+        const incomeTaxPer = clamp0(full.total - baseP.tax.total);
 
-        const netSalary = salary - tax.total - qppEmp.total - qpipEmp.total;
-        const totalLevies = corp.total + tax.total + qppEmp.total + qpipEmp.total +
-            (employerCosts); // charges patronales = aussi une ponction sur le bénéfice
+        const perLevies = incomeTaxPer + qpp.total + qpip.total + fss;
+        const totalLevies = perLevies * N;
         return {
             profit: profit,
-            salary: salary,
-            employerCosts: employerCosts,
-            corpTax: corp.total,
-            incomeTax: tax.total,
-            qpp: qppEmp.total, qpip: qpipEmp.total,
-            netCash: netSalary,
-            retainedInCorp: corp.afterTax,
-            totalAfterTax: netSalary + corp.afterTax,
+            owners: N,
+            incomeTax: incomeTaxPer * N,
+            qpp: qpp.total * N, qpip: qpip.total * N, fss: fss * N,
             totalLevies: totalLevies,
+            netCash: profit - totalLevies,
+            netCashPerOwner: share - perLevies,
+            retainedInCorp: 0,
+            totalAfterTax: profit - totalLevies,
             effRate: profit > 0 ? totalLevies / profit : 0
         };
     }
@@ -368,8 +405,8 @@
         salary = clamp0(salary);
         const qpp = qppEmployer(salary);
         const qpip = qpipEmployer(salary);
-        const fss = salary * (fssRate || TAX2026.fssEmployer.serviceRate);
-        const other = salary * (otherPct || 0);
+        const fss = salary * (num(fssRate) || TAX2026.fssEmployer.serviceRate);
+        const other = salary * num(otherPct);
         const total = qpp + qpip + fss + other;
         return {
             qpp: qpp, qpip: qpip, fss: fss, other: other,
@@ -380,39 +417,125 @@
     }
 
     // ---------------------------------------------------------------
+    // SCÉNARIO 2 — SOCIÉTÉ : RÉMUNÉRATION EN SALAIRE
+    // ---------------------------------------------------------------
+    /**
+     * @param {number} profit         bénéfice avant impôts et avant salaires des proprios
+     * @param {number} withdrawalPct  fraction (0–1) du bénéfice convertie en salaires bruts
+     * @param {Object} opts { qcSbdEligible, afterApril2026, fssEmployerRate, otherPayrollPct, owners, baseIncome, passiveIncome }
+     * Montants retournés : TOTAUX pour l'ensemble des propriétaires.
+     */
+    function scenarioSalary(profit, withdrawalPct, opts) {
+        opts = opts || {};
+        profit = clamp0(profit);
+        const N = Math.max(1, Math.round(num(opts.owners, 1)));
+        const base = clamp0(num(opts.baseIncome));
+        const fssRate = (opts.fssEmployerRate != null) ? opts.fssEmployerRate : TAX2026.fssEmployer.serviceRate;
+        const otherPct = num(opts.otherPayrollPct);
+
+        // Salaire total visé = % du bénéfice; plafonné : salaires + charges ≤ bénéfice
+        let salaryTotal = profit * withdrawalPct;
+        const employerFor = function (perSalary) {
+            return qppEmployer(perSalary) + qpipEmployer(perSalary) + perSalary * (fssRate + otherPct);
+        };
+        let employerTotal = employerFor(salaryTotal / N) * N;
+        if (salaryTotal + employerTotal > profit && salaryTotal > 0) {
+            for (let i = 0; i < 25; i++) {
+                salaryTotal = clamp0(profit - employerTotal);
+                employerTotal = employerFor(salaryTotal / N) * N;
+            }
+        }
+        const salaryPer = salaryTotal / N;
+
+        const corpTaxable = clamp0(profit - salaryTotal - employerTotal);
+        const corp = corporateTax(corpTaxable, opts);
+
+        // Côté particulier (par propriétaire, empilé sur ses autres revenus)
+        const baseP = baseTaxProfile(base);
+        const qppEmp = qppEmployee(salaryPer, base);
+        const qpipEmp = qpipEmployee(salaryPer, base);
+        const full = personalTax({
+            ordinaryIncome: baseP.ordinaryNet + clamp0(salaryPer - qppEmp.deductible),
+            extraCreditBase: baseP.creditBase + qppEmp.creditBase + qpipEmp.creditBase,
+            isEmployee: baseP.isEmployee || salaryPer > 0
+        });
+        const incomeTaxPer = clamp0(full.total - baseP.tax.total);
+
+        const netSalaryPer = salaryPer - incomeTaxPer - qppEmp.total - qpipEmp.total;
+        const totalLevies = corp.total + (incomeTaxPer + qppEmp.total + qpipEmp.total) * N + employerTotal;
+        return {
+            profit: profit,
+            owners: N,
+            salary: salaryTotal,
+            employerCosts: employerTotal,
+            corpTax: corp.total,
+            incomeTax: incomeTaxPer * N,
+            qpp: qppEmp.total * N, qpip: qpipEmp.total * N,
+            netCash: netSalaryPer * N,
+            netCashPerOwner: netSalaryPer,
+            retainedInCorp: corp.afterTax,
+            totalAfterTax: netSalaryPer * N + corp.afterTax,
+            totalLevies: totalLevies,
+            effRate: profit > 0 ? totalLevies / profit : 0
+        };
+    }
+
+    // ---------------------------------------------------------------
     // SCÉNARIO 3 — SOCIÉTÉ : RÉMUNÉRATION EN DIVIDENDES
     // ---------------------------------------------------------------
     /**
      * @param {number} profit         bénéfice imposable de la société
-     * @param {number} withdrawalPct  fraction (0–1) du bénéfice APRÈS impôt corporatif versée en dividende
-     * @param {Object} opts { qcSbdEligible, afterApril2026 }
+     * @param {number} withdrawalPct  fraction (0–1) du bénéfice visée en retrait
+     *                                (les dividendes sont plafonnés au surplus après impôt)
+     * @param {Object} opts { qcSbdEligible, afterApril2026, owners, baseIncome, passiveIncome }
      */
     function scenarioDividends(profit, withdrawalPct, opts) {
+        opts = opts || {};
         profit = clamp0(profit);
+        const N = Math.max(1, Math.round(num(opts.owners, 1)));
+        const base = clamp0(num(opts.baseIncome));
         const corp = corporateTax(profit, opts);
 
-        // On verse d'abord le solde non déterminé (DPE), puis le solde déterminé (CRTG)
-        const target = corp.afterTax * withdrawalPct;
+        // Cible = part du bénéfice, versée d'abord en non déterminé (DPE), puis en déterminé (CRTG)
+        const target = Math.min(profit * withdrawalPct, corp.afterTax);
         const nonEligDiv = Math.min(target, corp.afterTaxSbd);
         const eligDiv = clamp0(Math.min(target - nonEligDiv, corp.afterTaxGeneral));
-
-        const tax = personalTax({ nonEligDividend: nonEligDiv, eligDividend: eligDiv });
-
         const paid = nonEligDiv + eligDiv;
-        const netCash = paid - tax.total;
+
+        // Par propriétaire : dividendes empilés sur ses autres revenus
+        const baseP = baseTaxProfile(base);
+        const nonEligPer = nonEligDiv / N, eligPer = eligDiv / N;
+        const full = personalTax({
+            ordinaryIncome: baseP.ordinaryNet,
+            nonEligDividend: nonEligPer,
+            eligDividend: eligPer,
+            extraCreditBase: baseP.creditBase,
+            isEmployee: baseP.isEmployee
+        });
+        const incomeTaxPer = clamp0(full.total - baseP.tax.total);
+        // FSS annexe F sur les dividendes imposables (montant majoré)
+        const grossedPer = nonEligPer * (1 + TAX2026.dividends.nonEligible.grossUp)
+            + eligPer * (1 + TAX2026.dividends.eligible.grossUp);
+        const fssPer = fssIndividual(grossedPer);
+
+        const netPer = (paid / N) - incomeTaxPer - fssPer;
         const retained = corp.afterTax - paid;
         return {
             profit: profit,
+            owners: N,
             corpTax: corp.total,
             dividendPaid: paid,
             nonEligDiv: nonEligDiv, eligDiv: eligDiv,
-            incomeTax: tax.total,
+            incomeTax: incomeTaxPer * N,
+            fss: fssPer * N,
             qpp: 0, qpip: 0,
-            netCash: netCash,
+            netCash: netPer * N,
+            netCashPerOwner: netPer,
             retainedInCorp: retained,
-            totalAfterTax: netCash + retained,
-            totalLevies: corp.total + tax.total,
-            effRate: profit > 0 ? (corp.total + tax.total) / profit : 0
+            totalAfterTax: netPer * N + retained,
+            totalLevies: corp.total + (incomeTaxPer + fssPer) * N,
+            effRate: profit > 0 ? (corp.total + (incomeTaxPer + fssPer) * N) / profit : 0,
+            businessLimit: corp.businessLimit
         };
     }
 
@@ -420,76 +543,115 @@
     // SCÉNARIO 4 — SOCIÉTÉ : MIX SALAIRE + DIVIDENDES
     // ---------------------------------------------------------------
     /**
-     * @param {number} profit          bénéfice avant impôts et avant rémunération du proprio
-     * @param {number} salaryFraction  part (0–1) de la rémunération versée en salaire
-     * @param {number} withdrawalPct   part (0–1) du bénéfice dont le proprio a besoin
+     * @param {number} profit          bénéfice avant impôts et avant rémunération
+     * @param {number} salaryFraction  part (0–1) du retrait visé versée en salaire
+     * @param {number} withdrawalPct   part (0–1) du bénéfice visée en retrait
      * @param {Object} opts            mêmes options que scenarioSalary
+     * Salaire visé et dividendes visés partagent la MÊME base (bénéfice avant
+     * impôt corporatif), pour que les mix soient comparables entre eux.
      */
     function scenarioMix(profit, salaryFraction, withdrawalPct, opts) {
+        opts = opts || {};
         profit = clamp0(profit);
-        const f = Math.min(Math.max(salaryFraction, 0), 1);
+        const f = Math.min(Math.max(num(salaryFraction), 0), 1);
+        const N = Math.max(1, Math.round(num(opts.owners, 1)));
+        const base = clamp0(num(opts.baseIncome));
         const fssRate = (opts.fssEmployerRate != null) ? opts.fssEmployerRate : TAX2026.fssEmployer.serviceRate;
-        const otherPct = opts.otherPayrollPct || 0;
+        const otherPct = num(opts.otherPayrollPct);
 
-        // Salaire = fraction du retrait souhaité (plafonné : salaire + charges ≤ bénéfice)
-        let salary = profit * withdrawalPct * f;
-        let employerCosts = qppEmployer(salary) + qpipEmployer(salary) + salary * (fssRate + otherPct);
-        if (salary + employerCosts > profit && salary > 0) {
+        // Salaire total = fraction du retrait visé (plafonné : salaires + charges ≤ bénéfice)
+        let salaryTotal = profit * withdrawalPct * f;
+        const employerFor = function (perSalary) {
+            return qppEmployer(perSalary) + qpipEmployer(perSalary) + perSalary * (fssRate + otherPct);
+        };
+        let employerTotal = employerFor(salaryTotal / N) * N;
+        if (salaryTotal + employerTotal > profit && salaryTotal > 0) {
             for (let i = 0; i < 25; i++) {
-                salary = clamp0(profit - employerCosts);
-                employerCosts = qppEmployer(salary) + qpipEmployer(salary) + salary * (fssRate + otherPct);
+                salaryTotal = clamp0(profit - employerTotal);
+                employerTotal = employerFor(salaryTotal / N) * N;
             }
         }
+        const salaryPer = salaryTotal / N;
 
-        const corpTaxable = clamp0(profit - salary - employerCosts);
+        const corpTaxable = clamp0(profit - salaryTotal - employerTotal);
         const corp = corporateTax(corpTaxable, opts);
 
-        // Dividende : solde du retrait, versé d'abord en non déterminé puis en déterminé
-        const targetDiv = corp.afterTax * withdrawalPct * (1 - f);
+        // Dividendes : solde du retrait visé, même base que le salaire (le bénéfice),
+        // plafonné aux surplus après impôt de la société
+        const targetDiv = Math.min(profit * withdrawalPct * (1 - f), corp.afterTax);
         const nonEligDiv = Math.min(targetDiv, corp.afterTaxSbd);
         const eligDiv = clamp0(Math.min(targetDiv - nonEligDiv, corp.afterTaxGeneral));
         const divPaid = nonEligDiv + eligDiv;
 
-        const qppEmp = qppEmployee(salary);
-        const qpipEmp = qpipEmployee(salary);
-        const tax = personalTax({
-            ordinaryIncome: clamp0(salary - qppEmp.deductible),
-            nonEligDividend: nonEligDiv,
-            eligDividend: eligDiv,
-            extraCreditBase: qppEmp.creditBase + qpipEmp.creditBase,
-            isEmployee: salary > 0
-        });
+        // Par propriétaire : salaire + dividendes empilés sur ses autres revenus
+        const baseP = baseTaxProfile(base);
+        const qppEmp = qppEmployee(salaryPer, base);
+        const qpipEmp = qpipEmployee(salaryPer, base);
+        const scenarioP = {
+            ordinaryIncome: baseP.ordinaryNet + clamp0(salaryPer - qppEmp.deductible),
+            nonEligDividend: nonEligDiv / N,
+            eligDividend: eligDiv / N,
+            extraCreditBase: baseP.creditBase + qppEmp.creditBase + qpipEmp.creditBase,
+            isEmployee: baseP.isEmployee || salaryPer > 0
+        };
+        const full = personalTax(scenarioP);
+        const incomeTaxPer = clamp0(full.total - baseP.tax.total);
+        const grossedPer = (nonEligDiv / N) * (1 + TAX2026.dividends.nonEligible.grossUp)
+            + (eligDiv / N) * (1 + TAX2026.dividends.eligible.grossUp);
+        const fssPer = fssIndividual(grossedPer);
 
-        const netCash = salary + divPaid - tax.total - qppEmp.total - qpipEmp.total;
+        const netPer = salaryPer + (divPaid / N) - incomeTaxPer - qppEmp.total - qpipEmp.total - fssPer;
         const retained = corp.afterTax - divPaid;
-        const totalLevies = corp.total + tax.total + qppEmp.total + qpipEmp.total + employerCosts;
+        const retainedNonElig = clamp0(corp.afterTaxSbd - nonEligDiv);
+        const retainedElig = clamp0(corp.afterTaxGeneral - eligDiv);
+
+        // Patrimoine « liquidé » : et si la rétention était distribuée en dividendes
+        // dès maintenant ? (mesure comparable entre mix — évite de compter la
+        // rétention à 100 ¢/$ sans son impôt latent)
+        const fullLiq = personalTax({
+            ordinaryIncome: scenarioP.ordinaryIncome,
+            nonEligDividend: scenarioP.nonEligDividend + retainedNonElig / N,
+            eligDividend: scenarioP.eligDividend + retainedElig / N,
+            extraCreditBase: scenarioP.extraCreditBase,
+            isEmployee: scenarioP.isEmployee
+        });
+        const liqTaxPer = clamp0(fullLiq.total - full.total);
+        const totalIfLiquidated = (netPer * N) + retained - liqTaxPer * N;
+
+        const totalLevies = corp.total + (incomeTaxPer + qppEmp.total + qpipEmp.total + fssPer) * N + employerTotal;
         return {
             profit: profit,
+            owners: N,
             salaryFraction: f,
-            salary: salary,
-            employerCosts: employerCosts,
+            salary: salaryTotal,
+            employerCosts: employerTotal,
             dividendPaid: divPaid,
             corpTax: corp.total,
-            incomeTax: tax.total,
-            qpp: qppEmp.total, qpip: qpipEmp.total,
-            netCash: netCash,
+            incomeTax: incomeTaxPer * N,
+            fss: fssPer * N,
+            qpp: qppEmp.total * N, qpip: qpipEmp.total * N,
+            netCash: netPer * N,
+            netCashPerOwner: netPer,
             retainedInCorp: retained,
-            totalAfterTax: netCash + retained,
+            totalAfterTax: netPer * N + retained,
+            totalIfLiquidated: totalIfLiquidated,
             totalLevies: totalLevies,
             effRate: profit > 0 ? totalLevies / profit : 0,
-            rrspRoom: Math.min(salary * TAX2026.rrsp.rate, TAX2026.rrsp.dollarLimit)
+            rrspRoom: Math.min(salaryPer * TAX2026.rrsp.rate, TAX2026.rrsp.dollarLimit) * N
         };
     }
 
     /**
-     * Balaye les fractions de salaire (pas de 5 %) et retourne le mix
-     * qui maximise le patrimoine total après impôts (net perso + rétention).
+     * Balaye les fractions de salaire (pas de 5 %) et retourne le mix qui
+     * maximise le patrimoine LIQUIDÉ (net perso + rétention nette de l'impôt
+     * latent si elle était distribuée aujourd'hui) — comparaison équitable
+     * entre mix à rétention différente.
      */
     function optimizeMix(profit, withdrawalPct, opts) {
         let best = null;
         for (let f = 0; f <= 1.0001; f += 0.05) {
             const s = scenarioMix(profit, f, withdrawalPct, opts);
-            if (!best || s.totalAfterTax > best.totalAfterTax + 0.01) best = s;
+            if (!best || s.totalIfLiquidated > best.totalIfLiquidated + 0.01) best = s;
         }
         return best;
     }
@@ -499,18 +661,19 @@
     // ---------------------------------------------------------------
     /**
      * @param {number} revenue        revenus annuels
-     * @param {number} variableCosts  coûts variables (COGS + autres variables)
+     * @param {number} variableCosts  coûts variables (COGS, redevances, commissions…)
      * @param {number} fixedCosts     coûts fixes annuels
      */
     function breakEven(revenue, variableCosts, fixedCosts) {
-        const variableRate = revenue > 0 ? Math.min(variableCosts / revenue, 0.9999) : 0;
+        const variableRate = revenue > 0 ? variableCosts / revenue : 0;
         const contributionMargin = 1 - variableRate;
-        const beRevenue = contributionMargin > 0 ? fixedCosts / contributionMargin : Infinity;
+        // Marge sur coûts variables nulle ou négative : aucun volume ne couvre les fixes
+        const beRevenue = contributionMargin > 0.0001 ? fixedCosts / contributionMargin : Infinity;
         return {
             variableRate: variableRate,
             contributionMargin: contributionMargin,
             breakEvenRevenue: beRevenue,
-            safetyMargin: revenue > 0 ? (revenue - beRevenue) / revenue : 0
+            safetyMargin: (revenue > 0 && isFinite(beRevenue)) ? (revenue - beRevenue) / revenue : -1
         };
     }
 
@@ -526,18 +689,20 @@
      * @param {number} multHigh  multiple haut du secteur
      */
     function businessValuation(ebitda, addbacks, multLow, multHigh) {
-        const normalized = ebitda + (addbacks || 0);
+        const normalized = num(ebitda) + num(addbacks);
         const base = clamp0(normalized);
+        const lo = clamp0(num(multLow)), hi = Math.max(clamp0(num(multHigh)), clamp0(num(multLow)));
         return {
             normalizedEbitda: normalized,
-            low: base * multLow,
-            high: base * multHigh,
-            mid: base * (multLow + multHigh) / 2
+            low: base * lo,
+            high: base * hi,
+            mid: base * (lo + hi) / 2
         };
     }
 
     /** Paiement annuel d'un prêt amorti (annuités constantes) */
     function annualPayment(principal, rate, years) {
+        principal = clamp0(num(principal)); rate = num(rate); years = num(years);
         if (principal <= 0 || years <= 0) return 0;
         if (rate <= 0) return principal / years;
         const f = Math.pow(1 + rate, years);
@@ -550,11 +715,12 @@
      * @returns ratios clés que les prêteurs (banques, BDC) examinent
      */
     function acquisitionAnalysis(p) {
-        const price = clamp0(p.price);
-        const down = price * Math.min(Math.max(p.downPct, 0), 1);
+        p = p || {};
+        const price = clamp0(num(p.price));
+        const down = price * Math.min(Math.max(num(p.downPct), 0), 1);
         const loan = price - down;
-        const debtService = annualPayment(loan, p.rate, p.years);
-        const ebitda = p.normalizedEbitda || 0;
+        const debtService = annualPayment(loan, num(p.rate), num(p.years));
+        const ebitda = num(p.normalizedEbitda);
         const cashAfterDebt = ebitda - debtService;
         return {
             downPayment: down,
@@ -576,35 +742,50 @@
     /**
      * Estime le net en poche d'une vente d'ACTIONS admissibles d'une SPCC.
      * Hypothèses simplifiées : gain traité comme seul revenu de l'année,
-     * IMR (impôt minimum de remplacement) non modélisé.
+     * IMR (impôt minimum de remplacement) non modélisé — depuis 2024 l'IMR
+     * touche fréquemment les ventes utilisant l'ECGC (souvent récupérable
+     * sur 7 ans). Inclut le FSS (annexe F) sur le gain imposable.
      * @param {Object} p { price, acb, lcgeRemaining }
      */
     function saleNetProceeds(p) {
-        const price = clamp0(p.price);
-        const acb = clamp0(p.acb || 0);
+        p = p || {};
+        const price = clamp0(num(p.price));
+        const acb = clamp0(num(p.acb));
         const gain = clamp0(price - acb);
-        const exempt = Math.min(gain, clamp0(p.lcgeRemaining != null ? p.lcgeRemaining : TAX2026.lcge));
+        const exempt = Math.min(gain, clamp0(p.lcgeRemaining != null ? num(p.lcgeRemaining) : TAX2026.lcge));
         const taxableGain = (gain - exempt) * TAX2026.capitalGainsInclusion;
         const tax = personalTax({ ordinaryIncome: taxableGain }).total;
+        const fss = fssIndividual(taxableGain);
         return {
             gain: gain,
             exempt: exempt,
             taxableGain: taxableGain,
-            tax: tax,
-            net: price - tax,
-            effRateOnGain: gain > 0 ? tax / gain : 0
+            tax: tax + fss,
+            net: price - tax - fss,
+            effRateOnGain: gain > 0 ? (tax + fss) / gain : 0
         };
     }
 
     // ---------------------------------------------------------------
     // TPS / TVQ
     // ---------------------------------------------------------------
-    function salesTaxInfo(revenue) {
+    /**
+     * @param {number} revenue     revenus annuels totaux
+     * @param {number} taxablePct  part (0–1) des ventes taxables au Québec
+     *                             (les fournitures exonérées — santé, formation,
+     *                             loyers résidentiels — sont exclues du test du
+     *                             petit fournisseur; les exportations sont
+     *                             détaxées : comptées pour le seuil, 0 % perçu)
+     */
+    function salesTaxInfo(revenue, taxablePct) {
         const s = TAX2026.salesTax;
+        const pct = (taxablePct == null) ? 1 : Math.min(Math.max(num(taxablePct), 0), 1);
+        const taxableSales = clamp0(revenue) * pct;
         return {
-            mustRegister: revenue > s.registrationThreshold,
-            gstToCollect: revenue * s.gst,
-            qstToCollect: revenue * s.qst
+            taxableSales: taxableSales,
+            mustRegister: taxableSales > s.registrationThreshold,
+            gstToCollect: taxableSales * s.gst,
+            qstToCollect: taxableSales * s.qst
         };
     }
 
@@ -616,10 +797,12 @@
         bracketTax: bracketTax,
         personalTax: personalTax,
         corporateTax: corporateTax,
+        adjustedBusinessLimit: adjustedBusinessLimit,
         qppSelfEmployed: qppSelfEmployed,
         qppEmployee: qppEmployee,
         qppEmployer: qppEmployer,
         qpipSelfEmployed: qpipSelfEmployed,
+        qpipEmployee: qpipEmployee,
         qpipEmployer: qpipEmployer,
         fssIndividual: fssIndividual,
         scenarioSelfEmployed: scenarioSelfEmployed,

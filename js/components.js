@@ -44,6 +44,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadComponent('components/header.html', 'header-placeholder');
     await loadComponent('components/footer.html', 'footer-placeholder');
 
+    // Apply saved/URL language now that the header (and its .lang-toggle) exists.
+    // The standalone DOMContentLoaded handler below runs before the async header
+    // injection finishes, so it never finds the button — this one does.
+    const urlLang = new URLSearchParams(window.location.search).get('lang');
+    const savedLang = localStorage.getItem('jc_pref_lang');
+    if ((urlLang === 'en' || (!urlLang && savedLang === 'en')) && document.documentElement.lang === 'fr') {
+        if (typeof window.toggleLanguage === 'function') window.toggleLanguage();
+    }
+
     // Initialize Logic that depends on footer elements
     initBackToTop();
 

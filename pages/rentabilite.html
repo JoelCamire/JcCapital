@@ -92,9 +92,9 @@
     <!-- Translations -->
     <script src="../js/translations.js"></script>
     <!-- Component Loader -->
-    <script defer src="../js/components.js?v=21"></script>
+    <script defer src="../js/components.js?v=22"></script>
     <!-- Moteur de calcul (API locale : window.JCProfitEngine) -->
-    <script src="../js/rentabilite-engine.js?v=3"></script>
+    <script src="../js/rentabilite-engine.js?v=4"></script>
 
     <style>
         .page-content {
@@ -518,7 +518,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="clientName" data-fr="Nom du client / dossier" data-en="Client / file name">Nom du client / dossier</label>
-                        <input type="text" id="clientName" class="form-input" maxlength="60" placeholder="Client 1">
+                        <input type="text" id="clientName" class="form-input" maxlength="60" placeholder="Client 1" data-ph-fr="Client 1" data-ph-en="Client 1">
                     </div>
                     <div class="form-group" style="display:flex; gap:0.6rem; flex-wrap:wrap;">
                         <button class="btn-apply-sector" id="btnNewClient" style="margin-top:0;"
@@ -574,6 +574,27 @@
                         </label>
                         <input type="number" id="otherPayroll" class="form-input" value="2" step="0.1" min="0" max="15">
                     </div>
+                    <div class="form-group">
+                        <label class="form-label" for="owners">
+                            <span data-fr="Propriétaires actifs (partage du bénéfice)" data-en="Active owners (profit sharing)">Propriétaires actifs (partage du bénéfice)</span>
+                            <span class="hint" data-fr="Associés / actionnaires actifs, parts égales" data-en="Active partners / shareholders, equal shares">Associés / actionnaires actifs, parts égales</span>
+                        </label>
+                        <input type="number" id="owners" class="form-input" value="1" min="1" max="10" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="baseIncome">
+                            <span data-fr="Autres revenus personnels ($/an)" data-en="Other personal income ($/yr)">Autres revenus personnels ($/an)</span>
+                            <span class="hint" data-fr="Salaire d'emploi T4 de chaque proprio — coordonne RRQ/RQAP et paliers" data-en="Each owner's T4 employment salary — coordinates QPP/QPIP and brackets">Salaire d'emploi T4 de chaque proprio — coordonne RRQ/RQAP et paliers</span>
+                        </label>
+                        <input type="number" id="baseIncome" class="form-input" value="0" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="passiveIncome">
+                            <span data-fr="Revenus de placement de la société ($/an)" data-en="Corporation's passive investment income ($/yr)">Revenus de placement de la société ($/an)</span>
+                            <span class="hint" data-fr="Au-delà de 50 000 $, le plafond DPE fond de 5 $ par 1 $" data-en="Above $50,000, the SBD limit shrinks $5 per $1">Au-delà de 50 000 $, le plafond DPE fond de 5 $ par 1 $</span>
+                        </label>
+                        <input type="number" id="passiveIncome" class="form-input" value="0" min="0" step="5000">
+                    </div>
                 </div>
 
                 <label class="check-row">
@@ -624,6 +645,20 @@
                             <span class="hint" id="cogsPctHint"></span>
                         </label>
                         <input type="number" id="cogs" class="form-input" value="150000" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="royaltiesPct">
+                            <span data-fr="Redevances / commissions (% des revenus)" data-en="Royalties / commissions (% of revenue)">Redevances / commissions (% des revenus)</span>
+                            <span class="hint" data-fr="Franchise (4–8 %), plateformes, frais de transaction — coût variable" data-en="Franchise (4–8%), platforms, transaction fees — variable cost">Franchise (4–8 %), plateformes, frais de transaction — coût variable</span>
+                        </label>
+                        <input type="number" id="royaltiesPct" class="form-input" value="0" min="0" max="50" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="taxablePct">
+                            <span data-fr="Part des ventes taxables TPS/TVQ (%)" data-en="Share of GST/QST-taxable sales (%)">Part des ventes taxables TPS/TVQ (%)</span>
+                            <span class="hint" data-fr="Santé, formation, loyers résidentiels = exonérés (0 %)" data-en="Health, education, residential rents = exempt (0%)">Santé, formation, loyers résidentiels = exonérés (0 %)</span>
+                        </label>
+                        <input type="number" id="taxablePct" class="form-input" value="100" min="0" max="100" step="5">
                     </div>
                 </div>
 
@@ -960,6 +995,8 @@
                             aucune rente publique accumulée pour la retraite. Le scénario « salaire » crée aussi des
                             droits REER (18 % du salaire). La meilleure stratégie est souvent un mélange salaire +
                             dividendes — parlez-en à votre conseiller.</div>
+                        <div class="info-note" id="ownersNote" style="display:none;"></div>
+                        <div class="info-note" id="grindNote" style="display:none;"></div>
                         <div class="info-note" id="deferralNote" style="display:none;"></div>
                         <div class="info-note" id="gstNote"></div>
                     </div>
@@ -1252,7 +1289,7 @@
                 deferral: (amt) => '🏦 <strong>Report d\'impôt :</strong> en laissant les surplus dans la société, environ <strong>' + amt + '</strong> restent investissables au niveau corporatif au lieu d\'être imposés immédiatement au taux personnel. C\'est le principal levier de l\'incorporation.',
                 gstYes: (gst, qst) => '🧾 <strong>TPS/TVQ :</strong> vos revenus dépassent 30 000 $ — l\'inscription aux fichiers de la TPS (5 %) et de la TVQ (9,975 %) est obligatoire. Sur vos ventes taxables, vous percevrez environ ' + gst + ' de TPS et ' + qst + ' de TVQ (remis au gouvernement, ce n\'est pas un revenu).',
                 gstNo: '🧾 <strong>TPS/TVQ :</strong> sous 30 000 $ de revenus, vous êtes « petit fournisseur » — l\'inscription TPS/TVQ est facultative (mais elle permet de récupérer les taxes payées sur vos achats).',
-                chartExpenses: ['Coût des ventes', 'Salaires employés', 'Loyer', 'Énergie', 'Marketing', 'Assurances', 'Télécom/logiciels', 'Véhicules', 'Honoraires', 'Intérêts', 'Entretien', 'Fournitures', 'Permis/licences', 'Location équip.', 'Déplacements', 'Formation', 'Expédition', 'Créances irrécouv.', 'Autres', 'Amortissement', 'Bénéfice'],
+                chartExpenses: ['Coût des ventes', 'Salaires employés', 'Loyer', 'Énergie', 'Marketing', 'Assurances', 'Télécom/logiciels', 'Véhicules', 'Honoraires', 'Intérêts', 'Entretien', 'Fournitures', 'Permis/licences', 'Location équip.', 'Déplacements', 'Formation', 'Expédition', 'Créances irrécouv.', 'Autres', 'Redevances/comm.', 'Amortissement', 'Bénéfice'],
                 chartScenarios: ['Travailleur autonome', 'Société — salaire', 'Société — dividendes', 'Mix optimal'],
                 chartProj: ['Revenus', 'Bénéfice avant impôts'],
                 leverage: (l) => '⚖️ <strong>Levier opérationnel :</strong> grâce à vos coûts fixes, +10 % de revenus ferait bondir votre bénéfice de <strong>' + l + ' %</strong>. Le levier joue aussi en sens inverse si les ventes reculent.',
@@ -1262,7 +1299,9 @@
                 dscrOk: 'Finançable (≥ 1,25)', dscrTight: 'Serré (1,0 – 1,25)', dscrBad: 'Non finançable (< 1,0)',
                 cocLabel: 'Rendement mise de fonds : ', perYear: '/an',
                 splitWords: (s, d) => s + ' % salaire / ' + d + ' % dividendes',
-                yearN: (n) => 'An ' + n, coefLabel: 'Coefficient : ×'
+                yearN: (n) => 'An ' + n, coefLabel: 'Coefficient : ×',
+                grindNote: (lim) => '📉 <strong>Plafond DPE réduit :</strong> les revenus de placement de la société font fondre le plafond des affaires à <strong>' + lim + '</strong> (au lieu de 500 000 $). L\'excédent est imposé au taux général (26,5 %) mais génère des dividendes déterminés, moins imposés entre vos mains.',
+                ownersNote: (n, ta, sal, div) => '👥 <strong>' + n + ' propriétaires actifs</strong> (parts égales, même situation personnelle) : les montants ci-dessus sont des totaux. Net par propriétaire — travailleur autonome/société de personnes : <strong>' + ta + '</strong>, salaire : <strong>' + sal + '</strong>, dividendes : <strong>' + div + '</strong>. Le partage du bénéfice entre plusieurs personnes réduit l\'impôt total grâce à la progressivité des paliers.'
             },
             en: {
                 ofRevenue: 'of revenue', safety: 'Safety margin: ', unreachable: 'unreachable',
@@ -1271,7 +1310,7 @@
                 deferral: (amt) => '🏦 <strong>Tax deferral:</strong> by leaving surplus in the corporation, about <strong>' + amt + '</strong> stays investable at the corporate level instead of being taxed immediately at personal rates. This is incorporation\'s main lever.',
                 gstYes: (gst, qst) => '🧾 <strong>GST/QST:</strong> your revenue exceeds $30,000 — GST (5%) and QST (9.975%) registration is mandatory. On taxable sales you would collect about ' + gst + ' of GST and ' + qst + ' of QST (remitted to governments — not income).',
                 gstNo: '🧾 <strong>GST/QST:</strong> below $30,000 of revenue you are a “small supplier” — GST/QST registration is optional (but lets you recover taxes paid on purchases).',
-                chartExpenses: ['Cost of goods sold', 'Employee wages', 'Rent', 'Utilities', 'Marketing', 'Insurance', 'Telecom/software', 'Vehicles', 'Professional fees', 'Interest', 'Maintenance', 'Supplies', 'Permits/licences', 'Equipment leasing', 'Travel', 'Training', 'Shipping', 'Bad debts', 'Other', 'Depreciation', 'Profit'],
+                chartExpenses: ['Cost of goods sold', 'Employee wages', 'Rent', 'Utilities', 'Marketing', 'Insurance', 'Telecom/software', 'Vehicles', 'Professional fees', 'Interest', 'Maintenance', 'Supplies', 'Permits/licences', 'Equipment leasing', 'Travel', 'Training', 'Shipping', 'Bad debts', 'Other', 'Royalties/comm.', 'Depreciation', 'Profit'],
                 chartScenarios: ['Self-employed', 'Corporation — salary', 'Corporation — dividends', 'Optimal mix'],
                 chartProj: ['Revenue', 'Pre-tax profit'],
                 leverage: (l) => '⚖️ <strong>Operating leverage:</strong> thanks to your fixed costs, +10% revenue would boost your profit by <strong>' + l + '%</strong>. Leverage also works in reverse if sales fall.',
@@ -1281,7 +1320,9 @@
                 dscrOk: 'Financeable (≥ 1.25)', dscrTight: 'Tight (1.0 – 1.25)', dscrBad: 'Not financeable (< 1.0)',
                 cocLabel: 'Cash-on-cash return: ', perYear: '/yr',
                 splitWords: (s, d) => s + '% salary / ' + d + '% dividends',
-                yearN: (n) => 'Year ' + n, coefLabel: 'Multiplier: ×'
+                yearN: (n) => 'Year ' + n, coefLabel: 'Multiplier: ×',
+                grindNote: (lim) => '📉 <strong>Reduced SBD limit:</strong> the corporation\'s passive investment income shrinks the business limit to <strong>' + lim + '</strong> (instead of $500,000). The excess is taxed at the general rate (26.5%) but generates eligible dividends, taxed less in your hands.',
+                ownersNote: (n, ta, sal, div) => '👥 <strong>' + n + ' active owners</strong> (equal shares, same personal situation): amounts above are totals. Net per owner — self-employed/partnership: <strong>' + ta + '</strong>, salary: <strong>' + sal + '</strong>, dividends: <strong>' + div + '</strong>. Splitting profit among several people lowers total tax thanks to bracket progressivity.'
             }
         };
 
@@ -1300,6 +1341,8 @@
         function locale() { return lang() === 'en' ? 'en-CA' : 'fr-CA'; }
         function $(id) { return document.getElementById(id); }
         function val(id) { return Math.max(0, parseFloat($(id).value) || 0); }
+        // Pour les champs où le négatif est permis (croissance, redressements)
+        function valSigned(id) { const v = parseFloat($(id).value); return isFinite(v) ? v : 0; }
 
         function fmtMoney(n) {
             return new Intl.NumberFormat(locale(), { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(n);
@@ -1383,7 +1426,9 @@
             const revenue = val('revenue');
             const cogs = val('cogs');
             const expenses = EXPENSE_IDS.map(val);
-            const opex = expenses.reduce(function (a, b) { return a + b; }, 0);
+            const royalties = revenue * Math.min(val('royaltiesPct'), 50) / 100; // coût VARIABLE
+            const opexInputs = expenses.reduce(function (a, b) { return a + b; }, 0);
+            const opex = opexInputs + royalties;
             const amort = val('expAmort');
 
             const gross = revenue - cogs;
@@ -1406,12 +1451,13 @@
             $('kpiNet').textContent = revenue > 0 ? fmtPct(profit / revenue) : '—';
             $('kpiNet').className = 'kpi-value ' + (profit >= 0 ? 'green' : 'red');
 
-            const s = SECTORS[$('sector').value];
+            // Fallback si un état sauvegardé/partagé référence un secteur disparu
+            const s = SECTORS[$('sector').value] || SECTORS.services;
             benchBadge($('benchGross'), revenue > 0 ? gross / revenue : 0, s.benchGross);
             benchBadge($('benchNet'), revenue > 0 ? profit / revenue : 0, s.benchNet);
 
-            // --- Seuil de rentabilité (variable = coût des ventes; fixe = le reste) ---
-            const be = E.breakEven(revenue, cogs, opex + amort);
+            // --- Seuil de rentabilité (variable = coût des ventes + redevances; fixe = le reste) ---
+            const be = E.breakEven(revenue, cogs + royalties, opexInputs + amort);
             if (isFinite(be.breakEvenRevenue)) {
                 $('kpiBreakEven').textContent = fmtMoney(be.breakEvenRevenue);
                 $('kpiSafety').textContent = t.safety + fmtPct(be.safetyMargin);
@@ -1436,10 +1482,13 @@
                              service: E.TAX2026.fssEmployer.serviceRate,
                              large: E.TAX2026.fssEmployer.largeRate }[type.cat];
                 })(),
-                otherPayrollPct: val('otherPayroll') / 100
+                otherPayrollPct: Math.min(val('otherPayroll'), 15) / 100,
+                owners: Math.min(Math.max(Math.round(val('owners')) || 1, 1), 10),
+                baseIncome: val('baseIncome'),
+                passiveIncome: val('passiveIncome')
             };
 
-            const se = E.scenarioSelfEmployed(taxableProfit);
+            const se = E.scenarioSelfEmployed(taxableProfit, opts);
             const sal = E.scenarioSalary(taxableProfit, wPct, opts);
             const div = E.scenarioDividends(taxableProfit, wPct, opts);
             const mix = E.optimizeMix(taxableProfit, wPct, opts);
@@ -1496,11 +1545,29 @@
                 $('deferralNote').style.display = 'none';
             }
 
-            // TPS / TVQ
-            const gst = E.salesTaxInfo(revenue);
+            // TPS / TVQ (sur la part taxable des ventes seulement)
+            const gst = E.salesTaxInfo(revenue, Math.min(val('taxablePct'), 100) / 100);
             $('gstNote').innerHTML = gst.mustRegister
                 ? t.gstYes(fmtMoney(gst.gstToCollect), fmtMoney(gst.qstToCollect))
                 : t.gstNo;
+
+            // Plafond DPE réduit par les revenus passifs
+            const limit = E.adjustedBusinessLimit(opts.passiveIncome);
+            if (limit < E.TAX2026.corporate.businessLimit) {
+                $('grindNote').style.display = 'block';
+                $('grindNote').innerHTML = t.grindNote(fmtMoney(limit));
+            } else {
+                $('grindNote').style.display = 'none';
+            }
+
+            // Note multi-propriétaires
+            if (opts.owners > 1) {
+                $('ownersNote').style.display = 'block';
+                $('ownersNote').innerHTML = t.ownersNote(opts.owners,
+                    fmtMoney(se.netCashPerOwner), fmtMoney(sal.netCashPerOwner), fmtMoney(div.netCashPerOwner));
+            } else {
+                $('ownersNote').style.display = 'none';
+            }
 
             saveState();
 
@@ -1509,7 +1576,7 @@
             if (s.mult) { $('multHint').textContent = t.multHint(s.mult[0], s.mult[1], s[lang()]); }
             else { $('multHint').textContent = ''; }
 
-            const valuation = E.businessValuation(ebitda, val('valAddbacks'), multLow, multHigh);
+            const valuation = E.businessValuation(ebitda, valSigned('valAddbacks'), multLow, multHigh);
             $('valEbitda').textContent = fmtMoney(valuation.normalizedEbitda);
             $('valLow').textContent = fmtMoney(valuation.low);
             $('valMid').textContent = fmtMoney(valuation.mid);
@@ -1559,35 +1626,37 @@
             const eF = 1 + parseInt($('wiExp').value, 10) / 100;
             $('wiRevVal').textContent = (rF >= 1 ? '+' : '') + Math.round((rF - 1) * 100) + ' %';
             $('wiExpVal').textContent = (eF >= 1 ? '+' : '') + Math.round((eF - 1) * 100) + ' %';
-            const wiProfit = revenue * rF - cogs * rF - (opex + amort) * eF;
+            // Variables (COGS + redevances) suivent les revenus; le reste suit le curseur dépenses
+            const wiProfit = (revenue - cogs - royalties) * rF - (opexInputs + amort) * eF;
             const wiDelta = wiProfit - profit;
             $('wiProfit').textContent = fmtMoney(wiProfit);
             $('wiProfit').className = 'kpi-value ' + (wiProfit >= 0 ? 'green' : 'red');
             $('wiDelta').textContent = (wiDelta >= 0 ? '+' : '') + fmtMoney(wiDelta);
             $('wiDelta').className = 'kpi-value ' + (wiDelta >= 0 ? 'green' : 'red');
             if (profit > 0) {
-                const lev = ((revenue * 1.1 - cogs * 1.1 - opex - amort) - profit) / profit * 100;
+                const lev = ((revenue - cogs - royalties) * 1.1 - opexInputs - amort - profit) / profit * 100;
                 $('wiLeverage').innerHTML = t.leverage(lev.toFixed(0));
             } else {
                 $('wiLeverage').innerHTML = t.leverageLoss;
             }
 
             // --- Projection 5 ans ---
-            const g = val('projGrowth') / 100, infl = val('projInfl') / 100;
+            const g = valSigned('projGrowth') / 100, infl = valSigned('projInfl') / 100;
             const projRev = [], projProfit = [], projLabels = [];
             let ebitda5 = ebitda;
             for (let y = 0; y <= 5; y++) {
-                const rv = revenue * Math.pow(1 + g, y);
-                const cg = cogs * Math.pow(1 + g, y);
-                const op = opex * Math.pow(1 + infl, y);
-                const am = amort * Math.pow(1 + infl, y);
+                const growF = Math.pow(1 + g, y), inflF = Math.pow(1 + infl, y);
+                const rv = revenue * growF;
+                const varCosts = (cogs + royalties) * growF; // variables suivent les revenus
+                const op = opexInputs * inflF;
+                const am = amort * inflF;
                 projLabels.push(y === 0 ? t.yearN(0) : t.yearN(y));
                 projRev.push(rv);
-                projProfit.push(rv - cg - op - am);
-                if (y === 5) ebitda5 = rv - cg - op;
+                projProfit.push(rv - varCosts - op - am);
+                if (y === 5) ebitda5 = rv - varCosts - op;
             }
             $('projProfit5').textContent = fmtMoney(projProfit[5]);
-            const val5 = E.businessValuation(ebitda5, val('valAddbacks'), multLow, multHigh);
+            const val5 = E.businessValuation(ebitda5, valSigned('valAddbacks'), multLow, multHigh);
             $('projValue5').textContent = fmtMoney(val5.mid);
 
             // --- Coût total d'un employé ---
@@ -1596,7 +1665,7 @@
             $('empCost').textContent = fmtMoney(ec.totalCost);
             $('empCoef').textContent = t.coefLabel + ec.coefficient.toFixed(2);
 
-            drawExpenseChart(cogs, expenses, amort, Math.max(0, profit));
+            drawExpenseChart(cogs, expenses.concat([royalties]), amort, Math.max(0, profit));
             drawScenarioChart(se, sal, div, mix);
             drawProjChart(projLabels, projRev, projProfit);
         }
@@ -1612,7 +1681,8 @@
             const data = [cogs].concat(expenses).concat([amort, profit]);
             const colors = ['#8a5a44', '#a97155', '#b98b73', '#c6ac8f', '#d6bd98', '#9c6644',
                 '#7f5539', '#b08968', '#ddb892', '#e6ccb2', '#ede0d4', '#936639', '#a68a64',
-                '#8d6b4b', '#bfa07a', '#dbc1a4', '#7a6a53', '#6b5d48', '#5e503f', '#4a3f33', '#6fcf97'];
+                '#8d6b4b', '#bfa07a', '#dbc1a4', '#7a6a53', '#6b5d48', '#5e503f', '#8c7851',
+                '#4a3f33', '#6fcf97'];
             const ctx = $('expenseChart').getContext('2d');
             if (expenseChart) expenseChart.destroy();
             expenseChart = new Chart(ctx, {
@@ -1710,13 +1780,18 @@
         }
 
         function applyState(state) {
-            if (!state) return;
-            Object.keys(state).forEach(function (id) {
-                const el = document.getElementById(id);
-                if (!el || el.id === 'clientSelect' || el.id === 'clientName') return;
-                if (el.type === 'checkbox') el.checked = !!state[id];
-                else el.value = state[id];
-            });
+            if (state) {
+                Object.keys(state).forEach(function (id) {
+                    const el = document.getElementById(id);
+                    if (!el || el.id === 'clientSelect' || el.id === 'clientName') return;
+                    if (el.type === 'checkbox') el.checked = !!state[id];
+                    else el.value = state[id];
+                });
+            }
+            // Un select ayant reçu une valeur inconnue (état d'une vieille version)
+            // retombe sur un défaut sûr au lieu de rester vide
+            if (!SECTORS[$('sector').value]) $('sector').value = 'services';
+            if (!FSS_TYPES[$('fssSector').value]) $('fssSector').value = 'pro';
         }
 
         function persistClientStore() {
@@ -1725,13 +1800,35 @@
 
         function activeClient() { return clientStore.clients[clientStore.activeId]; }
 
+        function newClientId() {
+            return 'c' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+        }
+
+        function uniqueClientName() {
+            const names = Object.keys(clientStore.clients).map(function (id) { return clientStore.clients[id].name; });
+            let n = names.length + 1;
+            while (names.indexOf('Client ' + n) !== -1) n++;
+            return 'Client ' + n;
+        }
+
         function loadClientStore() {
             try { clientStore = JSON.parse(localStorage.getItem(CLIENTS_KEY)); } catch (e) { clientStore = null; }
+            // Assainir : ne garder que des entrées bien formées (nom texte, objet valide)
+            if (clientStore && clientStore.clients) {
+                Object.keys(clientStore.clients).forEach(function (id) {
+                    const c = clientStore.clients[id];
+                    if (!c || typeof c !== 'object' || typeof c.name !== 'string' || !c.name) {
+                        delete clientStore.clients[id];
+                    } else if (!isFinite(c.updatedAt)) {
+                        c.updatedAt = Date.now();
+                    }
+                });
+            }
             if (!clientStore || !clientStore.clients || !Object.keys(clientStore.clients).length) {
                 // Migration de l'ancienne sauvegarde mono-dossier
                 let legacy = null;
                 try { legacy = JSON.parse(localStorage.getItem(LEGACY_KEY)); } catch (e) { /* rien */ }
-                const id = 'c' + Date.now();
+                const id = newClientId();
                 clientStore = { clients: {}, activeId: id };
                 clientStore.clients[id] = { name: 'Client 1', updatedAt: Date.now(), state: legacy };
                 persistClientStore();
@@ -1789,12 +1886,10 @@
 
         function newClient() {
             saveState();
-            const n = Object.keys(clientStore.clients).length + 1;
-            const id = 'c' + Date.now();
-            const name = (lang() === 'en' ? 'Client ' : 'Client ') + n;
+            const id = newClientId();
             // Le nouveau dossier part des chiffres affichés (pratique pour des clients semblables);
             // utilisez « Réinitialiser ce dossier » pour repartir des valeurs par défaut.
-            clientStore.clients[id] = { name: name, updatedAt: Date.now(), state: collectState() };
+            clientStore.clients[id] = { name: uniqueClientName(), updatedAt: Date.now(), state: collectState() };
             clientStore.activeId = id;
             persistClientStore();
             populateClientSelect();
@@ -1834,11 +1929,26 @@
         }
 
         function loadSharedState() {
-            // Un lien partagé (#d=...) s'applique par-dessus le dossier actif
+            // Un lien partagé (#d=...) est IMPORTÉ dans un nouveau dossier,
+            // pour ne jamais écraser les dossiers clients existants.
             if (location.hash.indexOf('#d=') === 0) {
+                let shared = null;
                 try {
-                    return JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3)))));
+                    shared = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3)))));
                 } catch (e) { /* lien invalide : on ignore */ }
+                // Nettoyer le hash pour qu'un F5 ne ré-importe pas en boucle
+                try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; }
+                if (shared && typeof shared === 'object') {
+                    const id = newClientId();
+                    clientStore.clients[id] = {
+                        name: (lang() === 'en' ? 'Imported ' : 'Import ') + new Date().toLocaleDateString(locale()),
+                        updatedAt: Date.now(),
+                        state: shared
+                    };
+                    clientStore.activeId = id;
+                    persistClientStore();
+                    return shared;
+                }
             }
             return null;
         }
@@ -1848,9 +1958,12 @@
             const url = location.origin + location.pathname + '#d=' + data;
             const btn = $('btnShare');
             const done = function () {
-                const prev = btn.textContent;
                 btn.textContent = lang() === 'en' ? '✓ Link copied!' : '✓ Lien copié !';
-                setTimeout(function () { btn.textContent = prev; }, 2500);
+                setTimeout(function () {
+                    // Restaurer depuis les attributs de traduction (résiste aux
+                    // clics rapides et aux bascules de langue entre-temps)
+                    btn.textContent = btn.getAttribute(lang() === 'en' ? 'data-en' : 'data-fr');
+                }, 2500);
             };
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(url).then(done, function () { prompt('URL :', url); });
@@ -1880,10 +1993,11 @@
             populateSectors();
             populateFssTypes();
 
-            // Dossiers clients : charger le magasin, restaurer le dossier actif
+            // Dossiers clients : charger le magasin, importer un lien partagé
+            // (dans un nouveau dossier), puis restaurer le dossier actif
             loadClientStore();
-            populateClientSelect();
             const shared = loadSharedState();
+            populateClientSelect();
             applyState(shared || activeClient().state);
             $('clientSelect').addEventListener('change', function () { switchClient(this.value); });
             $('clientName').addEventListener('change', renameClient);
@@ -1896,21 +2010,25 @@
             $('applySector').addEventListener('click', applySectorRatios);
             ['revenue', 'cogs', 'otherPayroll', 'valAddbacks', 'valMultLow', 'valMultHigh',
              'acqPrice', 'acqDown', 'acqRate', 'acqYears', 'empSalary', 'wiRev', 'wiExp',
-             'projGrowth', 'projInfl', 'salePrice', 'saleAcb', 'saleLcge'].concat(EXPENSE_IDS).concat(['expAmort']).forEach(function (id) {
+             'projGrowth', 'projInfl', 'salePrice', 'saleAcb', 'saleLcge',
+             'owners', 'baseIncome', 'passiveIncome', 'royaltiesPct', 'taxablePct'].concat(EXPENSE_IDS).concat(['expAmort']).forEach(function (id) {
                 $(id).addEventListener('input', recalc);
             });
             ['sector', 'fssSector'].forEach(function (id) { $(id).addEventListener('change', recalc); });
             ['qcSbd', 'afterApril'].forEach(function (id) { $(id).addEventListener('change', recalc); });
             $('withdrawal').addEventListener('input', recalc);
 
-            // Chart.js est chargé en defer : attendre qu'il soit prêt (max 10 s)
-            let chartTries = 0;
-            const waitChart = setInterval(function () {
-                chartTries++;
-                if (typeof Chart !== 'undefined') { clearInterval(waitChart); recalc(); }
-                else if (chartTries > 100) { clearInterval(waitChart); }
-            }, 100);
             recalc();
+            // Chart.js est chargé en defer : s'il n'était pas encore prêt au
+            // premier calcul, redessiner une seule fois quand il arrive (max 10 s)
+            if (typeof Chart === 'undefined') {
+                let chartTries = 0;
+                const waitChart = setInterval(function () {
+                    chartTries++;
+                    if (typeof Chart !== 'undefined') { clearInterval(waitChart); recalc(); }
+                    else if (chartTries > 100) { clearInterval(waitChart); }
+                }, 100);
+            }
         });
 
         // Re-rendu lors du changement de langue (components.js émet 'languageChanged')
