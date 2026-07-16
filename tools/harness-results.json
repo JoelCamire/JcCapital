@@ -1,0 +1,828 @@
+[
+ {
+  "id": 1,
+  "group": "1. Impôt perso",
+  "name": "Revenu ordinaire 20,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 2,
+  "group": "1. Impôt perso",
+  "name": "Revenu ordinaire 50,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 3,
+  "group": "1. Impôt perso",
+  "name": "Revenu ordinaire 100,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 4,
+  "group": "1. Impôt perso",
+  "name": "Revenu ordinaire 150,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 5,
+  "group": "1. Impôt perso",
+  "name": "Revenu ordinaire 200,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 6,
+  "group": "1. Impôt perso",
+  "name": "Revenu ordinaire 300,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 7,
+  "group": "1. Impôt perso",
+  "name": "Revenu ordinaire 1,000,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 8,
+  "group": "1. Impôt perso",
+  "name": "Revenu 0 $ → impôt 0",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 9,
+  "group": "1. Impôt perso",
+  "name": "Monotonicité 10k→1M (pas de baisse)",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 10,
+  "group": "1. Impôt perso",
+  "name": "Taux marginal borné ≤ 53.31 %",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 11,
+  "group": "1. Impôt perso",
+  "name": "Dividende non déterminé 50k seul",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 12,
+  "group": "1. Impôt perso",
+  "name": "Dividende déterminé 50k seul (quasi nul à ce niveau)",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 13,
+  "group": "2. Cotisations",
+  "name": "RRQ TA sous exemption (3 000 $) = 0",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 14,
+  "group": "2. Cotisations",
+  "name": "RRQ TA au MGA (74 600 $) = 8 958,60 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 15,
+  "group": "2. Cotisations",
+  "name": "RRQ TA plafonné au MSGA (85 000 $ = 200 000 $)",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 16,
+  "group": "2. Cotisations",
+  "name": "RQAP TA plafonné à 103 000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 17,
+  "group": "2. Cotisations",
+  "name": "FSS : 0 sous 18 500 $, max 1 000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 18,
+  "group": "2. Cotisations",
+  "name": "Coût employeur : salaire 0 → 0",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 19,
+  "group": "2. Cotisations",
+  "name": "Coût employeur croissant et coef borné [1, 1.2]",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 20,
+  "group": "3. Corpo",
+  "name": "100 k$ DPE (après avril) = 11.2 %",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 21,
+  "group": "3. Corpo",
+  "name": "100 k$ DPE (avant avril) = 12.2 %",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 22,
+  "group": "3. Corpo",
+  "name": "100 k$ sans DPE QC = 20.5 %",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 23,
+  "group": "3. Corpo",
+  "name": "600 k$ : 500 k à 11.2 % + 100 k à 26.5 %",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 24,
+  "group": "3. Corpo",
+  "name": "10 M$ : taux effectif → ~25.8 %",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 25,
+  "group": "3. Corpo",
+  "name": "Profit 0 et négatif → 0",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 26,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 0 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 27,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 1,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 28,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 3,500 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 29,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 20,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 30,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 58,523 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 31,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 74,600 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 32,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 85,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 33,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 103,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 34,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 117,045 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 35,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 150,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 36,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 181,440 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 37,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 258,482 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 38,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 300,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 39,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 500,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 40,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 600,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 41,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 1,000,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 42,
+  "group": "4. Scénarios",
+  "name": "Invariants TA/salaire/div/mix à 5,000,000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 43,
+  "group": "4. Scénarios",
+  "name": "Retrait 0 % à 200 k$ : identités et rétention",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 44,
+  "group": "4. Scénarios",
+  "name": "Retrait 25 % à 200 k$ : identités et rétention",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 45,
+  "group": "4. Scénarios",
+  "name": "Retrait 50 % à 200 k$ : identités et rétention",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 46,
+  "group": "4. Scénarios",
+  "name": "Retrait 75 % à 200 k$ : identités et rétention",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 47,
+  "group": "4. Scénarios",
+  "name": "Cohérence mix : f=1 ≡ salaire, f=0 ≡ dividendes",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 48,
+  "group": "4. Scénarios",
+  "name": "optimizeMix ≥ max(salaire, dividendes)",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 49,
+  "group": "4. Scénarios",
+  "name": "TA : ponctions monotones croissantes",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 50,
+  "group": "4. Scénarios",
+  "name": "Sans DPE QC : dividendes restent cohérents",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 51,
+  "group": "4. Scénarios",
+  "name": "Profit 800 k$ : ordre des pools (non dét. d'abord)",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 52,
+  "group": "5. Rentabilité",
+  "name": "Break-even standard (fixes 180 k, var 40 %)",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 53,
+  "group": "5. Rentabilité",
+  "name": "Break-even : coûts variables ≥ revenus (marge nulle)",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 54,
+  "group": "5. Rentabilité",
+  "name": "Break-even : revenus 0",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 55,
+  "group": "5. Valorisation",
+  "name": "BAIIA négatif → valeurs 0",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 56,
+  "group": "5. Valorisation",
+  "name": "Redressements ramènent au positif",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 57,
+  "group": "5. Valorisation",
+  "name": "Multiples 0 → valeur 0",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 58,
+  "group": "5. Acquisition",
+  "name": "Prêt standard : paiement annuel exact",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 59,
+  "group": "5. Acquisition",
+  "name": "Taux 0 % → remboursement linéaire",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 60,
+  "group": "5. Acquisition",
+  "name": "Mise de fonds 100 % → dette nulle, DSCR infini",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 61,
+  "group": "5. Acquisition",
+  "name": "Prix 0 → tout à zéro sans NaN",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 62,
+  "group": "5. Acquisition",
+  "name": "DSCR < 1 détecté (prix excessif)",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 63,
+  "group": "5. Vente",
+  "name": "Prix < PBR → gain 0, impôt 0, net = prix",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 64,
+  "group": "5. Vente",
+  "name": "Gain 1,25 M$ pile → tout exonéré",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 65,
+  "group": "5. Vente",
+  "name": "Gain 5 M$, ECGC 0 → impôt ≈ 50 % × marginal",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 66,
+  "group": "5. Vente",
+  "name": "ECGC partielle déjà utilisée",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 67,
+  "group": "6. Secteurs",
+  "name": "resto @ 120k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 68,
+  "group": "6. Secteurs",
+  "name": "resto @ 500k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 69,
+  "group": "6. Secteurs",
+  "name": "resto @ 2000k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 70,
+  "group": "6. Secteurs",
+  "name": "commerce @ 120k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 71,
+  "group": "6. Secteurs",
+  "name": "commerce @ 500k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 72,
+  "group": "6. Secteurs",
+  "name": "commerce @ 2000k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 73,
+  "group": "6. Secteurs",
+  "name": "construction @ 120k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 74,
+  "group": "6. Secteurs",
+  "name": "construction @ 500k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 75,
+  "group": "6. Secteurs",
+  "name": "construction @ 2000k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 76,
+  "group": "6. Secteurs",
+  "name": "services @ 120k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 77,
+  "group": "6. Secteurs",
+  "name": "services @ 500k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 78,
+  "group": "6. Secteurs",
+  "name": "services @ 2000k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 79,
+  "group": "6. Secteurs",
+  "name": "techno @ 120k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 80,
+  "group": "6. Secteurs",
+  "name": "techno @ 500k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 81,
+  "group": "6. Secteurs",
+  "name": "techno @ 2000k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 82,
+  "group": "6. Secteurs",
+  "name": "ecommerce @ 120k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 83,
+  "group": "6. Secteurs",
+  "name": "ecommerce @ 500k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 84,
+  "group": "6. Secteurs",
+  "name": "ecommerce @ 2000k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 85,
+  "group": "6. Secteurs",
+  "name": "transport @ 120k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 86,
+  "group": "6. Secteurs",
+  "name": "transport @ 500k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 87,
+  "group": "6. Secteurs",
+  "name": "transport @ 2000k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 88,
+  "group": "6. Secteurs",
+  "name": "beaute @ 120k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 89,
+  "group": "6. Secteurs",
+  "name": "beaute @ 500k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 90,
+  "group": "6. Secteurs",
+  "name": "beaute @ 2000k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 91,
+  "group": "6. Secteurs",
+  "name": "sante @ 120k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 92,
+  "group": "6. Secteurs",
+  "name": "sante @ 500k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 93,
+  "group": "6. Secteurs",
+  "name": "sante @ 2000k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 94,
+  "group": "6. Secteurs",
+  "name": "agriculture @ 120k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 95,
+  "group": "6. Secteurs",
+  "name": "agriculture @ 500k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 96,
+  "group": "6. Secteurs",
+  "name": "agriculture @ 2000k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 97,
+  "group": "6. Secteurs",
+  "name": "manufacture @ 120k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 98,
+  "group": "6. Secteurs",
+  "name": "manufacture @ 500k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 99,
+  "group": "6. Secteurs",
+  "name": "manufacture @ 2000k : marge nette dans la fourchette, fiscalité OK",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 100,
+  "group": "7. Limites",
+  "name": "Profit 100 M$ : pas d'overflow, taux plausibles",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 101,
+  "group": "7. Limites",
+  "name": "Salaire : retrait 100 % d'un profit de 30 k$ (charges plafonnées)",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 102,
+  "group": "7. Limites",
+  "name": "TPS/TVQ : seuils 29 999 / 30 001",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 103,
+  "group": "7. Limites",
+  "name": "Options par défaut manquantes (opts vides)",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 104,
+  "group": "8. Nouveautés",
+  "name": "Autres revenus 80 k$ : impôt TA incrémental > TA seul",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 105,
+  "group": "8. Nouveautés",
+  "name": "Coordination RRQ : salaire 80 k$ déjà cotisé → RRQ TA réduit",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 106,
+  "group": "8. Nouveautés",
+  "name": "Coordination RQAP : plafond partagé",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 107,
+  "group": "8. Nouveautés",
+  "name": "2 associés à 200 k$ < impôt d'un seul à 200 k$",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 108,
+  "group": "8. Nouveautés",
+  "name": "3 actionnaires, dividendes 400 k$ : invariants + net/proprio",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 109,
+  "group": "8. Nouveautés",
+  "name": "Revenus passifs 60 k$ → plafond DPE 450 k$",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 110,
+  "group": "8. Nouveautés",
+  "name": "Grind DPE : corpo 500 k$ avec 100 k$ passifs",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 111,
+  "group": "8. Nouveautés",
+  "name": "FSS sur dividendes : présent et ≤ 1 000 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 112,
+  "group": "8. Nouveautés",
+  "name": "Vente : FSS inclus dans l'impôt du gain non exonéré",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 113,
+  "group": "8. Nouveautés",
+  "name": "TPS/TVQ : clinique 100 % exonérée → pas d'inscription",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 114,
+  "group": "8. Nouveautés",
+  "name": "corporateTax sans opts ne plante plus",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 115,
+  "group": "8. Nouveautés",
+  "name": "acquisitionAnalysis sans downPct → pas de NaN",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 116,
+  "group": "8. Nouveautés",
+  "name": "breakEven : marge nulle → Infinity (plus de faux point mort)",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 117,
+  "group": "8. Nouveautés",
+  "name": "optimizeMix (liquidé) ≥ f=0 et f=1 liquidés",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 118,
+  "group": "8. Nouveautés",
+  "name": "Mix avec base 90 k$ et 2 proprios : invariants",
+  "pass": true,
+  "issues": []
+ }
+]
