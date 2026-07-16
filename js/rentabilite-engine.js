@@ -101,7 +101,9 @@
             eligible: { grossUp: 0.38, fedDtc: 0.150198, qcDtc: 0.117 }
         },
         salesTax: { gst: 0.05, qst: 0.09975, registrationThreshold: 30000 },
-        rrsp: { rate: 0.18, dollarLimit: 34150 } // plafond REER 2026 (approx.)
+        rrsp: { rate: 0.18, dollarLimit: 34150 }, // plafond REER 2026 (approx.)
+        lcge: 1250000, // ECGC — actions admissibles de petite entreprise (~2026)
+        capitalGainsInclusion: 0.5
     };
 
     // ---------------------------------------------------------------
@@ -569,6 +571,32 @@
     }
 
     // ---------------------------------------------------------------
+    // PRODUIT NET D'UNE VENTE D'ACTIONS (vendeur, avec ECGC)
+    // ---------------------------------------------------------------
+    /**
+     * Estime le net en poche d'une vente d'ACTIONS admissibles d'une SPCC.
+     * Hypothèses simplifiées : gain traité comme seul revenu de l'année,
+     * IMR (impôt minimum de remplacement) non modélisé.
+     * @param {Object} p { price, acb, lcgeRemaining }
+     */
+    function saleNetProceeds(p) {
+        const price = clamp0(p.price);
+        const acb = clamp0(p.acb || 0);
+        const gain = clamp0(price - acb);
+        const exempt = Math.min(gain, clamp0(p.lcgeRemaining != null ? p.lcgeRemaining : TAX2026.lcge));
+        const taxableGain = (gain - exempt) * TAX2026.capitalGainsInclusion;
+        const tax = personalTax({ ordinaryIncome: taxableGain }).total;
+        return {
+            gain: gain,
+            exempt: exempt,
+            taxableGain: taxableGain,
+            tax: tax,
+            net: price - tax,
+            effRateOnGain: gain > 0 ? tax / gain : 0
+        };
+    }
+
+    // ---------------------------------------------------------------
     // TPS / TVQ
     // ---------------------------------------------------------------
     function salesTaxInfo(revenue) {
@@ -604,6 +632,7 @@
         businessValuation: businessValuation,
         annualPayment: annualPayment,
         acquisitionAnalysis: acquisitionAnalysis,
+        saleNetProceeds: saleNetProceeds,
         salesTaxInfo: salesTaxInfo
     };
 

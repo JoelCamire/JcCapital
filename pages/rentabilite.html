@@ -439,11 +439,49 @@
 
         .chart-holder { position: relative; height: 320px; width: 100%; }
 
+        .calc-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            padding: 0.8rem 1.2rem;
+            background: rgba(34, 51, 59, 0.4);
+            border: 1px solid rgba(198, 172, 143, 0.2);
+            border-radius: 10px;
+            color: var(--c-light-beige);
+        }
+
         @media (max-width: 900px) {
             .results-grid { grid-template-columns: 1fr; }
             .scenario-grid { grid-template-columns: 1fr; }
             .tool-container { padding: 1.2rem; }
             .calc-card { padding: 1.4rem; }
+        }
+
+        /* --- Impression / PDF --- */
+        @media print {
+            body { background: #fff !important; color: #1a1a1a !important; }
+            .no-print, #header-placeholder, #footer-placeholder { display: none !important; }
+            .page-content { padding-top: 0; }
+            .calc-card, .kpi-card, .scenario-box, .breakdown-card, .slider-wrap, .info-note {
+                background: #fff !important;
+                border-color: #bbb !important;
+                box-shadow: none !important;
+                break-inside: avoid;
+            }
+            .calc-card h2, h1, h3, h4 { color: #6b5637 !important; }
+            .form-label, .card-sub, .check-row, .kpi-label, .scenario-line,
+            .scenario-net-label, .income-statement td, .info-note, p { color: #1a1a1a !important; }
+            .form-input, .form-select {
+                background: #fff !important;
+                color: #1a1a1a !important;
+                border-color: #999 !important;
+            }
+            .kpi-value, .income-statement td:last-child, .scenario-line span:last-child { color: #6b5637 !important; }
+            .kpi-value.green, .scenario-net { color: #1e7d43 !important; }
+            .kpi-value.red { color: #b02a37 !important; }
         }
     </style>
 </head>
@@ -464,6 +502,22 @@
                 marges et votre seuil de rentabilité, puis comparez la fiscalité 2026 Canada/Québec selon votre
                 structure — travailleur autonome, société avec salaire ou société avec dividendes.
             </p>
+
+            <!-- Barre d'outils : partage, impression, réinitialisation -->
+            <div class="calc-toolbar no-print">
+                <span style="opacity:0.65; font-size:0.82rem;"
+                      data-fr="💾 Vos chiffres sont sauvegardés automatiquement dans ce navigateur"
+                      data-en="💾 Your numbers are saved automatically in this browser">
+                    💾 Vos chiffres sont sauvegardés automatiquement dans ce navigateur</span>
+                <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+                    <button class="btn-apply-sector" id="btnShare" style="margin-top:0;"
+                            data-fr="🔗 Copier un lien avec mes chiffres" data-en="🔗 Copy a link with my numbers">🔗 Copier un lien avec mes chiffres</button>
+                    <button class="btn-apply-sector" id="btnPrint" style="margin-top:0;"
+                            data-fr="🖨️ Imprimer / PDF" data-en="🖨️ Print / PDF">🖨️ Imprimer / PDF</button>
+                    <button class="btn-apply-sector" id="btnReset" style="margin-top:0;"
+                            data-fr="↺ Réinitialiser" data-en="↺ Reset">↺ Réinitialiser</button>
+                </div>
+            </div>
 
             <!-- ================= ÉTAPE 1 : PROFIL ================= -->
             <div class="calc-card">
@@ -628,6 +682,10 @@
                     <div class="form-group">
                         <label class="form-label" for="expExpedition" data-fr="Expédition / livraison ($)" data-en="Shipping / delivery ($)">Expédition / livraison ($)</label>
                         <input type="number" id="expExpedition" class="form-input exp" value="1000" min="0" step="500">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="expCreances" data-fr="Créances irrécouvrables ($)" data-en="Bad debts ($)">Créances irrécouvrables ($)</label>
+                        <input type="number" id="expCreances" class="form-input exp" value="1000" min="0" step="500">
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="expAutres" data-fr="Autres dépenses ($)" data-en="Other expenses ($)">Autres dépenses ($)</label>
@@ -981,6 +1039,57 @@
                     </div>
                 </div>
 
+                <!-- Produit net d'une vente d'actions -->
+                <h3 style="color:var(--c-gold); font-size:1.1rem; margin:1.8rem 0 0.4rem;"
+                    data-fr="🏷️ Vendre : combien reste-t-il dans vos poches ?" data-en="🏷️ Selling: how much ends up in your pocket?">🏷️ Vendre : combien reste-t-il dans vos poches ?</h3>
+                <p class="card-sub"
+                   data-fr="Simulation d'une vente d'ACTIONS admissibles d'une SPCC : gain en capital, exonération (ECGC), impôt estimé et produit net. Hypothèse : le gain est votre seul revenu de l'année; l'impôt minimum de remplacement n'est pas modélisé."
+                   data-en="Simulation of a sale of eligible CCPC SHARES: capital gain, exemption (LCGE), estimated tax and net proceeds. Assumption: the gain is your only income for the year; alternative minimum tax is not modelled.">
+                    Simulation d'une vente d'ACTIONS admissibles d'une SPCC : gain en capital, exonération (ECGC),
+                    impôt estimé et produit net. Hypothèse : le gain est votre seul revenu de l'année; l'impôt minimum
+                    de remplacement n'est pas modélisé.</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="salePrice">
+                            <span data-fr="Prix de vente ($)" data-en="Sale price ($)">Prix de vente ($)</span>
+                            <span class="hint" data-fr="Laissez vide pour utiliser la valeur médiane" data-en="Leave blank to use the mid value">Laissez vide pour utiliser la valeur médiane</span>
+                        </label>
+                        <input type="number" id="salePrice" class="form-input" placeholder="—" step="5000" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="saleAcb">
+                            <span data-fr="Coût de vos actions (PBR) ($)" data-en="Cost of your shares (ACB) ($)">Coût de vos actions (PBR) ($)</span>
+                            <span class="hint" data-fr="Souvent presque 0 $ pour un fondateur" data-en="Often close to $0 for a founder">Souvent presque 0 $ pour un fondateur</span>
+                        </label>
+                        <input type="number" id="saleAcb" class="form-input" value="0" step="1000" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="saleLcge">
+                            <span data-fr="ECGC disponible ($)" data-en="LCGE available ($)">ECGC disponible ($)</span>
+                            <span class="hint" data-fr="Maximum ~1 250 000 $ si jamais utilisée" data-en="Up to ~$1,250,000 if never used">Maximum ~1 250 000 $ si jamais utilisée</span>
+                        </label>
+                        <input type="number" id="saleLcge" class="form-input" value="1250000" step="10000" min="0">
+                    </div>
+                </div>
+                <div class="kpi-row" style="margin-top:1.2rem;">
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Gain en capital" data-en="Capital gain">Gain en capital</div>
+                        <div class="kpi-value" id="saleGain">—</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Gain exonéré (ECGC)" data-en="Exempt gain (LCGE)">Gain exonéré (ECGC)</div>
+                        <div class="kpi-value green" id="saleExempt">—</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Impôt estimé sur la vente" data-en="Estimated tax on sale">Impôt estimé sur la vente</div>
+                        <div class="kpi-value red" id="saleTax">—</div>
+                    </div>
+                    <div class="kpi-card" style="border-color:var(--c-gold);">
+                        <div class="kpi-label" data-fr="Produit net en poche" data-en="Net proceeds in pocket">Produit net en poche</div>
+                        <div class="kpi-value green" id="saleNet">—</div>
+                    </div>
+                </div>
+
                 <div class="info-note"
                      data-fr="🏷️ <strong>Vous vendez ?</strong> La fourchette ci-dessus est votre point de départ de négociation. Si vous vendez les <strong>actions</strong> d'une SPCC admissible (actions de petite entreprise), l'exonération cumulative des gains en capital (ECGC) peut mettre à l'abri de l'impôt jusqu'à environ <strong>1,25 M$</strong> de gain par actionnaire — souvent la différence la plus importante entre une vente d'actions et une vente d'actifs. Une transaction se planifie idéalement 24 mois d'avance (critères de détention et d'actifs admissibles)."
                      data-en="🏷️ <strong>Selling?</strong> The range above is your negotiation starting point. If you sell the <strong>shares</strong> of an eligible CCPC (qualified small business shares), the lifetime capital gains exemption (LCGE) can shelter up to about <strong>$1.25M</strong> of gain per shareholder — often the biggest difference between a share sale and an asset sale. Ideally plan the transaction 24 months ahead (holding-period and asset tests).">
@@ -1054,17 +1163,17 @@
         // (moyennes indicatives; l'utilisateur peut tout modifier)
         // ------------------------------------------------------------
         const SECTORS = {
-            resto: { fr: 'Restauration / bar', en: 'Restaurant / bar', fss: 'resto', r: { cogs: 32, salaires: 34, loyer: 8, energie: 2.5, marketing: 3, assurances: 2, telecom: 1, vehicule: 0.5, honoraires: 1.5, interets: 1, entretien: 2.5, fournitures: 1.5, permis: 0.8, locationEquip: 0.5, deplacements: 0.2, formation: 0.3, expedition: 0.7, autres: 1, amort: 3 }, benchGross: [62, 72], benchNet: [2, 6], mult: [1.5, 3] }, // net implicite ~4.0 %
-            commerce: { fr: 'Commerce de détail', en: 'Retail store', fss: 'detail', r: { cogs: 55, salaires: 15, loyer: 6, energie: 1.2, marketing: 4, assurances: 1, telecom: 1, vehicule: 0.5, honoraires: 1, interets: 1, entretien: 1, fournitures: 1.2, permis: 0.5, locationEquip: 0.3, deplacements: 0.3, formation: 0.2, expedition: 1.8, autres: 2.5, amort: 2 }, benchGross: [40, 50], benchNet: [2, 7], mult: [2, 3.5] }, // net implicite ~4.5 %
-            construction: { fr: 'Construction / métiers', en: 'Construction / trades', fss: 'construction', r: { cogs: 50, salaires: 21, loyer: 1.5, energie: 0.5, marketing: 1.5, assurances: 3, telecom: 0.8, vehicule: 3.5, honoraires: 1.5, interets: 1, entretien: 2, fournitures: 0.8, permis: 1.2, locationEquip: 1, deplacements: 0.4, formation: 0.5, expedition: 0.2, autres: 0.2, amort: 3 }, benchGross: [42, 55], benchNet: [4, 10], mult: [2, 4] }, // net implicite ~6.4 %
-            services: { fr: 'Services professionnels', en: 'Professional services', fss: 'pro', r: { cogs: 5, salaires: 42, loyer: 6, energie: 0.8, marketing: 4, assurances: 2, telecom: 2.5, vehicule: 1.5, honoraires: 2, interets: 0.5, entretien: 1, fournitures: 1, permis: 1.2, locationEquip: 0.3, deplacements: 1.5, formation: 1.5, expedition: 0.2, autres: 2.5, amort: 2 }, benchGross: [90, 96], benchNet: [15, 30], mult: [2, 4] }, // net implicite ~22.5 %
-            techno: { fr: 'Techno / SaaS / numérique', en: 'Tech / SaaS / digital', fss: 'ti', r: { cogs: 12, salaires: 48, loyer: 3, energie: 0.5, marketing: 10, assurances: 1.5, telecom: 3, vehicule: 0, honoraires: 2.5, interets: 0.5, entretien: 0.5, fournitures: 0.8, permis: 0.5, locationEquip: 0.2, deplacements: 1, formation: 1.5, expedition: 0.2, autres: 0.2, amort: 2 }, benchGross: [80, 90], benchNet: [5, 20], mult: [4, 8] }, // net implicite ~12.1 %
-            ecommerce: { fr: 'Commerce en ligne', en: 'E-commerce', fss: 'detail', r: { cogs: 45, salaires: 10, loyer: 2.5, energie: 0.5, marketing: 12, assurances: 1, telecom: 2, vehicule: 0.5, honoraires: 1, interets: 1, entretien: 0.5, fournitures: 1, permis: 0.3, locationEquip: 0.2, deplacements: 0.5, formation: 0.3, expedition: 10, autres: 3.7, amort: 1.5 }, benchGross: [45, 60], benchNet: [3, 10], mult: [2.5, 4.5] }, // net implicite ~6.5 %
-            transport: { fr: 'Transport / camionnage', en: 'Transport / trucking', fss: 'transport', r: { cogs: 38, salaires: 25, loyer: 2, energie: 0.5, marketing: 1, assurances: 5.5, telecom: 1, vehicule: 8, honoraires: 1, interets: 1.5, entretien: 2, fournitures: 0.5, permis: 1.5, locationEquip: 0.5, deplacements: 0.5, formation: 0.5, expedition: 0.2, autres: 0.2, amort: 7 }, benchGross: [55, 65], benchNet: [3, 8], mult: [2.5, 4.5] }, // net implicite ~3.6 %
-            beaute: { fr: 'Beauté / bien-être (salon, spa)', en: 'Beauty / wellness (salon, spa)', fss: 'perso', r: { cogs: 12, salaires: 45, loyer: 11, energie: 1.5, marketing: 3.5, assurances: 1.5, telecom: 1.5, vehicule: 0.5, honoraires: 1, interets: 0.5, entretien: 3, fournitures: 1.5, permis: 0.5, locationEquip: 0.5, deplacements: 0.2, formation: 1, expedition: 0.2, autres: 2.6, amort: 3 }, benchGross: [82, 90], benchNet: [5, 12], mult: [1.5, 3] }, // net implicite ~9.5 %
-            sante: { fr: 'Santé (clinique, dentaire, physio)', en: 'Health (clinic, dental, physio)', fss: 'sante', r: { cogs: 8, salaires: 40, loyer: 8, energie: 1, marketing: 2, assurances: 2.5, telecom: 2, vehicule: 0.5, honoraires: 2.5, interets: 1, entretien: 1.5, fournitures: 2, permis: 1.5, locationEquip: 1, deplacements: 0.5, formation: 1.5, expedition: 0.2, autres: 2.8, amort: 4 }, benchGross: [85, 94], benchNet: [10, 25], mult: [3, 5] }, // net implicite ~17.5 %
-            agriculture: { fr: 'Agriculture / agroalimentaire', en: 'Agriculture / agri-food', fss: 'agri', r: { cogs: 48, salaires: 12, loyer: 2, energie: 1.5, marketing: 0.5, assurances: 3.5, telecom: 0.5, vehicule: 3.5, honoraires: 1.5, interets: 2, entretien: 5, fournitures: 1, permis: 0.8, locationEquip: 1, deplacements: 0.3, formation: 0.3, expedition: 0.5, autres: 0.2, amort: 10 }, benchGross: [45, 60], benchNet: [4, 15], mult: [3, 6] }, // net implicite ~5.9 %
-            manufacture: { fr: 'Fabrication / manufacture', en: 'Manufacturing', fss: 'fabrication', r: { cogs: 50, salaires: 18, loyer: 4, energie: 2, marketing: 2, assurances: 2, telecom: 1, vehicule: 1, honoraires: 1.5, interets: 1.5, entretien: 2.5, fournitures: 1, permis: 0.5, locationEquip: 1, deplacements: 0.5, formation: 0.5, expedition: 1, autres: 0.2, amort: 5 }, benchGross: [40, 55], benchNet: [4, 10], mult: [3, 5.5] }, // net implicite ~4.8 %
+            resto: { fr: 'Restauration / bar', en: 'Restaurant / bar', fss: 'resto', r: { cogs: 32, salaires: 34, loyer: 8, energie: 2.5, marketing: 3, assurances: 2, telecom: 1, vehicule: 0.5, honoraires: 1.5, interets: 1, entretien: 2.5, fournitures: 1.5, permis: 0.8, locationEquip: 0.5, deplacements: 0.2, formation: 0.3, expedition: 0.7, creances: 0.2, autres: 0.8, amort: 3 }, benchGross: [62, 72], benchNet: [2, 6], mult: [1.5, 3] }, // net implicite ~4.0 %
+            commerce: { fr: 'Commerce de détail', en: 'Retail store', fss: 'detail', r: { cogs: 55, salaires: 15, loyer: 6, energie: 1.2, marketing: 4, assurances: 1, telecom: 1, vehicule: 0.5, honoraires: 1, interets: 1, entretien: 1, fournitures: 1.2, permis: 0.5, locationEquip: 0.3, deplacements: 0.3, formation: 0.2, expedition: 1.8, creances: 0.3, autres: 2.2, amort: 2 }, benchGross: [40, 50], benchNet: [2, 7], mult: [2, 3.5] }, // net implicite ~4.5 %
+            construction: { fr: 'Construction / métiers', en: 'Construction / trades', fss: 'construction', r: { cogs: 50, salaires: 21, loyer: 1.5, energie: 0.5, marketing: 1.5, assurances: 3, telecom: 0.8, vehicule: 3.5, honoraires: 1.5, interets: 1, entretien: 2, fournitures: 0.8, permis: 1.2, locationEquip: 1, deplacements: 0.4, formation: 0.5, expedition: 0.2, creances: 0.3, autres: 0.1, amort: 3 }, benchGross: [42, 55], benchNet: [4, 10], mult: [2, 4] }, // net implicite ~6.4 %
+            services: { fr: 'Services professionnels', en: 'Professional services', fss: 'pro', r: { cogs: 5, salaires: 42, loyer: 6, energie: 0.8, marketing: 4, assurances: 2, telecom: 2.5, vehicule: 1.5, honoraires: 2, interets: 0.5, entretien: 1, fournitures: 1, permis: 1.2, locationEquip: 0.3, deplacements: 1.5, formation: 1.5, expedition: 0.2, creances: 0.3, autres: 2.2, amort: 2 }, benchGross: [90, 96], benchNet: [15, 30], mult: [2, 4] }, // net implicite ~22.5 %
+            techno: { fr: 'Techno / SaaS / numérique', en: 'Tech / SaaS / digital', fss: 'ti', r: { cogs: 12, salaires: 48, loyer: 3, energie: 0.5, marketing: 10, assurances: 1.5, telecom: 3, vehicule: 0, honoraires: 2.5, interets: 0.5, entretien: 0.5, fournitures: 0.8, permis: 0.5, locationEquip: 0.2, deplacements: 1, formation: 1.5, expedition: 0.2, creances: 0.2, autres: 0.1, amort: 2 }, benchGross: [80, 90], benchNet: [5, 20], mult: [4, 8] }, // net implicite ~12.1 %
+            ecommerce: { fr: 'Commerce en ligne', en: 'E-commerce', fss: 'detail', r: { cogs: 45, salaires: 10, loyer: 2.5, energie: 0.5, marketing: 12, assurances: 1, telecom: 2, vehicule: 0.5, honoraires: 1, interets: 1, entretien: 0.5, fournitures: 1, permis: 0.3, locationEquip: 0.2, deplacements: 0.5, formation: 0.3, expedition: 10, creances: 0.4, autres: 3.3, amort: 1.5 }, benchGross: [45, 60], benchNet: [3, 10], mult: [2.5, 4.5] }, // net implicite ~6.5 %
+            transport: { fr: 'Transport / camionnage', en: 'Transport / trucking', fss: 'transport', r: { cogs: 38, salaires: 25, loyer: 2, energie: 0.5, marketing: 1, assurances: 5.5, telecom: 1, vehicule: 8, honoraires: 1, interets: 1.5, entretien: 2, fournitures: 0.5, permis: 1.5, locationEquip: 0.5, deplacements: 0.5, formation: 0.5, expedition: 0.2, creances: 0.3, autres: 0.1, amort: 7 }, benchGross: [55, 65], benchNet: [3, 8], mult: [2.5, 4.5] }, // net implicite ~3.6 %
+            beaute: { fr: 'Beauté / bien-être (salon, spa)', en: 'Beauty / wellness (salon, spa)', fss: 'perso', r: { cogs: 12, salaires: 45, loyer: 11, energie: 1.5, marketing: 3.5, assurances: 1.5, telecom: 1.5, vehicule: 0.5, honoraires: 1, interets: 0.5, entretien: 3, fournitures: 1.5, permis: 0.5, locationEquip: 0.5, deplacements: 0.2, formation: 1, expedition: 0.2, creances: 0.1, autres: 2.5, amort: 3 }, benchGross: [82, 90], benchNet: [5, 12], mult: [1.5, 3] }, // net implicite ~9.5 %
+            sante: { fr: 'Santé (clinique, dentaire, physio)', en: 'Health (clinic, dental, physio)', fss: 'sante', r: { cogs: 8, salaires: 40, loyer: 8, energie: 1, marketing: 2, assurances: 2.5, telecom: 2, vehicule: 0.5, honoraires: 2.5, interets: 1, entretien: 1.5, fournitures: 2, permis: 1.5, locationEquip: 1, deplacements: 0.5, formation: 1.5, expedition: 0.2, creances: 0.3, autres: 2.5, amort: 4 }, benchGross: [85, 94], benchNet: [10, 25], mult: [3, 5] }, // net implicite ~17.5 %
+            agriculture: { fr: 'Agriculture / agroalimentaire', en: 'Agriculture / agri-food', fss: 'agri', r: { cogs: 48, salaires: 12, loyer: 2, energie: 1.5, marketing: 0.5, assurances: 3.5, telecom: 0.5, vehicule: 3.5, honoraires: 1.5, interets: 2, entretien: 5, fournitures: 1, permis: 0.8, locationEquip: 1, deplacements: 0.3, formation: 0.3, expedition: 0.5, creances: 0.2, autres: 0.1, amort: 10 }, benchGross: [45, 60], benchNet: [4, 15], mult: [3, 6] }, // net implicite ~5.9 %
+            manufacture: { fr: 'Fabrication / manufacture', en: 'Manufacturing', fss: 'fabrication', r: { cogs: 50, salaires: 18, loyer: 4, energie: 2, marketing: 2, assurances: 2, telecom: 1, vehicule: 1, honoraires: 1.5, interets: 1.5, entretien: 2.5, fournitures: 1, permis: 0.5, locationEquip: 1, deplacements: 0.5, formation: 0.5, expedition: 1, creances: 0.3, autres: 0.1, amort: 5 }, benchGross: [40, 55], benchNet: [4, 10], mult: [3, 5.5] }, // net implicite ~4.8 %
             autre: { fr: 'Autre / personnalisé', en: 'Other / custom', fss: 'autresServices', r: null, benchGross: null, benchNet: [5, 15], mult: [2, 4] }
         };
 
@@ -1116,7 +1225,7 @@
                 deferral: (amt) => '🏦 <strong>Report d\'impôt :</strong> en laissant les surplus dans la société, environ <strong>' + amt + '</strong> restent investissables au niveau corporatif au lieu d\'être imposés immédiatement au taux personnel. C\'est le principal levier de l\'incorporation.',
                 gstYes: (gst, qst) => '🧾 <strong>TPS/TVQ :</strong> vos revenus dépassent 30 000 $ — l\'inscription aux fichiers de la TPS (5 %) et de la TVQ (9,975 %) est obligatoire. Sur vos ventes taxables, vous percevrez environ ' + gst + ' de TPS et ' + qst + ' de TVQ (remis au gouvernement, ce n\'est pas un revenu).',
                 gstNo: '🧾 <strong>TPS/TVQ :</strong> sous 30 000 $ de revenus, vous êtes « petit fournisseur » — l\'inscription TPS/TVQ est facultative (mais elle permet de récupérer les taxes payées sur vos achats).',
-                chartExpenses: ['Coût des ventes', 'Salaires employés', 'Loyer', 'Énergie', 'Marketing', 'Assurances', 'Télécom/logiciels', 'Véhicules', 'Honoraires', 'Intérêts', 'Entretien', 'Fournitures', 'Permis/licences', 'Location équip.', 'Déplacements', 'Formation', 'Expédition', 'Autres', 'Amortissement', 'Bénéfice'],
+                chartExpenses: ['Coût des ventes', 'Salaires employés', 'Loyer', 'Énergie', 'Marketing', 'Assurances', 'Télécom/logiciels', 'Véhicules', 'Honoraires', 'Intérêts', 'Entretien', 'Fournitures', 'Permis/licences', 'Location équip.', 'Déplacements', 'Formation', 'Expédition', 'Créances irrécouv.', 'Autres', 'Amortissement', 'Bénéfice'],
                 chartScenarios: ['Travailleur autonome', 'Société — salaire', 'Société — dividendes', 'Mix optimal'],
                 chartProj: ['Revenus', 'Bénéfice avant impôts'],
                 leverage: (l) => '⚖️ <strong>Levier opérationnel :</strong> grâce à vos coûts fixes, +10 % de revenus ferait bondir votre bénéfice de <strong>' + l + ' %</strong>. Le levier joue aussi en sens inverse si les ventes reculent.',
@@ -1135,7 +1244,7 @@
                 deferral: (amt) => '🏦 <strong>Tax deferral:</strong> by leaving surplus in the corporation, about <strong>' + amt + '</strong> stays investable at the corporate level instead of being taxed immediately at personal rates. This is incorporation\'s main lever.',
                 gstYes: (gst, qst) => '🧾 <strong>GST/QST:</strong> your revenue exceeds $30,000 — GST (5%) and QST (9.975%) registration is mandatory. On taxable sales you would collect about ' + gst + ' of GST and ' + qst + ' of QST (remitted to governments — not income).',
                 gstNo: '🧾 <strong>GST/QST:</strong> below $30,000 of revenue you are a “small supplier” — GST/QST registration is optional (but lets you recover taxes paid on purchases).',
-                chartExpenses: ['Cost of goods sold', 'Employee wages', 'Rent', 'Utilities', 'Marketing', 'Insurance', 'Telecom/software', 'Vehicles', 'Professional fees', 'Interest', 'Maintenance', 'Supplies', 'Permits/licences', 'Equipment leasing', 'Travel', 'Training', 'Shipping', 'Other', 'Depreciation', 'Profit'],
+                chartExpenses: ['Cost of goods sold', 'Employee wages', 'Rent', 'Utilities', 'Marketing', 'Insurance', 'Telecom/software', 'Vehicles', 'Professional fees', 'Interest', 'Maintenance', 'Supplies', 'Permits/licences', 'Equipment leasing', 'Travel', 'Training', 'Shipping', 'Bad debts', 'Other', 'Depreciation', 'Profit'],
                 chartScenarios: ['Self-employed', 'Corporation — salary', 'Corporation — dividends', 'Optimal mix'],
                 chartProj: ['Revenue', 'Pre-tax profit'],
                 leverage: (l) => '⚖️ <strong>Operating leverage:</strong> thanks to your fixed costs, +10% revenue would boost your profit by <strong>' + l + '%</strong>. Leverage also works in reverse if sales fall.',
@@ -1152,11 +1261,11 @@
         const EXPENSE_IDS = ['expSalaires', 'expLoyer', 'expEnergie', 'expMarketing', 'expAssurances',
             'expTelecom', 'expVehicule', 'expHonoraires', 'expInterets', 'expEntretien',
             'expFournitures', 'expPermis', 'expLocation', 'expDeplacements', 'expFormation',
-            'expExpedition', 'expAutres'];
+            'expExpedition', 'expCreances', 'expAutres'];
         const RATIO_KEYS = ['salaires', 'loyer', 'energie', 'marketing', 'assurances',
             'telecom', 'vehicule', 'honoraires', 'interets', 'entretien',
             'fournitures', 'permis', 'locationEquip', 'deplacements', 'formation',
-            'expedition', 'autres'];
+            'expedition', 'creances', 'autres'];
 
         let expenseChart = null, scenarioChart = null;
 
@@ -1366,6 +1475,8 @@
                 ? t.gstYes(fmtMoney(gst.gstToCollect), fmtMoney(gst.qstToCollect))
                 : t.gstNo;
 
+            saveState();
+
             // --- Valorisation : acheter, vendre, fusionner ---
             const multLow = val('valMultLow'), multHigh = Math.max(val('valMultHigh'), val('valMultLow'));
             if (s.mult) { $('multHint').textContent = t.multHint(s.mult[0], s.mult[1], s[lang()]); }
@@ -1402,6 +1513,19 @@
             } else {
                 verdict.style.display = 'none';
             }
+
+            // --- Produit net d'une vente d'actions (ECGC) ---
+            const salePriceInput = parseFloat($('salePrice').value);
+            const salePrice = (isNaN(salePriceInput) || salePriceInput <= 0) ? valuation.mid : salePriceInput;
+            const sale = E.saleNetProceeds({
+                price: salePrice,
+                acb: val('saleAcb'),
+                lcgeRemaining: val('saleLcge')
+            });
+            $('saleGain').textContent = fmtMoney(sale.gain);
+            $('saleExempt').textContent = fmtMoney(sale.exempt);
+            $('saleTax').textContent = fmtMoney(sale.tax);
+            $('saleNet').textContent = fmtMoney(sale.net);
 
             // --- Et si ? (sensibilité) ---
             const rF = 1 + parseInt($('wiRev').value, 10) / 100;
@@ -1461,7 +1585,7 @@
             const data = [cogs].concat(expenses).concat([amort, profit]);
             const colors = ['#8a5a44', '#a97155', '#b98b73', '#c6ac8f', '#d6bd98', '#9c6644',
                 '#7f5539', '#b08968', '#ddb892', '#e6ccb2', '#ede0d4', '#936639', '#a68a64',
-                '#8d6b4b', '#bfa07a', '#dbc1a4', '#7a6a53', '#5e503f', '#4a3f33', '#6fcf97'];
+                '#8d6b4b', '#bfa07a', '#dbc1a4', '#7a6a53', '#6b5d48', '#5e503f', '#4a3f33', '#6fcf97'];
             const ctx = $('expenseChart').getContext('2d');
             if (expenseChart) expenseChart.destroy();
             expenseChart = new Chart(ctx, {
@@ -1543,15 +1667,78 @@
         }
 
         // ------------------------------------------------------------
+        // SAUVEGARDE LOCALE + LIEN DE PARTAGE
+        // ------------------------------------------------------------
+        const STORAGE_KEY = 'jc_rentabilite_v1';
+
+        function collectState() {
+            const state = {};
+            document.querySelectorAll('.tool-container input[id], .tool-container select[id]').forEach(function (el) {
+                state[el.id] = (el.type === 'checkbox') ? el.checked : el.value;
+            });
+            return state;
+        }
+
+        function applyState(state) {
+            if (!state) return;
+            Object.keys(state).forEach(function (id) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (el.type === 'checkbox') el.checked = !!state[id];
+                else el.value = state[id];
+            });
+        }
+
+        function saveState() {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState())); } catch (e) { /* stockage plein/bloqué */ }
+        }
+
+        function loadState() {
+            // 1. Un lien partagé (#d=...) a priorité sur la sauvegarde locale
+            if (location.hash.indexOf('#d=') === 0) {
+                try {
+                    return JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3)))));
+                } catch (e) { /* lien invalide : on ignore */ }
+            }
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) { return null; }
+        }
+
+        function shareLink() {
+            const data = btoa(unescape(encodeURIComponent(JSON.stringify(collectState()))));
+            const url = location.origin + location.pathname + '#d=' + data;
+            const btn = $('btnShare');
+            const done = function () {
+                const prev = btn.textContent;
+                btn.textContent = lang() === 'en' ? '✓ Link copied!' : '✓ Lien copié !';
+                setTimeout(function () { btn.textContent = prev; }, 2500);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(done, function () { prompt('URL :', url); });
+            } else {
+                prompt('URL :', url);
+            }
+        }
+
+        function resetAll() {
+            try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* rien */ }
+            location.hash = '';
+            location.reload();
+        }
+
+        // ------------------------------------------------------------
         // INITIALISATION
         // ------------------------------------------------------------
         document.addEventListener('DOMContentLoaded', function () {
             populateSectors();
             populateFssTypes();
+            applyState(loadState());
+            $('btnShare').addEventListener('click', shareLink);
+            $('btnPrint').addEventListener('click', function () { window.print(); });
+            $('btnReset').addEventListener('click', resetAll);
             $('applySector').addEventListener('click', applySectorRatios);
             ['revenue', 'cogs', 'otherPayroll', 'valAddbacks', 'valMultLow', 'valMultHigh',
              'acqPrice', 'acqDown', 'acqRate', 'acqYears', 'empSalary', 'wiRev', 'wiExp',
-             'projGrowth', 'projInfl'].concat(EXPENSE_IDS).concat(['expAmort']).forEach(function (id) {
+             'projGrowth', 'projInfl', 'salePrice', 'saleAcb', 'saleLcge'].concat(EXPENSE_IDS).concat(['expAmort']).forEach(function (id) {
                 $(id).addEventListener('input', recalc);
             });
             ['sector', 'fssSector'].forEach(function (id) { $(id).addEventListener('change', recalc); });
