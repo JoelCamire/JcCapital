@@ -94,7 +94,7 @@
     <!-- Component Loader -->
     <script defer src="../js/components.js?v=21"></script>
     <!-- Moteur de calcul (API locale : window.JCProfitEngine) -->
-    <script src="../js/rentabilite-engine.js?v=2"></script>
+    <script src="../js/rentabilite-engine.js?v=3"></script>
 
     <style>
         .page-content {
@@ -599,8 +599,39 @@
                         <input type="number" id="expEntretien" class="form-input exp" value="5000" min="0" step="500">
                     </div>
                     <div class="form-group">
+                        <label class="form-label" for="expEnergie" data-fr="Énergie / services publics ($)" data-en="Utilities / energy ($)">Énergie / services publics ($)</label>
+                        <input type="number" id="expEnergie" class="form-input exp" value="4000" min="0" step="500">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="expFournitures" data-fr="Fournitures / consommables ($)" data-en="Supplies / consumables ($)">Fournitures / consommables ($)</label>
+                        <input type="number" id="expFournitures" class="form-input exp" value="5000" min="0" step="500">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="expPermis" data-fr="Permis, licences, taxes, cotisations ($)" data-en="Permits, licences, taxes, dues ($)">Permis, licences, taxes, cotisations ($)</label>
+                        <input type="number" id="expPermis" class="form-input exp" value="6000" min="0" step="500">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="expLocation" data-fr="Location d'équipement ($)" data-en="Equipment leasing ($)">Location d'équipement ($)</label>
+                        <input type="number" id="expLocation" class="form-input exp" value="1500" min="0" step="500">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="expDeplacements">
+                            <span data-fr="Déplacements / représentation ($)" data-en="Travel / entertainment ($)">Déplacements / représentation ($)</span>
+                            <span class="hint" data-fr="Repas et divertissement : 50 % déductibles" data-en="Meals & entertainment: 50% deductible">Repas et divertissement : 50 % déductibles</span>
+                        </label>
+                        <input type="number" id="expDeplacements" class="form-input exp" value="7500" min="0" step="500">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="expFormation" data-fr="Formation / perfectionnement ($)" data-en="Training / development ($)">Formation / perfectionnement ($)</label>
+                        <input type="number" id="expFormation" class="form-input exp" value="7500" min="0" step="500">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="expExpedition" data-fr="Expédition / livraison ($)" data-en="Shipping / delivery ($)">Expédition / livraison ($)</label>
+                        <input type="number" id="expExpedition" class="form-input exp" value="1000" min="0" step="500">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label" for="expAutres" data-fr="Autres dépenses ($)" data-en="Other expenses ($)">Autres dépenses ($)</label>
-                        <input type="number" id="expAutres" class="form-input exp" value="20000" min="0" step="500">
+                        <input type="number" id="expAutres" class="form-input exp" value="8000" min="0" step="500">
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="expAmort">
@@ -608,6 +639,30 @@
                             <span class="hint" data-fr="Équipements, matériel roulant, améliorations" data-en="Equipment, rolling stock, improvements">Équipements, matériel roulant, améliorations</span>
                         </label>
                         <input type="number" id="expAmort" class="form-input exp" value="12000" min="0" step="500">
+                    </div>
+                </div>
+
+                <!-- Mini-outil : coût total d'un employé -->
+                <h3 style="color:var(--c-gold); font-size:1.1rem; margin:1.8rem 0 0.4rem;"
+                    data-fr="👥 Combien coûte vraiment un employé ?" data-en="👥 What does an employee really cost?">👥 Combien coûte vraiment un employé ?</h3>
+                <p class="card-sub"
+                   data-fr="Un salaire brut ne dit pas tout : ajoutez les charges patronales (RRQ, RQAP, FSS, CNESST…). Utilisez ce coût pour remplir la case « Salaires employés » ci-dessus."
+                   data-en="Gross salary is only part of the story: add employer charges (QPP, QPIP, HSF, CNESST…). Use this cost to fill the “Employee wages” field above.">
+                    Un salaire brut ne dit pas tout : ajoutez les charges patronales (RRQ, RQAP, FSS, CNESST…).
+                    Utilisez ce coût pour remplir la case « Salaires employés » ci-dessus.</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="empSalary" data-fr="Salaire brut annuel d'un employé ($)" data-en="Employee annual gross salary ($)">Salaire brut annuel d'un employé ($)</label>
+                        <input type="number" id="empSalary" class="form-input" value="50000" min="0" step="1000">
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Charges patronales" data-en="Employer charges">Charges patronales</div>
+                        <div class="kpi-value" id="empCharges">—</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Coût total employeur" data-en="Total employer cost">Coût total employeur</div>
+                        <div class="kpi-value green" id="empCost">—</div>
+                        <div class="kpi-label" id="empCoef" style="margin-top:0.3rem;"></div>
                     </div>
                 </div>
             </div>
@@ -664,6 +719,80 @@
                 </div>
             </div>
 
+            <!-- ================= SENSIBILITÉ : ET SI ? ================= -->
+            <div class="calc-card">
+                <h2><i class="fa-solid fa-sliders" style="margin-right:0.5rem;"></i><span data-fr="Et si… ? — Analyse de sensibilité" data-en="What if…? — Sensitivity Analysis">Et si… ? — Analyse de sensibilité</span></h2>
+                <p class="card-sub"
+                   data-fr="Testez l'impact d'une variation de vos revenus ou de vos dépenses sur le bénéfice. Le coût des ventes suit automatiquement les revenus (coût variable); les dépenses d'exploitation suivent le curseur des dépenses."
+                   data-en="Test the impact of a change in revenue or expenses on profit. Cost of goods sold automatically follows revenue (variable cost); operating expenses follow the expense slider.">
+                    Testez l'impact d'une variation de vos revenus ou de vos dépenses sur le bénéfice. Le coût des
+                    ventes suit automatiquement les revenus (coût variable); les dépenses d'exploitation suivent le
+                    curseur des dépenses.</p>
+
+                <div class="results-grid">
+                    <div>
+                        <div class="slider-wrap" style="margin-top:0;">
+                            <label class="form-label" style="display:flex; justify-content:space-between;">
+                                <span data-fr="Variation des revenus" data-en="Revenue change">Variation des revenus</span>
+                                <strong id="wiRevVal" style="color:var(--c-gold);">0 %</strong>
+                            </label>
+                            <input type="range" id="wiRev" min="-30" max="30" step="5" value="0">
+                        </div>
+                        <div class="slider-wrap">
+                            <label class="form-label" style="display:flex; justify-content:space-between;">
+                                <span data-fr="Variation des dépenses d'exploitation" data-en="Operating expense change">Variation des dépenses d'exploitation</span>
+                                <strong id="wiExpVal" style="color:var(--c-gold);">0 %</strong>
+                            </label>
+                            <input type="range" id="wiExp" min="-20" max="20" step="5" value="0">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="kpi-row" style="margin-bottom:0.8rem;">
+                            <div class="kpi-card">
+                                <div class="kpi-label" data-fr="Bénéfice projeté" data-en="Projected profit">Bénéfice projeté</div>
+                                <div class="kpi-value" id="wiProfit">—</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label" data-fr="Écart vs actuel" data-en="Change vs current">Écart vs actuel</div>
+                                <div class="kpi-value" id="wiDelta">—</div>
+                            </div>
+                        </div>
+                        <div class="info-note" id="wiLeverage" style="margin-top:0;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= PROJECTION 5 ANS ================= -->
+            <div class="calc-card">
+                <h2><i class="fa-solid fa-arrow-trend-up" style="margin-right:0.5rem;"></i><span data-fr="Projection sur 5 ans" data-en="5-Year Projection">Projection sur 5 ans</span></h2>
+                <p class="card-sub"
+                   data-fr="Projetez vos revenus et votre bénéfice avec une hypothèse de croissance et d'inflation des dépenses. La valeur de l'entreprise à l'an 5 utilise vos multiples du module de valorisation ci-dessous."
+                   data-en="Project your revenue and profit with a growth assumption and expense inflation. The year-5 business value uses your multiples from the valuation module below.">
+                    Projetez vos revenus et votre bénéfice avec une hypothèse de croissance et d'inflation des
+                    dépenses. La valeur de l'entreprise à l'an 5 utilise vos multiples du module de valorisation
+                    ci-dessous.</p>
+
+                <div class="form-grid" style="margin-bottom:1.2rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="projGrowth" data-fr="Croissance des revenus (%/an)" data-en="Revenue growth (%/yr)">Croissance des revenus (%/an)</label>
+                        <input type="number" id="projGrowth" class="form-input" value="5" step="0.5" min="-20" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="projInfl" data-fr="Inflation des dépenses (%/an)" data-en="Expense inflation (%/yr)">Inflation des dépenses (%/an)</label>
+                        <input type="number" id="projInfl" class="form-input" value="3" step="0.5" min="-10" max="50">
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Bénéfice avant impôts — an 5" data-en="Pre-tax profit — year 5">Bénéfice avant impôts — an 5</div>
+                        <div class="kpi-value" id="projProfit5">—</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Valeur d'entreprise estimée — an 5" data-en="Estimated business value — year 5">Valeur d'entreprise estimée — an 5</div>
+                        <div class="kpi-value green" id="projValue5">—</div>
+                    </div>
+                </div>
+                <div class="chart-holder"><canvas id="projChart"></canvas></div>
+            </div>
+
             <!-- ================= FISCALITÉ ================= -->
             <div class="calc-card">
                 <h2><i class="fa-solid fa-scale-balanced" style="margin-right:0.5rem;"></i><span data-fr="Fiscalité 2026 — Comparaison des structures" data-en="2026 Taxation — Structure Comparison">Fiscalité 2026 — Comparaison des structures</span></h2>
@@ -713,6 +842,26 @@
                         <div class="scenario-line"><span data-fr="Impôt perso sur dividendes" data-en="Personal tax on dividends">Impôt perso sur dividendes</span><span id="divPersoTax">—</span></div>
                         <div class="scenario-line"><span data-fr="Conservé dans la société (après impôt)" data-en="Retained in corporation (after tax)">Conservé dans la société (après impôt)</span><span id="divRetained">—</span></div>
                         <div class="scenario-line strong"><span data-fr="Taux effectif total" data-en="Total effective rate">Taux effectif total</span><span id="divRate">—</span></div>
+                    </div>
+                </div>
+
+                <!-- Mix optimal salaire + dividendes -->
+                <div class="scenario-box" id="mixBox" style="margin-top:2rem; border-color:var(--c-gold); box-shadow:0 0 20px rgba(198,172,143,0.12);">
+                    <h4 style="min-height:auto;" data-fr="🎯 Mix optimal salaire + dividendes (calculé automatiquement)" data-en="🎯 Optimal salary + dividend mix (computed automatically)">🎯 Mix optimal salaire + dividendes (calculé automatiquement)</h4>
+                    <div class="scenario-net" id="mixNet" style="margin-top:0.5rem;">—</div>
+                    <div class="scenario-net-label" data-fr="net dans vos poches avec le meilleur mix" data-en="net in your pocket with the best mix">net dans vos poches avec le meilleur mix</div>
+                    <div class="results-grid" style="gap:0 2.5rem;">
+                        <div>
+                            <div class="scenario-line"><span data-fr="Répartition optimale" data-en="Optimal split">Répartition optimale</span><span id="mixSplit">—</span></div>
+                            <div class="scenario-line"><span data-fr="Salaire brut versé" data-en="Gross salary paid">Salaire brut versé</span><span id="mixSalary">—</span></div>
+                            <div class="scenario-line"><span data-fr="Dividendes versés" data-en="Dividends paid">Dividendes versés</span><span id="mixDiv">—</span></div>
+                            <div class="scenario-line"><span data-fr="Droits REER créés (18 % du salaire)" data-en="RRSP room created (18% of salary)">Droits REER créés (18 % du salaire)</span><span id="mixRrsp">—</span></div>
+                        </div>
+                        <div>
+                            <div class="scenario-line"><span data-fr="Conservé dans la société (après impôt)" data-en="Retained in corporation (after tax)">Conservé dans la société (après impôt)</span><span id="mixRetained">—</span></div>
+                            <div class="scenario-line strong"><span data-fr="Patrimoine total après impôts" data-en="Total after-tax wealth">Patrimoine total après impôts</span><span id="mixTotal">—</span></div>
+                            <div class="scenario-line strong"><span data-fr="Taux effectif total" data-en="Total effective rate">Taux effectif total</span><span id="mixRate">—</span></div>
+                        </div>
                     </div>
                 </div>
 
@@ -905,18 +1054,18 @@
         // (moyennes indicatives; l'utilisateur peut tout modifier)
         // ------------------------------------------------------------
         const SECTORS = {
-            resto:        { fr: 'Restauration / bar',            en: 'Restaurant / bar',              fss: 'resto', r: { cogs: 32, salaires: 34, loyer: 9,  marketing: 3,   assurances: 2,   telecom: 1,   vehicule: 0.5, honoraires: 1.5, interets: 1,   entretien: 3, autres: 5,   amort: 3   }, benchGross: [62, 72], benchNet: [2, 6], mult: [1.5, 3]   },
-            commerce:     { fr: 'Commerce de détail',            en: 'Retail store',                  fss: 'detail', r: { cogs: 55, salaires: 15, loyer: 7,  marketing: 4,   assurances: 1,   telecom: 1,   vehicule: 0.5, honoraires: 1,   interets: 1,   entretien: 1, autres: 5,   amort: 2   }, benchGross: [40, 50], benchNet: [2, 7], mult: [2, 3.5]   },
-            construction: { fr: 'Construction / métiers',        en: 'Construction / trades',         fss: 'construction', r: { cogs: 50, salaires: 22, loyer: 2,  marketing: 1.5, assurances: 3.5, telecom: 1,   vehicule: 4,   honoraires: 1.5, interets: 1,   entretien: 2, autres: 2,   amort: 3   }, benchGross: [42, 55], benchNet: [4, 10], mult: [2, 4]  },
-            services:     { fr: 'Services professionnels',       en: 'Professional services',         fss: 'pro', r: { cogs: 5,  salaires: 42, loyer: 6,  marketing: 4,   assurances: 2,   telecom: 2.5, vehicule: 1.5, honoraires: 2,   interets: 0.5, entretien: 1, autres: 6,   amort: 2   }, benchGross: [90, 96], benchNet: [15, 30], mult: [2, 4] },
-            techno:       { fr: 'Techno / SaaS / numérique',     en: 'Tech / SaaS / digital',         fss: 'ti', r: { cogs: 12, salaires: 48, loyer: 3,  marketing: 10,  assurances: 1.5, telecom: 3,   vehicule: 0,   honoraires: 2.5, interets: 0.5, entretien: 0.5, autres: 4, amort: 2   }, benchGross: [80, 90], benchNet: [5, 20], mult: [4, 8]  },
-            ecommerce:    { fr: 'Commerce en ligne',             en: 'E-commerce',                    fss: 'detail', r: { cogs: 45, salaires: 10, loyer: 2.5, marketing: 12, assurances: 1,   telecom: 2,   vehicule: 0.5, honoraires: 1,   interets: 1,   entretien: 0.5, autres: 14, amort: 1.5 }, benchGross: [45, 60], benchNet: [3, 10], mult: [2.5, 4.5]  },
-            transport:    { fr: 'Transport / camionnage',        en: 'Transport / trucking',          fss: 'transport', r: { cogs: 38, salaires: 25, loyer: 2,  marketing: 1,   assurances: 6,   telecom: 1,   vehicule: 9,   honoraires: 1,   interets: 2,   entretien: 2, autres: 1,   amort: 7   }, benchGross: [55, 65], benchNet: [3, 8], mult: [2.5, 4.5]   },
-            beaute:       { fr: 'Beauté / bien-être (salon, spa)', en: 'Beauty / wellness (salon, spa)', fss: 'perso', r: { cogs: 12, salaires: 45, loyer: 11, marketing: 3.5, assurances: 1.5, telecom: 1.5, vehicule: 0.5, honoraires: 1, interets: 0.5, entretien: 3, autres: 5.5, amort: 3   }, benchGross: [82, 90], benchNet: [5, 12], mult: [1.5, 3]  },
-            sante:        { fr: 'Santé (clinique, dentaire, physio)', en: 'Health (clinic, dental, physio)', fss: 'sante', r: { cogs: 8, salaires: 40, loyer: 8, marketing: 2, assurances: 2.5, telecom: 2, vehicule: 0.5, honoraires: 2.5, interets: 1, entretien: 1.5, autres: 6, amort: 4 }, benchGross: [85, 94], benchNet: [10, 25], mult: [3, 5] },
-            agriculture:  { fr: 'Agriculture / agroalimentaire', en: 'Agriculture / agri-food',       fss: 'agri', r: { cogs: 48, salaires: 12, loyer: 2,  marketing: 0.5, assurances: 3.5, telecom: 0.5, vehicule: 4,   honoraires: 1.5, interets: 2.5, entretien: 6, autres: 1.5, amort: 10  }, benchGross: [45, 60], benchNet: [4, 15], mult: [3, 6]  },
-            manufacture:  { fr: 'Fabrication / manufacture',     en: 'Manufacturing',                 fss: 'fabrication', r: { cogs: 52, salaires: 18, loyer: 4,  marketing: 2,   assurances: 2,   telecom: 1,   vehicule: 1,   honoraires: 1.5, interets: 1.5, entretien: 3, autres: 1.5, amort: 5   }, benchGross: [40, 55], benchNet: [4, 10], mult: [3, 5.5]  },
-            autre:        { fr: 'Autre / personnalisé',          en: 'Other / custom',                fss: 'autresServices', r: null, benchGross: null, benchNet: [5, 15], mult: [2, 4] }
+            resto: { fr: 'Restauration / bar', en: 'Restaurant / bar', fss: 'resto', r: { cogs: 32, salaires: 34, loyer: 8, energie: 2.5, marketing: 3, assurances: 2, telecom: 1, vehicule: 0.5, honoraires: 1.5, interets: 1, entretien: 2.5, fournitures: 1.5, permis: 0.8, locationEquip: 0.5, deplacements: 0.2, formation: 0.3, expedition: 0.7, autres: 1, amort: 3 }, benchGross: [62, 72], benchNet: [2, 6], mult: [1.5, 3] }, // net implicite ~4.0 %
+            commerce: { fr: 'Commerce de détail', en: 'Retail store', fss: 'detail', r: { cogs: 55, salaires: 15, loyer: 6, energie: 1.2, marketing: 4, assurances: 1, telecom: 1, vehicule: 0.5, honoraires: 1, interets: 1, entretien: 1, fournitures: 1.2, permis: 0.5, locationEquip: 0.3, deplacements: 0.3, formation: 0.2, expedition: 1.8, autres: 2.5, amort: 2 }, benchGross: [40, 50], benchNet: [2, 7], mult: [2, 3.5] }, // net implicite ~4.5 %
+            construction: { fr: 'Construction / métiers', en: 'Construction / trades', fss: 'construction', r: { cogs: 50, salaires: 21, loyer: 1.5, energie: 0.5, marketing: 1.5, assurances: 3, telecom: 0.8, vehicule: 3.5, honoraires: 1.5, interets: 1, entretien: 2, fournitures: 0.8, permis: 1.2, locationEquip: 1, deplacements: 0.4, formation: 0.5, expedition: 0.2, autres: 0.2, amort: 3 }, benchGross: [42, 55], benchNet: [4, 10], mult: [2, 4] }, // net implicite ~6.4 %
+            services: { fr: 'Services professionnels', en: 'Professional services', fss: 'pro', r: { cogs: 5, salaires: 42, loyer: 6, energie: 0.8, marketing: 4, assurances: 2, telecom: 2.5, vehicule: 1.5, honoraires: 2, interets: 0.5, entretien: 1, fournitures: 1, permis: 1.2, locationEquip: 0.3, deplacements: 1.5, formation: 1.5, expedition: 0.2, autres: 2.5, amort: 2 }, benchGross: [90, 96], benchNet: [15, 30], mult: [2, 4] }, // net implicite ~22.5 %
+            techno: { fr: 'Techno / SaaS / numérique', en: 'Tech / SaaS / digital', fss: 'ti', r: { cogs: 12, salaires: 48, loyer: 3, energie: 0.5, marketing: 10, assurances: 1.5, telecom: 3, vehicule: 0, honoraires: 2.5, interets: 0.5, entretien: 0.5, fournitures: 0.8, permis: 0.5, locationEquip: 0.2, deplacements: 1, formation: 1.5, expedition: 0.2, autres: 0.2, amort: 2 }, benchGross: [80, 90], benchNet: [5, 20], mult: [4, 8] }, // net implicite ~12.1 %
+            ecommerce: { fr: 'Commerce en ligne', en: 'E-commerce', fss: 'detail', r: { cogs: 45, salaires: 10, loyer: 2.5, energie: 0.5, marketing: 12, assurances: 1, telecom: 2, vehicule: 0.5, honoraires: 1, interets: 1, entretien: 0.5, fournitures: 1, permis: 0.3, locationEquip: 0.2, deplacements: 0.5, formation: 0.3, expedition: 10, autres: 3.7, amort: 1.5 }, benchGross: [45, 60], benchNet: [3, 10], mult: [2.5, 4.5] }, // net implicite ~6.5 %
+            transport: { fr: 'Transport / camionnage', en: 'Transport / trucking', fss: 'transport', r: { cogs: 38, salaires: 25, loyer: 2, energie: 0.5, marketing: 1, assurances: 5.5, telecom: 1, vehicule: 8, honoraires: 1, interets: 1.5, entretien: 2, fournitures: 0.5, permis: 1.5, locationEquip: 0.5, deplacements: 0.5, formation: 0.5, expedition: 0.2, autres: 0.2, amort: 7 }, benchGross: [55, 65], benchNet: [3, 8], mult: [2.5, 4.5] }, // net implicite ~3.6 %
+            beaute: { fr: 'Beauté / bien-être (salon, spa)', en: 'Beauty / wellness (salon, spa)', fss: 'perso', r: { cogs: 12, salaires: 45, loyer: 11, energie: 1.5, marketing: 3.5, assurances: 1.5, telecom: 1.5, vehicule: 0.5, honoraires: 1, interets: 0.5, entretien: 3, fournitures: 1.5, permis: 0.5, locationEquip: 0.5, deplacements: 0.2, formation: 1, expedition: 0.2, autres: 2.6, amort: 3 }, benchGross: [82, 90], benchNet: [5, 12], mult: [1.5, 3] }, // net implicite ~9.5 %
+            sante: { fr: 'Santé (clinique, dentaire, physio)', en: 'Health (clinic, dental, physio)', fss: 'sante', r: { cogs: 8, salaires: 40, loyer: 8, energie: 1, marketing: 2, assurances: 2.5, telecom: 2, vehicule: 0.5, honoraires: 2.5, interets: 1, entretien: 1.5, fournitures: 2, permis: 1.5, locationEquip: 1, deplacements: 0.5, formation: 1.5, expedition: 0.2, autres: 2.8, amort: 4 }, benchGross: [85, 94], benchNet: [10, 25], mult: [3, 5] }, // net implicite ~17.5 %
+            agriculture: { fr: 'Agriculture / agroalimentaire', en: 'Agriculture / agri-food', fss: 'agri', r: { cogs: 48, salaires: 12, loyer: 2, energie: 1.5, marketing: 0.5, assurances: 3.5, telecom: 0.5, vehicule: 3.5, honoraires: 1.5, interets: 2, entretien: 5, fournitures: 1, permis: 0.8, locationEquip: 1, deplacements: 0.3, formation: 0.3, expedition: 0.5, autres: 0.2, amort: 10 }, benchGross: [45, 60], benchNet: [4, 15], mult: [3, 6] }, // net implicite ~5.9 %
+            manufacture: { fr: 'Fabrication / manufacture', en: 'Manufacturing', fss: 'fabrication', r: { cogs: 50, salaires: 18, loyer: 4, energie: 2, marketing: 2, assurances: 2, telecom: 1, vehicule: 1, honoraires: 1.5, interets: 1.5, entretien: 2.5, fournitures: 1, permis: 0.5, locationEquip: 1, deplacements: 0.5, formation: 0.5, expedition: 1, autres: 0.2, amort: 5 }, benchGross: [40, 55], benchNet: [4, 10], mult: [3, 5.5] }, // net implicite ~4.8 %
+            autre: { fr: 'Autre / personnalisé', en: 'Other / custom', fss: 'autresServices', r: null, benchGross: null, benchNet: [5, 15], mult: [2, 4] }
         };
 
         // ------------------------------------------------------------
@@ -967,12 +1116,17 @@
                 deferral: (amt) => '🏦 <strong>Report d\'impôt :</strong> en laissant les surplus dans la société, environ <strong>' + amt + '</strong> restent investissables au niveau corporatif au lieu d\'être imposés immédiatement au taux personnel. C\'est le principal levier de l\'incorporation.',
                 gstYes: (gst, qst) => '🧾 <strong>TPS/TVQ :</strong> vos revenus dépassent 30 000 $ — l\'inscription aux fichiers de la TPS (5 %) et de la TVQ (9,975 %) est obligatoire. Sur vos ventes taxables, vous percevrez environ ' + gst + ' de TPS et ' + qst + ' de TVQ (remis au gouvernement, ce n\'est pas un revenu).',
                 gstNo: '🧾 <strong>TPS/TVQ :</strong> sous 30 000 $ de revenus, vous êtes « petit fournisseur » — l\'inscription TPS/TVQ est facultative (mais elle permet de récupérer les taxes payées sur vos achats).',
-                chartExpenses: ['Coût des ventes', 'Salaires employés', 'Loyer', 'Marketing', 'Assurances', 'Télécom/logiciels', 'Véhicules', 'Honoraires', 'Intérêts', 'Entretien', 'Autres', 'Amortissement', 'Bénéfice'],
-                chartScenarios: ['Travailleur autonome', 'Société — salaire', 'Société — dividendes'],
+                chartExpenses: ['Coût des ventes', 'Salaires employés', 'Loyer', 'Énergie', 'Marketing', 'Assurances', 'Télécom/logiciels', 'Véhicules', 'Honoraires', 'Intérêts', 'Entretien', 'Fournitures', 'Permis/licences', 'Location équip.', 'Déplacements', 'Formation', 'Expédition', 'Autres', 'Amortissement', 'Bénéfice'],
+                chartScenarios: ['Travailleur autonome', 'Société — salaire', 'Société — dividendes', 'Mix optimal'],
+                chartProj: ['Revenus', 'Bénéfice avant impôts'],
+                leverage: (l) => '⚖️ <strong>Levier opérationnel :</strong> grâce à vos coûts fixes, +10 % de revenus ferait bondir votre bénéfice de <strong>' + l + ' %</strong>. Le levier joue aussi en sens inverse si les ventes reculent.',
+                leverageLoss: '⚖️ Bénéfice actuel nul ou négatif — le levier opérationnel ne peut pas être calculé.',
                 dsNet: 'Net dans vos poches', dsRetained: 'Conservé dans la société', dsTax: 'Impôts et cotisations',
                 multHint: (lo, hi, name) => 'Multiples typiques pour « ' + name + ' » : ' + lo + '× à ' + hi + '× le BAIIA. Les entreprises plus grosses, en croissance, peu dépendantes du proprio et aux revenus récurrents se vendent dans le haut de la fourchette.',
                 dscrOk: 'Finançable (≥ 1,25)', dscrTight: 'Serré (1,0 – 1,25)', dscrBad: 'Non finançable (< 1,0)',
-                cocLabel: 'Rendement mise de fonds : ', perYear: '/an'
+                cocLabel: 'Rendement mise de fonds : ', perYear: '/an',
+                splitWords: (s, d) => s + ' % salaire / ' + d + ' % dividendes',
+                yearN: (n) => 'An ' + n, coefLabel: 'Coefficient : ×'
             },
             en: {
                 ofRevenue: 'of revenue', safety: 'Safety margin: ', unreachable: 'unreachable',
@@ -981,19 +1135,28 @@
                 deferral: (amt) => '🏦 <strong>Tax deferral:</strong> by leaving surplus in the corporation, about <strong>' + amt + '</strong> stays investable at the corporate level instead of being taxed immediately at personal rates. This is incorporation\'s main lever.',
                 gstYes: (gst, qst) => '🧾 <strong>GST/QST:</strong> your revenue exceeds $30,000 — GST (5%) and QST (9.975%) registration is mandatory. On taxable sales you would collect about ' + gst + ' of GST and ' + qst + ' of QST (remitted to governments — not income).',
                 gstNo: '🧾 <strong>GST/QST:</strong> below $30,000 of revenue you are a “small supplier” — GST/QST registration is optional (but lets you recover taxes paid on purchases).',
-                chartExpenses: ['Cost of goods sold', 'Employee wages', 'Rent', 'Marketing', 'Insurance', 'Telecom/software', 'Vehicles', 'Professional fees', 'Interest', 'Maintenance', 'Other', 'Depreciation', 'Profit'],
-                chartScenarios: ['Self-employed', 'Corporation — salary', 'Corporation — dividends'],
+                chartExpenses: ['Cost of goods sold', 'Employee wages', 'Rent', 'Utilities', 'Marketing', 'Insurance', 'Telecom/software', 'Vehicles', 'Professional fees', 'Interest', 'Maintenance', 'Supplies', 'Permits/licences', 'Equipment leasing', 'Travel', 'Training', 'Shipping', 'Other', 'Depreciation', 'Profit'],
+                chartScenarios: ['Self-employed', 'Corporation — salary', 'Corporation — dividends', 'Optimal mix'],
+                chartProj: ['Revenue', 'Pre-tax profit'],
+                leverage: (l) => '⚖️ <strong>Operating leverage:</strong> thanks to your fixed costs, +10% revenue would boost your profit by <strong>' + l + '%</strong>. Leverage also works in reverse if sales fall.',
+                leverageLoss: '⚖️ Current profit is zero or negative — operating leverage cannot be computed.',
                 dsNet: 'Net in your pocket', dsRetained: 'Retained in corporation', dsTax: 'Taxes & contributions',
                 multHint: (lo, hi, name) => 'Typical multiples for “' + name + '”: ' + lo + '× to ' + hi + '× EBITDA. Larger, growing businesses with recurring revenue and low owner-dependence sell at the top of the range.',
                 dscrOk: 'Financeable (≥ 1.25)', dscrTight: 'Tight (1.0 – 1.25)', dscrBad: 'Not financeable (< 1.0)',
-                cocLabel: 'Cash-on-cash return: ', perYear: '/yr'
+                cocLabel: 'Cash-on-cash return: ', perYear: '/yr',
+                splitWords: (s, d) => s + '% salary / ' + d + '% dividends',
+                yearN: (n) => 'Year ' + n, coefLabel: 'Multiplier: ×'
             }
         };
 
-        const EXPENSE_IDS = ['expSalaires', 'expLoyer', 'expMarketing', 'expAssurances', 'expTelecom',
-            'expVehicule', 'expHonoraires', 'expInterets', 'expEntretien', 'expAutres'];
-        const RATIO_KEYS = ['salaires', 'loyer', 'marketing', 'assurances', 'telecom',
-            'vehicule', 'honoraires', 'interets', 'entretien', 'autres'];
+        const EXPENSE_IDS = ['expSalaires', 'expLoyer', 'expEnergie', 'expMarketing', 'expAssurances',
+            'expTelecom', 'expVehicule', 'expHonoraires', 'expInterets', 'expEntretien',
+            'expFournitures', 'expPermis', 'expLocation', 'expDeplacements', 'expFormation',
+            'expExpedition', 'expAutres'];
+        const RATIO_KEYS = ['salaires', 'loyer', 'energie', 'marketing', 'assurances',
+            'telecom', 'vehicule', 'honoraires', 'interets', 'entretien',
+            'fournitures', 'permis', 'locationEquip', 'deplacements', 'formation',
+            'expedition', 'autres'];
 
         let expenseChart = null, scenarioChart = null;
 
@@ -1143,6 +1306,7 @@
             const se = E.scenarioSelfEmployed(taxableProfit);
             const sal = E.scenarioSalary(taxableProfit, wPct, opts);
             const div = E.scenarioDividends(taxableProfit, wPct, opts);
+            const mix = E.optimizeMix(taxableProfit, wPct, opts);
 
             $('selfNet').textContent = fmtMoney(se.netCash);
             $('selfTax').textContent = fmtMoney(se.incomeTax);
@@ -1165,6 +1329,16 @@
             $('divPersoTax').textContent = fmtMoney(div.incomeTax);
             $('divRetained').textContent = fmtMoney(div.retainedInCorp);
             $('divRate').textContent = fmtPct(div.effRate);
+
+            // Mix optimal salaire + dividendes
+            $('mixNet').textContent = fmtMoney(mix.netCash);
+            $('mixSplit').textContent = t.splitWords(Math.round(mix.salaryFraction * 100), Math.round((1 - mix.salaryFraction) * 100));
+            $('mixSalary').textContent = fmtMoney(mix.salary);
+            $('mixDiv').textContent = fmtMoney(mix.dividendPaid);
+            $('mixRrsp').textContent = fmtMoney(mix.rrspRoom);
+            $('mixRetained').textContent = fmtMoney(mix.retainedInCorp);
+            $('mixTotal').textContent = fmtMoney(mix.totalAfterTax);
+            $('mixRate').textContent = fmtPct(mix.effRate);
 
             // Meilleur scénario (patrimoine total après impôts : net perso + rétention)
             const totals = [
@@ -1229,8 +1403,51 @@
                 verdict.style.display = 'none';
             }
 
+            // --- Et si ? (sensibilité) ---
+            const rF = 1 + parseInt($('wiRev').value, 10) / 100;
+            const eF = 1 + parseInt($('wiExp').value, 10) / 100;
+            $('wiRevVal').textContent = (rF >= 1 ? '+' : '') + Math.round((rF - 1) * 100) + ' %';
+            $('wiExpVal').textContent = (eF >= 1 ? '+' : '') + Math.round((eF - 1) * 100) + ' %';
+            const wiProfit = revenue * rF - cogs * rF - (opex + amort) * eF;
+            const wiDelta = wiProfit - profit;
+            $('wiProfit').textContent = fmtMoney(wiProfit);
+            $('wiProfit').className = 'kpi-value ' + (wiProfit >= 0 ? 'green' : 'red');
+            $('wiDelta').textContent = (wiDelta >= 0 ? '+' : '') + fmtMoney(wiDelta);
+            $('wiDelta').className = 'kpi-value ' + (wiDelta >= 0 ? 'green' : 'red');
+            if (profit > 0) {
+                const lev = ((revenue * 1.1 - cogs * 1.1 - opex - amort) - profit) / profit * 100;
+                $('wiLeverage').innerHTML = t.leverage(lev.toFixed(0));
+            } else {
+                $('wiLeverage').innerHTML = t.leverageLoss;
+            }
+
+            // --- Projection 5 ans ---
+            const g = val('projGrowth') / 100, infl = val('projInfl') / 100;
+            const projRev = [], projProfit = [], projLabels = [];
+            let ebitda5 = ebitda;
+            for (let y = 0; y <= 5; y++) {
+                const rv = revenue * Math.pow(1 + g, y);
+                const cg = cogs * Math.pow(1 + g, y);
+                const op = opex * Math.pow(1 + infl, y);
+                const am = amort * Math.pow(1 + infl, y);
+                projLabels.push(y === 0 ? t.yearN(0) : t.yearN(y));
+                projRev.push(rv);
+                projProfit.push(rv - cg - op - am);
+                if (y === 5) ebitda5 = rv - cg - op;
+            }
+            $('projProfit5').textContent = fmtMoney(projProfit[5]);
+            const val5 = E.businessValuation(ebitda5, val('valAddbacks'), multLow, multHigh);
+            $('projValue5').textContent = fmtMoney(val5.mid);
+
+            // --- Coût total d'un employé ---
+            const ec = E.employerCostOfSalary(val('empSalary'), opts.fssEmployerRate, opts.otherPayrollPct);
+            $('empCharges').textContent = fmtMoney(ec.total);
+            $('empCost').textContent = fmtMoney(ec.totalCost);
+            $('empCoef').textContent = t.coefLabel + ec.coefficient.toFixed(2);
+
             drawExpenseChart(cogs, expenses, amort, Math.max(0, profit));
-            drawScenarioChart(se, sal, div);
+            drawScenarioChart(se, sal, div, mix);
+            drawProjChart(projLabels, projRev, projProfit);
         }
 
         // ------------------------------------------------------------
@@ -1243,7 +1460,8 @@
             const t = L[lang()];
             const data = [cogs].concat(expenses).concat([amort, profit]);
             const colors = ['#8a5a44', '#a97155', '#b98b73', '#c6ac8f', '#d6bd98', '#9c6644',
-                '#7f5539', '#b08968', '#ddb892', '#e6ccb2', '#ede0d4', '#936639', '#6fcf97'];
+                '#7f5539', '#b08968', '#ddb892', '#e6ccb2', '#ede0d4', '#936639', '#a68a64',
+                '#8d6b4b', '#bfa07a', '#dbc1a4', '#7a6a53', '#5e503f', '#4a3f33', '#6fcf97'];
             const ctx = $('expenseChart').getContext('2d');
             if (expenseChart) expenseChart.destroy();
             expenseChart = new Chart(ctx, {
@@ -1266,7 +1484,7 @@
             });
         }
 
-        function drawScenarioChart(se, sal, div) {
+        function drawScenarioChart(se, sal, div, mix) {
             if (typeof Chart === 'undefined') return;
             const t = L[lang()];
             const ctx = $('scenarioChart').getContext('2d');
@@ -1276,9 +1494,9 @@
                 data: {
                     labels: t.chartScenarios,
                     datasets: [
-                        { label: t.dsNet, data: [se.netCash, sal.netCash, div.netCash], backgroundColor: '#6fcf97', stack: 's' },
-                        { label: t.dsRetained, data: [se.retainedInCorp, sal.retainedInCorp, div.retainedInCorp], backgroundColor: GOLD, stack: 's' },
-                        { label: t.dsTax, data: [se.totalLevies, sal.totalLevies, div.totalLevies], backgroundColor: '#c05b5b', stack: 's' }
+                        { label: t.dsNet, data: [se.netCash, sal.netCash, div.netCash, mix.netCash], backgroundColor: '#6fcf97', stack: 's' },
+                        { label: t.dsRetained, data: [se.retainedInCorp, sal.retainedInCorp, div.retainedInCorp, mix.retainedInCorp], backgroundColor: GOLD, stack: 's' },
+                        { label: t.dsTax, data: [se.totalLevies, sal.totalLevies, div.totalLevies, mix.totalLevies], backgroundColor: '#c05b5b', stack: 's' }
                     ]
                 },
                 options: {
@@ -1295,6 +1513,35 @@
             });
         }
 
+        let projChart = null;
+        function drawProjChart(labels, revData, profitData) {
+            if (typeof Chart === 'undefined') return;
+            const t = L[lang()];
+            const ctx = $('projChart').getContext('2d');
+            if (projChart) projChart.destroy();
+            projChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: t.chartProj[0], data: revData, borderColor: GOLD, backgroundColor: 'rgba(198,172,143,0.12)', fill: true, tension: 0.3, pointBackgroundColor: GOLD },
+                        { label: t.chartProj[1], data: profitData, borderColor: '#6fcf97', backgroundColor: 'rgba(111,207,151,0.12)', fill: true, tension: 0.3, pointBackgroundColor: '#6fcf97' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: BEIGE, font: { size: 11 } } },
+                        tooltip: { callbacks: { label: function (c) { return ' ' + c.dataset.label + ': ' + fmtMoney(c.parsed.y); } } }
+                    },
+                    scales: {
+                        x: { ticks: { color: BEIGE }, grid: { color: 'rgba(198,172,143,0.08)' } },
+                        y: { ticks: { color: BEIGE, callback: function (v) { return fmtMoney(v); } }, grid: { color: 'rgba(198,172,143,0.08)' } }
+                    }
+                }
+            });
+        }
+
         // ------------------------------------------------------------
         // INITIALISATION
         // ------------------------------------------------------------
@@ -1303,7 +1550,8 @@
             populateFssTypes();
             $('applySector').addEventListener('click', applySectorRatios);
             ['revenue', 'cogs', 'otherPayroll', 'valAddbacks', 'valMultLow', 'valMultHigh',
-             'acqPrice', 'acqDown', 'acqRate', 'acqYears'].concat(EXPENSE_IDS).concat(['expAmort']).forEach(function (id) {
+             'acqPrice', 'acqDown', 'acqRate', 'acqYears', 'empSalary', 'wiRev', 'wiExp',
+             'projGrowth', 'projInfl'].concat(EXPENSE_IDS).concat(['expAmort']).forEach(function (id) {
                 $(id).addEventListener('input', recalc);
             });
             ['sector', 'fssSector'].forEach(function (id) { $(id).addEventListener('change', recalc); });

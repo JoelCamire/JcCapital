@@ -100,7 +100,8 @@
             nonEligible: { grossUp: 0.15, fedDtc: 0.090301, qcDtc: 0.0342 },
             eligible: { grossUp: 0.38, fedDtc: 0.150198, qcDtc: 0.117 }
         },
-        salesTax: { gst: 0.05, qst: 0.09975, registrationThreshold: 30000 }
+        salesTax: { gst: 0.05, qst: 0.09975, registrationThreshold: 30000 },
+        rrsp: { rate: 0.18, dollarLimit: 34150 } // plafond REER 2026 (approx.)
     };
 
     // ---------------------------------------------------------------
@@ -359,6 +360,24 @@
     }
 
     // ---------------------------------------------------------------
+    // COÛT TOTAL D'UN EMPLOYÉ (pour l'employeur, Québec 2026)
+    // ---------------------------------------------------------------
+    function employerCostOfSalary(salary, fssRate, otherPct) {
+        salary = clamp0(salary);
+        const qpp = qppEmployer(salary);
+        const qpip = qpipEmployer(salary);
+        const fss = salary * (fssRate || TAX2026.fssEmployer.serviceRate);
+        const other = salary * (otherPct || 0);
+        const total = qpp + qpip + fss + other;
+        return {
+            qpp: qpp, qpip: qpip, fss: fss, other: other,
+            total: total,
+            totalCost: salary + total,
+            coefficient: salary > 0 ? (salary + total) / salary : 1
+        };
+    }
+
+    // ---------------------------------------------------------------
     // SCÉNARIO 3 — SOCIÉTÉ : RÉMUNÉRATION EN DIVIDENDES
     // ---------------------------------------------------------------
     /**
@@ -393,6 +412,84 @@
             totalLevies: corp.total + tax.total,
             effRate: profit > 0 ? (corp.total + tax.total) / profit : 0
         };
+    }
+
+    // ---------------------------------------------------------------
+    // SCÉNARIO 4 — SOCIÉTÉ : MIX SALAIRE + DIVIDENDES
+    // ---------------------------------------------------------------
+    /**
+     * @param {number} profit          bénéfice avant impôts et avant rémunération du proprio
+     * @param {number} salaryFraction  part (0–1) de la rémunération versée en salaire
+     * @param {number} withdrawalPct   part (0–1) du bénéfice dont le proprio a besoin
+     * @param {Object} opts            mêmes options que scenarioSalary
+     */
+    function scenarioMix(profit, salaryFraction, withdrawalPct, opts) {
+        profit = clamp0(profit);
+        const f = Math.min(Math.max(salaryFraction, 0), 1);
+        const fssRate = (opts.fssEmployerRate != null) ? opts.fssEmployerRate : TAX2026.fssEmployer.serviceRate;
+        const otherPct = opts.otherPayrollPct || 0;
+
+        // Salaire = fraction du retrait souhaité (plafonné : salaire + charges ≤ bénéfice)
+        let salary = profit * withdrawalPct * f;
+        let employerCosts = qppEmployer(salary) + qpipEmployer(salary) + salary * (fssRate + otherPct);
+        if (salary + employerCosts > profit && salary > 0) {
+            for (let i = 0; i < 25; i++) {
+                salary = clamp0(profit - employerCosts);
+                employerCosts = qppEmployer(salary) + qpipEmployer(salary) + salary * (fssRate + otherPct);
+            }
+        }
+
+        const corpTaxable = clamp0(profit - salary - employerCosts);
+        const corp = corporateTax(corpTaxable, opts);
+
+        // Dividende : solde du retrait, versé d'abord en non déterminé puis en déterminé
+        const targetDiv = corp.afterTax * withdrawalPct * (1 - f);
+        const nonEligDiv = Math.min(targetDiv, corp.afterTaxSbd);
+        const eligDiv = clamp0(Math.min(targetDiv - nonEligDiv, corp.afterTaxGeneral));
+        const divPaid = nonEligDiv + eligDiv;
+
+        const qppEmp = qppEmployee(salary);
+        const qpipEmp = qpipEmployee(salary);
+        const tax = personalTax({
+            ordinaryIncome: clamp0(salary - qppEmp.deductible),
+            nonEligDividend: nonEligDiv,
+            eligDividend: eligDiv,
+            extraCreditBase: qppEmp.creditBase + qpipEmp.creditBase,
+            isEmployee: salary > 0
+        });
+
+        const netCash = salary + divPaid - tax.total - qppEmp.total - qpipEmp.total;
+        const retained = corp.afterTax - divPaid;
+        const totalLevies = corp.total + tax.total + qppEmp.total + qpipEmp.total + employerCosts;
+        return {
+            profit: profit,
+            salaryFraction: f,
+            salary: salary,
+            employerCosts: employerCosts,
+            dividendPaid: divPaid,
+            corpTax: corp.total,
+            incomeTax: tax.total,
+            qpp: qppEmp.total, qpip: qpipEmp.total,
+            netCash: netCash,
+            retainedInCorp: retained,
+            totalAfterTax: netCash + retained,
+            totalLevies: totalLevies,
+            effRate: profit > 0 ? totalLevies / profit : 0,
+            rrspRoom: Math.min(salary * TAX2026.rrsp.rate, TAX2026.rrsp.dollarLimit)
+        };
+    }
+
+    /**
+     * Balaye les fractions de salaire (pas de 5 %) et retourne le mix
+     * qui maximise le patrimoine total après impôts (net perso + rétention).
+     */
+    function optimizeMix(profit, withdrawalPct, opts) {
+        let best = null;
+        for (let f = 0; f <= 1.0001; f += 0.05) {
+            const s = scenarioMix(profit, f, withdrawalPct, opts);
+            if (!best || s.totalAfterTax > best.totalAfterTax + 0.01) best = s;
+        }
+        return best;
     }
 
     // ---------------------------------------------------------------
@@ -500,6 +597,9 @@
         scenarioSelfEmployed: scenarioSelfEmployed,
         scenarioSalary: scenarioSalary,
         scenarioDividends: scenarioDividends,
+        scenarioMix: scenarioMix,
+        optimizeMix: optimizeMix,
+        employerCostOfSalary: employerCostOfSalary,
         breakEven: breakEven,
         businessValuation: businessValuation,
         annualPayment: annualPayment,
