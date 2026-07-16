@@ -503,6 +503,33 @@
                 structure — travailleur autonome, société avec salaire ou société avec dividendes.
             </p>
 
+            <!-- ================= DOSSIERS CLIENTS ================= -->
+            <div class="calc-card no-print" style="padding:1.4rem 2rem;">
+                <h2 style="font-size:1.25rem;"><i class="fa-solid fa-folder-open" style="margin-right:0.5rem;"></i><span data-fr="Dossiers clients" data-en="Client Files">Dossiers clients</span></h2>
+                <p class="card-sub" style="margin-bottom:1rem;"
+                   data-fr="Gérez plusieurs clients : chaque dossier garde tous ses chiffres en mémoire dans ce navigateur. Changez de dossier pour reprendre une analyse là où vous l'aviez laissée."
+                   data-en="Manage multiple clients: each file keeps all its numbers in this browser's memory. Switch files to pick up an analysis right where you left it.">
+                    Gérez plusieurs clients : chaque dossier garde tous ses chiffres en mémoire dans ce navigateur.
+                    Changez de dossier pour reprendre une analyse là où vous l'aviez laissée.</p>
+                <div class="form-grid" style="align-items:end;">
+                    <div class="form-group">
+                        <label class="form-label" for="clientSelect" data-fr="Dossier actif" data-en="Active file">Dossier actif</label>
+                        <select id="clientSelect" class="form-select"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="clientName" data-fr="Nom du client / dossier" data-en="Client / file name">Nom du client / dossier</label>
+                        <input type="text" id="clientName" class="form-input" maxlength="60" placeholder="Client 1">
+                    </div>
+                    <div class="form-group" style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+                        <button class="btn-apply-sector" id="btnNewClient" style="margin-top:0;"
+                                data-fr="➕ Nouveau dossier" data-en="➕ New file">➕ Nouveau dossier</button>
+                        <button class="btn-apply-sector" id="btnDeleteClient" style="margin-top:0;"
+                                data-fr="🗑️ Supprimer" data-en="🗑️ Delete">🗑️ Supprimer</button>
+                    </div>
+                </div>
+                <p id="clientStatus" style="font-size:0.78rem; opacity:0.6; color:var(--c-light-beige); margin-top:0.8rem;"></p>
+            </div>
+
             <!-- Barre d'outils : partage, impression, réinitialisation -->
             <div class="calc-toolbar no-print">
                 <span style="opacity:0.65; font-size:0.82rem;"
@@ -515,7 +542,7 @@
                     <button class="btn-apply-sector" id="btnPrint" style="margin-top:0;"
                             data-fr="🖨️ Imprimer / PDF" data-en="🖨️ Print / PDF">🖨️ Imprimer / PDF</button>
                     <button class="btn-apply-sector" id="btnReset" style="margin-top:0;"
-                            data-fr="↺ Réinitialiser" data-en="↺ Reset">↺ Réinitialiser</button>
+                            data-fr="↺ Réinitialiser ce dossier" data-en="↺ Reset this file">↺ Réinitialiser ce dossier</button>
                 </div>
             </div>
 
@@ -1667,13 +1694,16 @@
         }
 
         // ------------------------------------------------------------
-        // SAUVEGARDE LOCALE + LIEN DE PARTAGE
+        // DOSSIERS CLIENTS (multi-clients, localStorage) + LIEN DE PARTAGE
         // ------------------------------------------------------------
-        const STORAGE_KEY = 'jc_rentabilite_v1';
+        const LEGACY_KEY = 'jc_rentabilite_v1';
+        const CLIENTS_KEY = 'jc_renta_clients_v1';
+        let clientStore = null; // { clients: { id: { name, updatedAt, state } }, activeId }
 
         function collectState() {
             const state = {};
             document.querySelectorAll('.tool-container input[id], .tool-container select[id]').forEach(function (el) {
+                if (el.id === 'clientSelect' || el.id === 'clientName') return; // méta, pas des données du dossier
                 state[el.id] = (el.type === 'checkbox') ? el.checked : el.value;
             });
             return state;
@@ -1683,24 +1713,134 @@
             if (!state) return;
             Object.keys(state).forEach(function (id) {
                 const el = document.getElementById(id);
-                if (!el) return;
+                if (!el || el.id === 'clientSelect' || el.id === 'clientName') return;
                 if (el.type === 'checkbox') el.checked = !!state[id];
                 else el.value = state[id];
             });
         }
 
-        function saveState() {
-            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState())); } catch (e) { /* stockage plein/bloqué */ }
+        function persistClientStore() {
+            try { localStorage.setItem(CLIENTS_KEY, JSON.stringify(clientStore)); } catch (e) { /* stockage plein/bloqué */ }
         }
 
-        function loadState() {
-            // 1. Un lien partagé (#d=...) a priorité sur la sauvegarde locale
+        function activeClient() { return clientStore.clients[clientStore.activeId]; }
+
+        function loadClientStore() {
+            try { clientStore = JSON.parse(localStorage.getItem(CLIENTS_KEY)); } catch (e) { clientStore = null; }
+            if (!clientStore || !clientStore.clients || !Object.keys(clientStore.clients).length) {
+                // Migration de l'ancienne sauvegarde mono-dossier
+                let legacy = null;
+                try { legacy = JSON.parse(localStorage.getItem(LEGACY_KEY)); } catch (e) { /* rien */ }
+                const id = 'c' + Date.now();
+                clientStore = { clients: {}, activeId: id };
+                clientStore.clients[id] = { name: 'Client 1', updatedAt: Date.now(), state: legacy };
+                persistClientStore();
+                try { localStorage.removeItem(LEGACY_KEY); } catch (e) { /* rien */ }
+            }
+            if (!clientStore.clients[clientStore.activeId]) {
+                clientStore.activeId = Object.keys(clientStore.clients)[0];
+            }
+        }
+
+        function populateClientSelect() {
+            const sel = $('clientSelect');
+            sel.innerHTML = '';
+            Object.keys(clientStore.clients)
+                .sort(function (a, b) { return clientStore.clients[a].name.localeCompare(clientStore.clients[b].name); })
+                .forEach(function (id) {
+                    const opt = document.createElement('option');
+                    opt.value = id;
+                    opt.textContent = clientStore.clients[id].name;
+                    sel.appendChild(opt);
+                });
+            sel.value = clientStore.activeId;
+            $('clientName').value = activeClient().name;
+        }
+
+        function updateClientStatus() {
+            const c = activeClient();
+            if (!c) { $('clientStatus').textContent = ''; return; }
+            const when = new Date(c.updatedAt).toLocaleString(locale(), {
+                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+            });
+            $('clientStatus').textContent = lang() === 'en'
+                ? '💾 “' + c.name + '” — saved automatically · last update: ' + when
+                : '💾 « ' + c.name + ' » — sauvegardé automatiquement · dernière mise à jour : ' + when;
+        }
+
+        function saveState() {
+            if (!clientStore) return;
+            const c = activeClient();
+            c.state = collectState();
+            c.updatedAt = Date.now();
+            persistClientStore();
+            updateClientStatus();
+        }
+
+        function switchClient(id) {
+            if (!clientStore.clients[id] || id === clientStore.activeId) return;
+            saveState(); // fige le dossier courant avant de changer
+            clientStore.activeId = id;
+            persistClientStore();
+            applyState(activeClient().state);
+            populateClientSelect();
+            recalc();
+        }
+
+        function newClient() {
+            saveState();
+            const n = Object.keys(clientStore.clients).length + 1;
+            const id = 'c' + Date.now();
+            const name = (lang() === 'en' ? 'Client ' : 'Client ') + n;
+            // Le nouveau dossier part des chiffres affichés (pratique pour des clients semblables);
+            // utilisez « Réinitialiser ce dossier » pour repartir des valeurs par défaut.
+            clientStore.clients[id] = { name: name, updatedAt: Date.now(), state: collectState() };
+            clientStore.activeId = id;
+            persistClientStore();
+            populateClientSelect();
+            updateClientStatus();
+        }
+
+        function deleteClient() {
+            const c = activeClient();
+            const msg = lang() === 'en'
+                ? 'Delete file “' + c.name + '” and all its numbers?'
+                : 'Supprimer le dossier « ' + c.name + ' » et tous ses chiffres ?';
+            if (!window.confirm(msg)) return;
+            delete clientStore.clients[clientStore.activeId];
+            const remaining = Object.keys(clientStore.clients);
+            if (!remaining.length) {
+                // Plus aucun dossier : on repart à neuf avec les valeurs par défaut
+                persistClientStore();
+                try { localStorage.removeItem(CLIENTS_KEY); } catch (e) { /* rien */ }
+                location.hash = '';
+                location.reload();
+                return;
+            }
+            clientStore.activeId = remaining[0];
+            persistClientStore();
+            applyState(activeClient().state);
+            populateClientSelect();
+            recalc();
+        }
+
+        function renameClient() {
+            const name = $('clientName').value.trim();
+            if (!name) { $('clientName').value = activeClient().name; return; }
+            activeClient().name = name;
+            persistClientStore();
+            populateClientSelect();
+            updateClientStatus();
+        }
+
+        function loadSharedState() {
+            // Un lien partagé (#d=...) s'applique par-dessus le dossier actif
             if (location.hash.indexOf('#d=') === 0) {
                 try {
                     return JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3)))));
                 } catch (e) { /* lien invalide : on ignore */ }
             }
-            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) { return null; }
+            return null;
         }
 
         function shareLink() {
@@ -1720,7 +1860,15 @@
         }
 
         function resetAll() {
-            try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* rien */ }
+            // Réinitialise seulement le dossier ACTIF (les autres clients sont conservés)
+            const c = activeClient();
+            const msg = lang() === 'en'
+                ? 'Reset file “' + c.name + '” to default values? Other client files are kept.'
+                : 'Remettre le dossier « ' + c.name + ' » aux valeurs par défaut ? Les autres dossiers sont conservés.';
+            if (!window.confirm(msg)) return;
+            c.state = null;
+            c.updatedAt = Date.now();
+            persistClientStore();
             location.hash = '';
             location.reload();
         }
@@ -1731,7 +1879,17 @@
         document.addEventListener('DOMContentLoaded', function () {
             populateSectors();
             populateFssTypes();
-            applyState(loadState());
+
+            // Dossiers clients : charger le magasin, restaurer le dossier actif
+            loadClientStore();
+            populateClientSelect();
+            const shared = loadSharedState();
+            applyState(shared || activeClient().state);
+            $('clientSelect').addEventListener('change', function () { switchClient(this.value); });
+            $('clientName').addEventListener('change', renameClient);
+            $('btnNewClient').addEventListener('click', newClient);
+            $('btnDeleteClient').addEventListener('click', deleteClient);
+
             $('btnShare').addEventListener('click', shareLink);
             $('btnPrint').addEventListener('click', function () { window.print(); });
             $('btnReset').addEventListener('click', resetAll);
