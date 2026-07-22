@@ -2298,7 +2298,9 @@ html, body {
 .calendly-inline-widget {
     max-width: 1100px;
     margin: 0 auto;
-    background: var(--c-dark-blue);
+    /* Fond blanc : le widget Calendly est en thème clair (texte foncé lisible
+       dans les champs du formulaire) — le fond doit correspondre. */
+    background: #ffffff;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
     border: 1px solid var(--c-brown);
 }

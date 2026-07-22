@@ -87,7 +87,7 @@
 
     <!-- CSS Split -->
     <link rel="stylesheet" href="../css/_tokens.css">
-    <link rel="stylesheet" href="../css/style.css?v=21">
+    <link rel="stylesheet" href="../css/style.css?v=22">
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <!-- SweetAlert2 -->
@@ -515,6 +515,30 @@
         }
         .dashboard-value.gold { color: var(--c-gold); }
 
+        /* --- IMPRESSION : rapport lisible sur papier (fond blanc, texte foncé) --- */
+        .print-only { display: none; }
+
+        @media print {
+            @page { margin: 1.2cm; }
+            body { background: #fff !important; }
+            body * {
+                color: #1a1a1a !important;
+                text-shadow: none !important;
+                box-shadow: none !important;
+                opacity: 1 !important;
+            }
+            #header-placeholder, #footer-placeholder, .progress-bar-container,
+            button, .no-print { display: none !important; }
+            .glass-panel, .assessment-container, .report-section, .report-dashboard,
+            .dashboard-cell, .contact-box { background: #fff !important; backdrop-filter: none !important; }
+            .assessment-container { padding: 0; margin: 0; border: none !important; min-height: 0; }
+            .report-section, .report-dashboard, .contact-box, .dashboard-cell { border-color: #b5b5b5 !important; }
+            .report-section, .report-dashboard, .contact-box, .dashboard-cell { page-break-inside: avoid; }
+            .section-header { border-bottom-color: #b5b5b5 !important; }
+            a { text-decoration: none !important; }
+            .print-only { display: block !important; }
+        }
+
         /* Mobile Optimization */
         @media (max-width: 768px) {
             .assessment-container {
@@ -616,6 +640,9 @@
                 </div>
                 <!-- 4. RAPPORT FINAL -->
                 <div id="sectionReport" class="layout-section hidden">
+                    <div class="print-only" style="text-align: center; margin-bottom: 12px; font-size: 0.9rem; border-bottom: 1px solid #b5b5b5; padding-bottom: 10px;">
+                        <strong>JC CAPITAL</strong> — Bilan de Protection Financière · jccapital.ca · 581 398-6747 · admin@jccapital.ca
+                    </div>
                     <div style="text-align: center; margin-bottom: 30px;">
                         <h2 style="font-size: 2rem; color: var(--c-gold);">Votre Plan
                             Stratégique</h2>
@@ -710,7 +737,7 @@ let leadSending = false; // verrou anti double-soumission
 
 function validateForm() {
     if (leadSending) return; // ne jamais réactiver le bouton pendant l'envoi
-    const name = document.getElementById('inpName').value;
+    const name = document.getElementById('inpName').value.trim();
     const phone = document.getElementById('inpPhone').classList.contains('valid');
     const email = document.getElementById('inpEmail').classList.contains('valid');
     const consent = document.getElementById('consentCheck').checked;
@@ -1074,9 +1101,9 @@ function processLead() {
     btn.innerText = "GÉNÉRATION EN COURS ⏳";
     btn.disabled = true;
 
-    const name = document.getElementById('inpName').value;
-    const phone = document.getElementById('inpPhone').value;
-    const email = document.getElementById('inpEmail').value;
+    const name = document.getElementById('inpName').value.trim();
+    const phone = document.getElementById('inpPhone').value.trim();
+    const email = document.getElementById('inpEmail').value.trim();
 
     document.getElementById('outName').innerText = name;
     document.getElementById('outPhone').innerText = phone;
@@ -1106,6 +1133,7 @@ function finishProcess(emailFailed) {
     document.getElementById('progressBar').style.width = '100%';
     if (emailFailed) {
         const box = document.createElement('div');
+        box.className = 'no-print';
         box.style.cssText = "background: rgba(239,68,68,0.12); border: 1px solid #ef4444; border-radius: 10px; padding: 15px 20px; margin-bottom: 20px; color: var(--c-light-beige); line-height: 1.5;";
         box.innerHTML = '<strong>Petit pépin technique :</strong> la transmission automatique de votre dossier a échoué. Pour être certain(e) d\'être rappelé(e), réservez directement votre consultation avec le bouton doré ci-dessous, ou appelez-nous au <a href="tel:+15813986747" style="color: var(--c-gold); font-weight:700;">581 398-6747</a>.';
         const report = document.getElementById('sectionReport');
@@ -1337,7 +1365,7 @@ function generateReportHTML() {
     </div>`;
 
     // --- 9. APPEL À L'ACTION ---
-    html += `<div style="text-align:center; margin-top: 30px; padding: 30px 20px; border: 2px solid var(--c-gold); border-radius: 14px; background: rgba(198,172,143,0.07);">
+    html += `<div class="no-print" style="text-align:center; margin-top: 30px; padding: 30px 20px; border: 2px solid var(--c-gold); border-radius: 14px; background: rgba(198,172,143,0.07);">
         <h3 style="color: var(--c-gold); font-size: 1.4rem; margin-bottom: 12px;">Passez à l'action pendant que c'est frais</h3>
         <p style="color: var(--c-light-beige); opacity: 0.9; margin-bottom: 20px; line-height: 1.6;">Ces chiffres sont des cibles préliminaires. La prochaine étape : les valider ensemble en 30 minutes — gratuitement et en toute confidentialité. Choisissez vous-même votre moment :</p>
         <a href="https://calendly.com/joelcamire-jccapital/consultation" target="_blank" rel="noopener" style="display:inline-block; background: var(--c-gold); color: #0A0908; font-weight: 700; font-size: 1.05rem; padding: 14px 32px; border-radius: 10px; text-decoration: none; text-transform: uppercase;">📅 Réserver ma consultation gratuite</a>
