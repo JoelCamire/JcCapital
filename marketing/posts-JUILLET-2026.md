@@ -1,5 +1,5 @@
 # Posts sociaux — Juillet 2026
-**JC Capital | Joël Camiré, conseiller en sécurité financière et représentant en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
+**JC Capital | Joël Camiré, stagiaire en assurance de personnes, JC Capital, en partenariat avec SFL Gestion de patrimoine**
 
 ---
 
@@ -273,7 +273,7 @@ C'est gratuit. C'est confidentiel. Et ça peut changer votre fin d'année 2026.
 📞 (581) 398-6747
 📧 admin@jccapital.ca
 
-Joël Camiré, conseiller en sécurité financière et représentant en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.
+Joël Camiré, stagiaire en assurance de personnes, JC Capital, en partenariat avec SFL Gestion de patrimoine.
 
 ---
 
@@ -458,7 +458,7 @@ Si vous êtes :
 C'est gratuit. C'est confidentiel. C'est sans engagement.
 
 Joël Camiré
-Conseiller en sécurité financière et représentant en épargne collective
+Stagiaire en assurance de personnes
 JC Capital | En partenariat avec SFL Gestion de patrimoine
 
 ---

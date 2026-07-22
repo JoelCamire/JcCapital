@@ -1,5 +1,5 @@
 # Rapport mensuel de contenu — Juillet 2026
-**JC Capital | Joël Camiré, conseiller en sécurité financière et représentant en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
+**JC Capital | Joël Camiré, stagiaire en assurance de personnes, JC Capital, en partenariat avec SFL Gestion de patrimoine**
 
 **Généré le : 1er juillet 2026**
 
@@ -145,5 +145,5 @@ L'été est la haute saison pour les agriculteurs. Un contact en juillet sur la 
 ---
 
 *Rapport généré automatiquement par l'agent de contenu mensuel JC Capital.*
-*Joël Camiré, conseiller en sécurité financière et représentant en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.*
+*Joël Camiré, stagiaire en assurance de personnes, JC Capital, en partenariat avec SFL Gestion de patrimoine.*
 *Site : jccapital.ca | Tél : (581) 398-6747 | admin@jccapital.ca*
