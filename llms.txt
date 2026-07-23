@@ -1,8 +1,8 @@
 # JC Capital
 
-> JC Capital est le nom commercial de Joël Camiré, stagiaire en assurance de personnes et représentant en épargne collective inscrit auprès de l'Autorité des marchés financiers (AMF) et rattaché à SFL Gestion de patrimoine. Assurance de personnes, planification financière, placement et accompagnement en optimisation fiscale (avec le réseau d'experts SFL) pour entrepreneurs, dirigeants, travailleurs autonomes et producteurs agricoles.
+> JC Capital est le nom commercial de Joël Camiré, stagiaire en assurance de personnes et représentant de courtier en épargne collective inscrit auprès de l'Autorité des marchés financiers (AMF) et rattaché à SFL Gestion de patrimoine. Assurance de personnes, planification financière, placement et accompagnement en optimisation fiscale (avec le réseau d'experts SFL) pour entrepreneurs, dirigeants, travailleurs autonomes et producteurs agricoles.
 
-JC Capital n'est pas un cabinet inscrit ni une société incorporée : c'est la marque commerciale de **Joël Camiré**, **stagiaire en assurance de personnes et représentant en épargne collective** inscrit auprès de l'**Autorité des marchés financiers (AMF)** et rattaché à **SFL Gestion de patrimoine** (le cabinet inscrit). Bureau situé au **825 Boulevard Lebourgneuf, Québec, QC, G2J 0B9**.
+JC Capital n'est pas un cabinet inscrit ni une société incorporée : c'est la marque commerciale de **Joël Camiré**, **stagiaire en assurance de personnes et représentant de courtier en épargne collective** inscrit auprès de l'**Autorité des marchés financiers (AMF)** et rattaché à **SFL Gestion de patrimoine** (le cabinet inscrit). Bureau situé au **825 Boulevard Lebourgneuf, Québec, QC, G2J 0B9**.
 
 ## Coordonnées
 
@@ -38,8 +38,13 @@ Québec, Lévis, Capitale-Nationale, Chaudière-Appalaches, Beauce, Portneuf, Mo
 
 ## Inscription
 
-- **Autorité des marchés financiers (AMF)** — Stagiaire en assurance de personnes et représentant en épargne collective
-- **Cabinet de rattachement** : SFL Gestion de patrimoine
+Selon le registre officiel de l'Autorité des marchés financiers (AMF) :
+
+- **N° de certificat / Identifiant UFC** : 277067 · **N° BDNI** : 4802631
+- **Assurance de personnes (Stagiaire)** — exerce pour le compte du cabinet Julien Pelletier, 825 boul. Lebourgneuf, bureau 500, Québec
+- **Représentant de courtier (Épargne collective)** — rattaché à Gestion de patrimoine Worldsource inc. (Worldsource Wealth Management Inc.)
+- **Conditions / restrictions** : Aucune
+- **Partenariat commercial** : SFL Gestion de patrimoine
 - **NEQ (Registraire des entreprises du Québec)** : 2281795627
 
 ## Pages principales
