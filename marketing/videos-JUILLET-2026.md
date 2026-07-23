@@ -1,5 +1,5 @@
 # Idées vidéos — Juillet 2026
-**JC Capital | Joël Camiré, stagiaire en assurance de personnes, JC Capital, en partenariat avec SFL Gestion de patrimoine**
+**JC Capital | Joël Camiré, stagiaire en assurance de personnes et représentant en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
 
 ---
 
@@ -56,7 +56,7 @@ Joël Camiré, JC Capital, en partenariat avec SFL Gestion de patrimoine. »
 ### Description YouTube (avec conformité) :
 Dans cette vidéo, j'explique pourquoi un entrepreneur incorporé a besoin de DEUX protections distinctes en cas d'invalidité : une pour son revenu personnel et une pour les frais fixes de sa société.
 
-Joël Camiré, stagiaire en assurance de personnes, JC Capital, en partenariat avec SFL Gestion de patrimoine.
+Joël Camiré, stagiaire en assurance de personnes et représentant en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.
 
 🗓 Réserver une consultation : https://calendly.com/joelcamire-jccapital/consultation
 🌐 jccapital.ca | 📞 (581) 398-6747
@@ -88,7 +88,7 @@ Joël Camiré, stagiaire en assurance de personnes, JC Capital, en partenariat a
 ### Structure du script (avec chapitres YouTube) :
 
 **[0:00 — Intro]**
-Hook + présentation courte (« Je m'appelle Joël Camiré, stagiaire en assurance de personnes chez JC Capital, en partenariat avec SFL Gestion de patrimoine. Aujourd'hui : RRI vs REER — tout ce qu'un dirigeant de société doit savoir. »)
+Hook + présentation courte (« Je m'appelle Joël Camiré, stagiaire en assurance de personnes et représentant en épargne collective chez JC Capital, en partenariat avec SFL Gestion de patrimoine. Aujourd'hui : RRI vs REER — tout ce qu'un dirigeant de société doit savoir. »)
 
 **[0:45 — Chapitre 1 : C'est quoi un RRI ?]**
 - Définition simple : régime de retraite agréé à prestations déterminées mis en place par la société pour un seul participant
@@ -151,7 +151,7 @@ Dans cette vidéo, je compare le Régime de retraite individuel (RRI) et le REER
 9:30 Comment aller de l'avant
 10:30 Résumé + CTA
 
-Joël Camiré, stagiaire en assurance de personnes, JC Capital, en partenariat avec SFL Gestion de patrimoine.
+Joël Camiré, stagiaire en assurance de personnes et représentant en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.
 
 🗓 Réserver une consultation : https://calendly.com/joelcamire-jccapital/consultation
 📖 Article complet : https://jccapital.ca/blog/rri-retraite-actionnaire-dirigeant-quebec-2026.html
@@ -215,7 +215,7 @@ Joël Camiré, JC Capital, en partenariat avec SFL Gestion de patrimoine. »
 ### Description YouTube (avec conformité) :
 Je parle de l'exonération cumulative des gains en capital applicable aux biens agricoles admissibles au Québec — un outil fiscal puissant pour les producteurs qui planifient la transmission de leur ferme.
 
-Joël Camiré, stagiaire en assurance de personnes, JC Capital, en partenariat avec SFL Gestion de patrimoine.
+Joël Camiré, stagiaire en assurance de personnes et représentant en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.
 
 🗓 Consultation : https://calendly.com/joelcamire-jccapital/consultation
 📖 Article complet : https://jccapital.ca/blog/transmission-entreprise-agricole-strategies-2026.html
