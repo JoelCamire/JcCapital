@@ -824,5 +824,89 @@
   "name": "Mix avec base 90 k$ et 2 proprios : invariants",
   "pass": true,
   "issues": []
+ },
+ {
+  "id": 119,
+  "group": "9. Cas complexes",
+  "name": "Manufacture 3 M$, passifs 300 k$, 2 actionnaires salariés 150 k$ ailleurs",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 120,
+  "group": "9. Cas complexes",
+  "name": "Médecin incorporé 400 k$, sans DPE QC, salaire hospitalier 120 k$",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 121,
+  "group": "9. Cas complexes",
+  "name": "Franchise : point mort numériquement exact avec redevances 8 %",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 122,
+  "group": "9. Cas complexes",
+  "name": "Société de personnes de 4 associés, 950 k$ : RRQ plafonné chacun",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 123,
+  "group": "9. Cas complexes",
+  "name": "Salaire de 300 k$ au proprio : cotisations employé plafonnées",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 124,
+  "group": "9. Cas complexes",
+  "name": "Holding : opco 600 k$, passifs 80 k$ → plafond 350 k$, pools exacts",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 125,
+  "group": "9. Cas complexes",
+  "name": "Très gros TA seul à 5 M$ : taux effectif 50-54 %",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 126,
+  "group": "9. Cas complexes",
+  "name": "50 M$, 5 actionnaires, retrait 10 %, base 200 k$ chacun",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 127,
+  "group": "9. Cas complexes",
+  "name": "Mix optimal : grind 100 k$ + base 90 k$ + 2 proprios + retrait 60 %",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 128,
+  "group": "9. Cas complexes",
+  "name": "Impôt corporatif monotone avec grind (0 → 10 M$)",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 129,
+  "group": "9. Cas complexes",
+  "name": "Vente 8 M$ avec ECGC épuisée à moitié + gros PBR",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 130,
+  "group": "9. Cas complexes",
+  "name": "Agri 12 M$ revenus, 92 % de charges, 3 associés, FSS primaire",
+  "pass": true,
+  "issues": []
  }
 ]
