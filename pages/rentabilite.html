@@ -1900,25 +1900,20 @@
             updateClientStatus();
         }
 
-        function deleteClient() {
-            const c = activeClient();
-            const msg = lang() === 'en'
-                ? 'Delete file “' + c.name + '” and all its numbers?'
-                : 'Supprimer le dossier « ' + c.name + ' » et tous ses chiffres ?';
-            if (!window.confirm(msg)) return;
+        function doDelete() {
             delete clientStore.clients[clientStore.activeId];
             const remaining = Object.keys(clientStore.clients);
             if (!remaining.length) {
                 // Plus aucun dossier : on repart à neuf avec les valeurs par défaut
-                persistClientStore();
-                try { localStorage.removeItem(CLIENTS_KEY); } catch (e) { /* rien */ }
-                location.hash = '';
-                location.reload();
-                return;
+                const id = newClientId();
+                clientStore.clients[id] = { name: 'Client 1', updatedAt: Date.now(), state: null };
+                clientStore.activeId = id;
+                applyState(DEFAULT_STATE);
+            } else {
+                clientStore.activeId = remaining[0];
+                applyState(activeClient().state || DEFAULT_STATE);
             }
-            clientStore.activeId = remaining[0];
             persistClientStore();
-            applyState(activeClient().state);
             populateClientSelect();
             recalc();
         }
@@ -1969,33 +1964,166 @@
                     btn.textContent = btn.getAttribute(lang() === 'en' ? 'data-en' : 'data-fr');
                 }, 2500);
             };
+            const legacyCopy = function () {
+                const ta = document.createElement('textarea');
+                ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+                document.body.appendChild(ta); ta.select();
+                let ok = false;
+                try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+                ta.remove();
+                return ok;
+            };
+            const showInline = function () {
+                // Dernier recours : afficher l'URL dans un champ à copier manuellement
+                let box = $('shareUrlBox');
+                if (!box) {
+                    box = document.createElement('input');
+                    box.id = 'shareUrlBox';
+                    box.className = 'form-input';
+                    box.readOnly = true;
+                    box.style.marginTop = '0.6rem';
+                    box.style.fontSize = '0.8rem';
+                    btn.parentNode.parentNode.appendChild(box);
+                }
+                box.value = url;
+                box.style.display = 'block';
+                box.focus(); box.select();
+            };
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(url).then(done, function () { prompt('URL :', url); });
+                navigator.clipboard.writeText(url).then(done, function () { legacyCopy() ? done() : showInline(); });
             } else {
-                prompt('URL :', url);
+                legacyCopy() ? done() : showInline();
             }
         }
 
-        function resetAll() {
-            // Réinitialise seulement le dossier ACTIF (les autres clients sont conservés)
+        // Confirmation à DEUX CLICS intégrée — aucune fenêtre native
+        // (confirm/alert sont bloqués dans la version en ligne « sandbox »)
+        function armButton(btn, action) {
+            if (btn.dataset.armed === '1') {
+                btn.dataset.armed = '';
+                clearTimeout(btn._armTimer);
+                btn.style.borderColor = ''; btn.style.color = '';
+                btn.textContent = btn.getAttribute(lang() === 'en' ? 'data-en' : 'data-fr');
+                action();
+                return;
+            }
+            btn.dataset.armed = '1';
+            btn.textContent = lang() === 'en' ? '⚠️ Click again to confirm' : '⚠️ Cliquez encore pour confirmer';
+            btn.style.borderColor = '#dc3545'; btn.style.color = '#ff8787';
+            btn._armTimer = setTimeout(function () {
+                btn.dataset.armed = '';
+                btn.style.borderColor = ''; btn.style.color = '';
+                btn.textContent = btn.getAttribute(lang() === 'en' ? 'data-en' : 'data-fr');
+            }, 4000);
+        }
+
+        function doReset() {
+            // Réinitialise seulement le dossier ACTIF, sans recharger la page
             const c = activeClient();
-            const msg = lang() === 'en'
-                ? 'Reset file “' + c.name + '” to default values? Other client files are kept.'
-                : 'Remettre le dossier « ' + c.name + ' » aux valeurs par défaut ? Les autres dossiers sont conservés.';
-            if (!window.confirm(msg)) return;
             c.state = null;
             c.updatedAt = Date.now();
+            applyState(DEFAULT_STATE);
             persistClientStore();
-            location.hash = '';
-            location.reload();
+            recalc();
         }
 
         // ------------------------------------------------------------
         // INITIALISATION
         // ------------------------------------------------------------
+        // --------------------------------------------------------------
+        // IMPRESSION — window.print() est bloqué dans la version en ligne
+        // (iframe sandbox). On génère alors un rapport autonome : ouvert
+        // dans un onglet (impression auto) ou téléchargé en repli.
+        // --------------------------------------------------------------
+        function buildReportBody() {
+            const clone = document.querySelector('main').cloneNode(true);
+            // Reporter les valeurs actuelles des champs dans le clone
+            const liveEls = document.querySelectorAll('main input, main select, main textarea');
+            const cloneEls = clone.querySelectorAll('input, select, textarea');
+            liveEls.forEach(function (el, i) {
+                const c = cloneEls[i];
+                if (!c) return;
+                if (el.type === 'checkbox') { el.checked ? c.setAttribute('checked', '') : c.removeAttribute('checked'); }
+                else if (el.tagName === 'SELECT') {
+                    Array.prototype.forEach.call(c.options, function (o, j) {
+                        if (j === el.selectedIndex) o.setAttribute('selected', ''); else o.removeAttribute('selected');
+                    });
+                } else { c.setAttribute('value', el.value); }
+            });
+            // Graphiques : canvas -> images (un canvas cloné est vide)
+            const liveCv = document.querySelectorAll('main canvas');
+            const cloneCv = clone.querySelectorAll('canvas');
+            liveCv.forEach(function (cv, i) {
+                if (!cloneCv[i]) return;
+                try {
+                    const img = document.createElement('img');
+                    img.src = cv.toDataURL('image/png');
+                    img.style.maxWidth = '100%';
+                    cloneCv[i].parentNode.replaceChild(img, cloneCv[i]);
+                } catch (e) { /* canvas non dessiné */ }
+            });
+            clone.querySelectorAll('.no-print').forEach(function (el) { el.remove(); });
+            return clone;
+        }
+
+        function buildReportHtml() {
+            const clone = buildReportBody();
+            const styles = Array.prototype.map.call(document.querySelectorAll('style'), function (st) { return st.textContent; }).join('\n');
+            const title = (activeClient() ? activeClient().name + ' — ' : '') +
+                (lang() === 'en' ? 'Profitability report — JC Capital' : 'Rapport de rentabilité — JC Capital');
+            return '<!DOCTYPE html><html lang="' + lang() + '"><head><meta charset="utf-8"><title>' + title +
+                '</title><style>' + styles + '</style></head>' +
+                '<body onload="setTimeout(function(){window.print()},400)">' + clone.outerHTML + '</body></html>';
+        }
+
+        /** Dernier recours : aperçu du rapport dans la page (aucune permission requise) */
+        function showReportOverlay() {
+            let ov = document.getElementById('reportOverlay');
+            if (ov) ov.remove();
+            ov = document.createElement('div');
+            ov.id = 'reportOverlay';
+            ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:var(--c-black);overflow:auto;';
+            const bar = document.createElement('div');
+            bar.style.cssText = 'position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:0.8rem 1.4rem;background:rgba(34,51,59,0.95);border-bottom:1px solid var(--c-gold);';
+            const note = document.createElement('span');
+            note.style.cssText = 'color:var(--c-light-beige);font-size:0.85rem;';
+            note.textContent = lang() === 'en'
+                ? '📄 Report snapshot — for a real PDF, use the local file version (Ctrl+P).'
+                : '📄 Aperçu du rapport — pour un vrai PDF, utilisez la version fichier local (Ctrl+P).';
+            const back = document.createElement('button');
+            back.className = 'btn-apply-sector';
+            back.style.marginTop = '0';
+            back.textContent = lang() === 'en' ? '← Back to the tool' : '← Retour à l\'outil';
+            back.addEventListener('click', function () { ov.remove(); });
+            bar.appendChild(note); bar.appendChild(back);
+            ov.appendChild(bar);
+            ov.appendChild(buildReportBody());
+            document.body.appendChild(ov);
+            ov.scrollTop = 0;
+        }
+
+        function smartPrint() {
+            if (window.self === window.top) { window.print(); return; }
+            const html = buildReportHtml();
+            let w = null;
+            try { w = window.open('', '_blank'); } catch (e) { w = null; }
+            if (w && w.document) {
+                try { w.document.open(); w.document.write(html); w.document.close(); return; } catch (e) { /* repli */ }
+            }
+            // Onglet impossible (sandbox strict) : aperçu intégré — le bouton
+            // produit TOUJOURS un résultat visible, sans aucune permission.
+            showReportOverlay();
+        }
+
+        let DEFAULT_STATE = null;
+
         document.addEventListener('DOMContentLoaded', function () {
             populateSectors();
             populateFssTypes();
+
+            // Capturer les valeurs par défaut AVANT toute restauration
+            // (sert à « Réinitialiser ce dossier » sans recharger la page)
+            DEFAULT_STATE = collectState();
 
             // Dossiers clients : charger le magasin, importer un lien partagé
             // (dans un nouveau dossier), puis restaurer le dossier actif
@@ -2006,11 +2134,11 @@
             $('clientSelect').addEventListener('change', function () { switchClient(this.value); });
             $('clientName').addEventListener('change', renameClient);
             $('btnNewClient').addEventListener('click', newClient);
-            $('btnDeleteClient').addEventListener('click', deleteClient);
+            $('btnDeleteClient').addEventListener('click', function () { armButton(this, doDelete); });
 
             $('btnShare').addEventListener('click', shareLink);
-            $('btnPrint').addEventListener('click', function () { window.print(); });
-            $('btnReset').addEventListener('click', resetAll);
+            $('btnPrint').addEventListener('click', smartPrint);
+            $('btnReset').addEventListener('click', function () { armButton(this, doReset); });
             $('applySector').addEventListener('click', applySectorRatios);
             ['revenue', 'cogs', 'otherPayroll', 'valAddbacks', 'valMultLow', 'valMultHigh',
              'acqPrice', 'acqDown', 'acqRate', 'acqYears', 'empSalary', 'wiRev', 'wiExp',

@@ -432,6 +432,109 @@ check('8. Nouveautés', 'Mix avec base 90 k$ et 2 proprios : invariants', (i) =>
 });
 
 // ============================================================
+// GROUPE 9 — Cas complexes : grosses entreprises, fiscalité lourde
+// ============================================================
+check('9. Cas complexes', 'Manufacture 3 M$, passifs 300 k$, 2 actionnaires salariés 150 k$ ailleurs', (i) => {
+    // Plafond DPE anéanti par les revenus passifs -> tout au taux général -> dividendes DÉTERMINÉS
+    if (E.adjustedBusinessLimit(300000) !== 0) i.push('plafond non nul');
+    const opts = { qcSbdEligible: true, afterApril2026: true, passiveIncome: 300000,
+                   owners: 2, baseIncome: 150000, fssEmployerRate: 0.0426, otherPayrollPct: 0.03 };
+    const d = E.scenarioDividends(3000000, 0.4, opts);
+    fiscalInvariants(i, 'MFG', d, 3000000);
+    if (d.nonEligDiv > 1) i.push('dividende non déterminé alors que plafond = 0');
+    if (!(d.eligDiv > 0)) i.push('aucun dividende déterminé');
+    const c = E.corporateTax(3000000, opts);
+    if (!near(c.effRate, 0.265, 0.001)) i.push('taux corpo ' + (c.effRate * 100).toFixed(2) + ' % ≠ 26,5 %');
+});
+check('9. Cas complexes', 'Médecin incorporé 400 k$, sans DPE QC, salaire hospitalier 120 k$', (i) => {
+    const opts = { qcSbdEligible: false, afterApril2026: true, baseIncome: 120000 };
+    const d = E.scenarioDividends(400000, 1, opts);
+    fiscalInvariants(i, 'MD', d, 400000);
+    if (d.eligDiv > 1) i.push('dividende déterminé inattendu (DPE fédérale s\'applique encore ≤ 500 k$)');
+    // L'empilement sur 120 k$ de salaire doit coûter plus cher que sans autre revenu
+    const dSolo = E.scenarioDividends(400000, 1, { qcSbdEligible: false, afterApril2026: true });
+    if (d.incomeTax <= dSolo.incomeTax) i.push('empilement sur le salaire hospitalier sans effet');
+});
+check('9. Cas complexes', 'Franchise : point mort numériquement exact avec redevances 8 %', (i) => {
+    const rev = 2000000, cogs = 700000, royaltyRate = 0.08, fixed = 900000;
+    const royalties = rev * royaltyRate;
+    const be = E.breakEven(rev, cogs + royalties, fixed);
+    // Au point mort, le profit recalculé (variables proportionnelles) doit être ~0
+    const varRate = (cogs + royalties) / rev;
+    const profitAtBE = be.breakEvenRevenue - be.breakEvenRevenue * varRate - fixed;
+    if (Math.abs(profitAtBE) > 1) i.push('profit au point mort = ' + profitAtBE.toFixed(2));
+});
+check('9. Cas complexes', 'Société de personnes de 4 associés, 950 k$ : RRQ plafonné chacun', (i) => {
+    const se = E.scenarioSelfEmployed(950000, { owners: 4 });
+    fiscalInvariants(i, 'SP4', se, 950000);
+    const maxQpp = (74600 - 3500) * 0.126 + (85000 - 74600) * 0.08; // 9 790,60 $
+    if (!near(se.qpp, maxQpp * 4, 2)) i.push('RRQ total = ' + Math.round(se.qpp) + ' ≠ 4 × max');
+});
+check('9. Cas complexes', 'Salaire de 300 k$ au proprio : cotisations employé plafonnées', (i) => {
+    const sal = E.scenarioSalary(400000, 0.75, { qcSbdEligible: true, afterApril2026: true });
+    const maxQppEmp = (74600 - 3500) * 0.063 + (85000 - 74600) * 0.04; // 4 895,30 $
+    if (!near(sal.qpp, maxQppEmp, 2)) i.push('RRQ employé = ' + Math.round(sal.qpp));
+    if (!near(sal.qpip, 103000 * 0.0043, 1)) i.push('RQAP employé non plafonné');
+    fiscalInvariants(i, 'SAL300', sal, 400000);
+});
+check('9. Cas complexes', 'Holding : opco 600 k$, passifs 80 k$ → plafond 350 k$, pools exacts', (i) => {
+    const opts = { qcSbdEligible: true, afterApril2026: true, passiveIncome: 80000 };
+    const c = E.corporateTax(600000, opts);
+    if (c.businessLimit !== 350000) i.push('plafond = ' + c.businessLimit);
+    if (!near(c.fed, 350000 * 0.09 + 250000 * 0.15, 1)) i.push('fédéral incorrect');
+    if (!near(c.afterTaxSbd, 350000 * (1 - 0.112), 1)) i.push('pool non déterminé incorrect');
+    if (!near(c.afterTaxGeneral, 250000 * (1 - 0.265), 1)) i.push('pool déterminé incorrect');
+});
+check('9. Cas complexes', 'Très gros TA seul à 5 M$ : taux effectif 50-54 %', (i) => {
+    const se = E.scenarioSelfEmployed(5000000, {});
+    fiscalInvariants(i, 'TA5M', se, 5000000);
+    if (se.effRate < 0.50 || se.effRate > 0.54) i.push('taux ' + (se.effRate * 100).toFixed(1) + ' %');
+});
+check('9. Cas complexes', '50 M$, 5 actionnaires, retrait 10 %, base 200 k$ chacun', (i) => {
+    const opts = { qcSbdEligible: false, afterApril2026: true, owners: 5, baseIncome: 200000 };
+    const d = E.scenarioDividends(50000000, 0.1, opts);
+    fiscalInvariants(i, 'BIG', d, 50000000);
+    if (!near(d.dividendPaid, 5000000, 2)) i.push('versement = ' + Math.round(d.dividendPaid));
+    if (d.retainedInCorp < 30000000) i.push('rétention incohérente');
+    // Chaque actionnaire empile ~1 M$ de dividendes sur 200 k$ de salaire : marginal haut
+    if (d.incomeTax / d.dividendPaid < 0.35) i.push('impôt perso trop bas sur gros dividendes empilés');
+});
+check('9. Cas complexes', 'Mix optimal : grind 100 k$ + base 90 k$ + 2 proprios + retrait 60 %', (i) => {
+    const opts = { qcSbdEligible: true, afterApril2026: true, passiveIncome: 100000,
+                   owners: 2, baseIncome: 90000, fssEmployerRate: 0.0165, otherPayrollPct: 0.02 };
+    const best = E.optimizeMix(800000, 0.6, opts);
+    fiscalInvariants(i, 'MIXG', best, 800000);
+    const m0 = E.scenarioMix(800000, 0, 0.6, opts);
+    const m1 = E.scenarioMix(800000, 1, 0.6, opts);
+    if (best.totalIfLiquidated < Math.max(m0.totalIfLiquidated, m1.totalIfLiquidated) - 2) i.push('sous-optimal');
+});
+check('9. Cas complexes', 'Impôt corporatif monotone avec grind (0 → 10 M$)', (i) => {
+    let prev = -1;
+    for (let pr = 0; pr <= 10000000; pr += 250000) {
+        const c = E.corporateTax(pr, { qcSbdEligible: true, afterApril2026: true, passiveIncome: 100000 });
+        if (c.total < prev - 0.01) { i.push('baisse à ' + pr); break; }
+        prev = c.total;
+    }
+});
+check('9. Cas complexes', 'Vente 8 M$ avec ECGC épuisée à moitié + gros PBR', (i) => {
+    const sale = E.saleNetProceeds({ price: 8000000, acb: 1500000, lcgeRemaining: 625000 });
+    if (!near(sale.gain, 6500000, 1)) i.push('gain incorrect');
+    if (!near(sale.exempt, 625000, 1)) i.push('exonération incorrecte');
+    if (!near(sale.taxableGain, (6500000 - 625000) * 0.5, 1)) i.push('gain imposable incorrect');
+    if (sale.net < sale.gain * 0.6) i.push('net incohérent');
+});
+check('9. Cas complexes', 'Agri 12 M$ revenus, 92 % de charges, 3 associés, FSS primaire', (i) => {
+    const profit = 12000000 * 0.08;
+    const opts = { qcSbdEligible: true, afterApril2026: true, owners: 3, fssEmployerRate: 0.0125, otherPayrollPct: 0.02 };
+    const se = E.scenarioSelfEmployed(profit, { owners: 3 });
+    const sal = E.scenarioSalary(profit, 0.5, opts);
+    const mix = E.optimizeMix(profit, 0.5, opts);
+    fiscalInvariants(i, 'AGRI-TA', se, profit);
+    fiscalInvariants(i, 'AGRI-SAL', sal, profit);
+    fiscalInvariants(i, 'AGRI-MIX', mix, profit);
+});
+
+// ============================================================
 // RAPPORT
 // ============================================================
 const groups = {};
