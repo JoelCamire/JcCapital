@@ -595,11 +595,32 @@
                     <div class="form-group">
                         <label class="form-label" for="passiveIncome">
                             <span data-fr="Revenus de placement de la société ($/an)" data-en="Corporation's passive investment income ($/yr)">Revenus de placement de la société ($/an)</span>
-                            <span class="hint" data-fr="Au-delà de 50 000 $, le plafond DPE fond de 5 $ par 1 $" data-en="Above $50,000, the SBD limit shrinks $5 per $1">Au-delà de 50 000 $, le plafond DPE fond de 5 $ par 1 $</span>
+                            <span class="hint" data-fr="RPTA — au-delà de 50 000 $, le plafond DPE fond de 5 $ par 1 $ (détail au module Société de gestion)" data-en="AAII — above $50,000, the SBD limit shrinks $5 per $1 (details in the Holding module)">RPTA — au-delà de 50 000 $, le plafond DPE fond de 5 $ par 1 $ (détail au module Société de gestion)</span>
                         </label>
                         <input type="number" id="passiveIncome" class="form-input" value="0" min="0" step="5000">
                     </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ownerShares">
+                            <span data-fr="Parts des propriétaires (%)" data-en="Owner shares (%)">Parts des propriétaires (%)</span>
+                            <span class="hint" data-fr="Optionnel, ex. « 60,40 » — vide = parts égales" data-en="Optional, e.g. “60,40” — blank = equal shares">Optionnel, ex. « 60,40 » — vide = parts égales</span>
+                        </label>
+                        <input type="text" id="ownerShares" class="form-input" placeholder="60,40" data-ph-fr="60,40" data-ph-en="60,40">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="monthsOpen">
+                            <span data-fr="Mois d'exploitation par année" data-en="Operating months per year">Mois d'exploitation par année</span>
+                            <span class="hint" data-fr="Entreprise saisonnière : seuil de rentabilité mensuel en saison" data-en="Seasonal business: in-season monthly break-even">Entreprise saisonnière : seuil de rentabilité mensuel en saison</span>
+                        </label>
+                        <input type="number" id="monthsOpen" class="form-input" value="12" min="1" max="12" step="1">
+                    </div>
                 </div>
+                <label class="check-row">
+                    <input type="checkbox" id="privateInsurance" checked>
+                    <span data-fr="Assurance médicaments privée (décochez si les propriétaires sont au régime public — la prime RAMQ max (~737 $/personne) sera ajoutée aux scénarios)."
+                          data-en="Private drug insurance (uncheck if owners are on the public plan — the max RAMQ premium (~$737/person) will be added to the scenarios).">
+                        Assurance médicaments privée (décochez si les propriétaires sont au régime public — la prime
+                        RAMQ max (~737 $/personne) sera ajoutée aux scénarios).</span>
+                </label>
 
                 <label class="check-row">
                     <input type="checkbox" id="qcSbd" checked>
@@ -778,6 +799,11 @@
                     <div class="form-group">
                         <label class="form-label" for="empSalary" data-fr="Salaire brut annuel d'un employé ($)" data-en="Employee annual gross salary ($)">Salaire brut annuel d'un employé ($)</label>
                         <input type="number" id="empSalary" class="form-input" value="50000" min="0" step="1000">
+                        <label class="check-row" style="margin-top:0.6rem;">
+                            <input type="checkbox" id="empEI" checked>
+                            <span data-fr="Assujetti à l'assurance-emploi (employé régulier — un actionnaire à ≥ 40 % est exempté)"
+                                  data-en="Subject to EI (regular employee — a ≥40% shareholder is exempt)">Assujetti à l'assurance-emploi (employé régulier — un actionnaire à ≥ 40 % est exempté)</span>
+                        </label>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-label" data-fr="Charges patronales" data-en="Employer charges">Charges patronales</div>
@@ -789,6 +815,37 @@
                         <div class="kpi-label" id="empCoef" style="margin-top:0.3rem;"></div>
                     </div>
                 </div>
+
+                <!-- Mini-outil : calculateur de DPA -->
+                <h3 style="color:var(--c-gold); font-size:1.1rem; margin:1.8rem 0 0.4rem;"
+                    data-fr="🏗️ Calculer l'amortissement fiscal (DPA)" data-en="🏗️ Compute tax depreciation (CCA)">🏗️ Calculer l'amortissement fiscal (DPA)</h3>
+                <p class="card-sub"
+                   data-fr="Par catégorie fiscale. Règle de demi-année suspendue pour les acquisitions (incitatif à l'investissement accéléré, jusqu'à fin 2027). Le bouton reporte le résultat dans la case Amortissement ci-dessus."
+                   data-en="By tax class. Half-year rule suspended for acquisitions (accelerated investment incentive, through 2027). The button carries the result into the Depreciation field above.">
+                    Par catégorie fiscale. Règle de demi-année suspendue pour les acquisitions (incitatif à
+                    l'investissement accéléré, jusqu'à fin 2027). Le bouton reporte le résultat dans la case
+                    Amortissement ci-dessus.</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="ccaClass" data-fr="Catégorie de biens" data-en="Asset class">Catégorie de biens</label>
+                        <select id="ccaClass" class="form-select"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ccaUcc" data-fr="FNACC au début de l'année ($)" data-en="Opening UCC ($)">FNACC au début de l'année ($)</label>
+                        <input type="number" id="ccaUcc" class="form-input" value="0" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ccaAdd" data-fr="Acquisitions de l'année ($)" data-en="Additions this year ($)">Acquisitions de l'année ($)</label>
+                        <input type="number" id="ccaAdd" class="form-input" value="0" min="0" step="1000">
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="DPA de l'année" data-en="CCA for the year">DPA de l'année</div>
+                        <div class="kpi-value" id="ccaResult">—</div>
+                        <div class="kpi-label" id="ccaClosing" style="margin-top:0.3rem;"></div>
+                    </div>
+                </div>
+                <button class="btn-apply-sector" id="btnCcaApply"
+                        data-fr="⤵ Reporter dans « Amortissement (DPA) »" data-en="⤵ Carry into “Depreciation (CCA)”">⤵ Reporter dans « Amortissement (DPA) »</button>
             </div>
 
             <!-- ================= RÉSULTATS : ÉTAT DES RÉSULTATS ================= -->
@@ -917,6 +974,54 @@
                 <div class="chart-holder"><canvas id="projChart"></canvas></div>
             </div>
 
+            <!-- ================= SOCIÉTÉ DE GESTION ================= -->
+            <div class="calc-card">
+                <h2><i class="fa-solid fa-building-columns" style="margin-right:0.5rem;"></i><span data-fr="Société de gestion — Revenus de placement dans la société" data-en="Holding Company — Investment Income Inside the Corporation">Société de gestion — Revenus de placement dans la société</span></h2>
+                <p class="card-sub"
+                   data-fr="Pour les surplus investis dans la société (ou une société de gestion) : impôt de ~50 % sur les revenus de placement, dont une grande partie REMBOURSABLE (IMRTD) au versement de dividendes, et la moitié non imposable des gains alimente le CDC (dividende en capital libre d'impôt). Le RPTA calculé réduit le plafond DPE."
+                   data-en="For surplus invested inside the corporation (or a holding company): ~50% tax on investment income, largely REFUNDABLE (RDTOH) when dividends are paid, and the non-taxable half of gains feeds the CDA (tax-free capital dividend). The computed AAII reduces the SBD limit.">
+                    Pour les surplus investis dans la société (ou une société de gestion) : impôt de ~50 % sur les
+                    revenus de placement, dont une grande partie REMBOURSABLE (IMRTD) au versement de dividendes, et la
+                    moitié non imposable des gains alimente le CDC (dividende en capital libre d'impôt). Le RPTA
+                    calculé réduit le plafond DPE.</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="pcInterest" data-fr="Intérêts / loyers nets / revenu étranger ($)" data-en="Interest / net rents / foreign income ($)">Intérêts / loyers nets / revenu étranger ($)</label>
+                        <input type="number" id="pcInterest" class="form-input" value="0" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="pcDivs" data-fr="Dividendes de portefeuille reçus ($)" data-en="Portfolio dividends received ($)">Dividendes de portefeuille reçus ($)</label>
+                        <input type="number" id="pcDivs" class="form-input" value="0" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="pcGains" data-fr="Gains en capital réalisés ($)" data-en="Realized capital gains ($)">Gains en capital réalisés ($)</label>
+                        <input type="number" id="pcGains" class="form-input" value="0" min="0" step="1000">
+                    </div>
+                </div>
+                <div class="kpi-row" style="margin-top:1.2rem;">
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Impôt corporatif sur placements" data-en="Corporate tax on investments">Impôt corporatif sur placements</div>
+                        <div class="kpi-value red" id="pcTax">—</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="Dont remboursable (IMRTD)" data-en="Of which refundable (RDTOH)">Dont remboursable (IMRTD)</div>
+                        <div class="kpi-value green" id="pcRdtoh">—</div>
+                        <div class="kpi-label" id="pcRecover" style="margin-top:0.3rem;"></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="CDC créé (dividende en capital libre d'impôt)" data-en="CDA created (tax-free capital dividend)">CDC créé (dividende en capital libre d'impôt)</div>
+                        <div class="kpi-value green" id="pcCda">—</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="RPTA (réduit le plafond DPE)" data-en="AAII (reduces the SBD limit)">RPTA (réduit le plafond DPE)</div>
+                        <div class="kpi-value" id="pcAaii">—</div>
+                    </div>
+                </div>
+                <button class="btn-apply-sector" id="btnAaiiApply"
+                        data-fr="⤵ Reporter le RPTA dans « Revenus de placement » du profil"
+                        data-en="⤵ Carry the AAII into the profile's “Passive investment income”">⤵ Reporter le RPTA dans « Revenus de placement » du profil</button>
+            </div>
+
             <!-- ================= FISCALITÉ ================= -->
             <div class="calc-card">
                 <h2><i class="fa-solid fa-scale-balanced" style="margin-right:0.5rem;"></i><span data-fr="Fiscalité 2026 — Comparaison des structures" data-en="2026 Taxation — Structure Comparison">Fiscalité 2026 — Comparaison des structures</span></h2>
@@ -1000,6 +1105,8 @@
                             droits REER (18 % du salaire). La meilleure stratégie est souvent un mélange salaire +
                             dividendes — parlez-en à votre conseiller.</div>
                         <div class="info-note" id="ownersNote" style="display:none;"></div>
+                        <div class="info-note" id="rrqNote" style="display:none;"></div>
+                        <div class="info-note" id="instalmentNote" style="display:none;"></div>
                         <div class="info-note" id="grindNote" style="display:none;"></div>
                         <div class="info-note" id="deferralNote" style="display:none;"></div>
                         <div class="info-note" id="gstNote"></div>
@@ -1149,12 +1256,17 @@
                         <div class="kpi-value green" id="saleExempt">—</div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-label" data-fr="Impôt estimé sur la vente" data-en="Estimated tax on sale">Impôt estimé sur la vente</div>
+                        <div class="kpi-label" data-fr="Impôt régulier (incl. FSS)" data-en="Regular tax (incl. HSF)">Impôt régulier (incl. FSS)</div>
                         <div class="kpi-value red" id="saleTax">—</div>
                     </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label" data-fr="IMR estimé (récupérable sur 7 ans)" data-en="Estimated AMT (recoverable over 7 yrs)">IMR estimé (récupérable sur 7 ans)</div>
+                        <div class="kpi-value" id="saleAmt" style="color:#ffd43b;">—</div>
+                    </div>
                     <div class="kpi-card" style="border-color:var(--c-gold);">
-                        <div class="kpi-label" data-fr="Produit net en poche" data-en="Net proceeds in pocket">Produit net en poche</div>
+                        <div class="kpi-label" data-fr="Net en poche — année de la vente" data-en="Net in pocket — year of sale">Net en poche — année de la vente</div>
                         <div class="kpi-value green" id="saleNet">—</div>
+                        <div class="kpi-label" id="saleNetRec" style="margin-top:0.3rem;"></div>
                     </div>
                 </div>
 
@@ -1284,6 +1396,33 @@
             { cat: 'large',   fr: 'Grande entreprise / public — 4,26 %', en: 'Large business / public — 4.26%' }
         ];
 
+        // ------------------------------------------------------------
+        // CATÉGORIES DPA courantes
+        // ------------------------------------------------------------
+        const CCA_CLASSES = {
+            c1:  { rate: 0.04, fr: 'Cat. 1 — Bâtiments (4 %)',                      en: 'Class 1 — Buildings (4%)' },
+            c8:  { rate: 0.20, fr: 'Cat. 8 — Équipements, mobilier (20 %)',          en: 'Class 8 — Equipment, furniture (20%)' },
+            c10: { rate: 0.30, fr: 'Cat. 10 — Véhicules, matériel roulant (30 %)',   en: 'Class 10 — Vehicles, rolling stock (30%)' },
+            c12: { rate: 1.00, fr: 'Cat. 12 — Petits outils, logiciels (100 %)',     en: 'Class 12 — Small tools, software (100%)' },
+            c141:{ rate: 0.05, fr: 'Cat. 14.1 — Incorporels, achalandage (5 %)',     en: 'Class 14.1 — Intangibles, goodwill (5%)' },
+            c16: { rate: 0.40, fr: 'Cat. 16 — Camions lourds, taxis (40 %)',         en: 'Class 16 — Heavy trucks, taxis (40%)' },
+            c43: { rate: 0.30, fr: 'Cat. 43 — Matériel de fabrication (30 %)',       en: 'Class 43 — Manufacturing equipment (30%)' },
+            c50: { rate: 0.55, fr: 'Cat. 50 — Matériel informatique (55 %)',         en: 'Class 50 — Computer hardware (55%)' }
+        };
+
+        function populateCcaClasses() {
+            const sel = $('ccaClass');
+            const current = sel.value;
+            sel.innerHTML = '';
+            for (const key of Object.keys(CCA_CLASSES)) {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = CCA_CLASSES[key][lang()];
+                sel.appendChild(opt);
+            }
+            sel.value = current && CCA_CLASSES[current] ? current : 'c8';
+        }
+
         // Textes dynamiques (les libellés statiques utilisent data-fr/data-en)
         const L = {
             fr: {
@@ -1304,8 +1443,15 @@
                 cocLabel: 'Rendement mise de fonds : ', perYear: '/an',
                 splitWords: (s, d) => s + ' % salaire / ' + d + ' % dividendes',
                 yearN: (n) => 'An ' + n, coefLabel: 'Coefficient : ×',
+                fnaccLabel: 'FNACC de clôture : ',
+                recoverLabel: (d) => 'Récupéré en versant ' + d + ' de dividendes imposables',
+                rrqNote: (pension, pv) => '👴 <strong>Valeur retraite du salaire :</strong> les cotisations RRQ de cette année (scénario salaire/mix) achètent environ <strong>' + pension + ' $/an de rente viagère</strong> à 65 ans, une valeur actuarielle d\'environ <strong>' + pv + '</strong>. Les dividendes n\'en créent aucune — comparez les scénarios en tenant compte de ce montant.',
+                instalments: (amt, q) => '📅 <strong>Acomptes provisionnels :</strong> avec ~' + amt + ' d\'impôts et cotisations, des acomptes trimestriels d\'environ <strong>' + q + '</strong> seront exigés (15 mars, 15 juin, 15 sept., 15 déc.). Prévoyez la liquidité.',
+                lossCarry: (amt) => '⚠️ <strong>Perte de ' + amt + '</strong> avant impôts. La section fiscale est à 0 $ — mais cette perte n\'est pas perdue : reportable <strong>3 ans en arrière</strong> (remboursement d\'impôts déjà payés) ou <strong>20 ans en avant</strong> contre les bénéfices futurs. Utilisez le seuil de rentabilité ci-dessus pour viser le point mort.',
+                beMonthly: (m, amt) => ' · seuil mensuel en saison (' + m + ' mois) : ' + amt,
+                ownerRow: (idx, pct, net) => 'Assoc. ' + idx + ' (' + pct + ' %) : ' + net,
                 grindNote: (lim) => '📉 <strong>Plafond DPE réduit :</strong> les revenus de placement de la société font fondre le plafond des affaires à <strong>' + lim + '</strong> (au lieu de 500 000 $). L\'excédent est imposé au taux général (26,5 %) mais génère des dividendes déterminés, moins imposés entre vos mains.',
-                ownersNote: (n, ta, sal, div) => '👥 <strong>' + n + ' propriétaires actifs</strong> (parts égales, même situation personnelle) : les montants ci-dessus sont des totaux. Net par propriétaire — travailleur autonome/société de personnes : <strong>' + ta + '</strong>, salaire : <strong>' + sal + '</strong>, dividendes : <strong>' + div + '</strong>. Le partage du bénéfice entre plusieurs personnes réduit l\'impôt total grâce à la progressivité des paliers.'
+                ownersNote: (n, mode, ta, sal, div) => '👥 <strong>' + n + ' propriétaires actifs</strong> (' + mode + ', même situation personnelle) : les montants ci-dessus sont des totaux. Net par propriétaire — travailleur autonome/société de personnes : <strong>' + ta + '</strong>, salaire : <strong>' + sal + '</strong>, dividendes : <strong>' + div + '</strong>. Le partage du bénéfice entre plusieurs personnes réduit l\'impôt total grâce à la progressivité des paliers. ⚠️ IRF : chaque actionnaire doit être ACTIF (≥ 20 h/sem. en moyenne) — sinon ses dividendes sont imposés au taux marginal MAXIMAL.'
             },
             en: {
                 ofRevenue: 'of revenue', safety: 'Safety margin: ', unreachable: 'unreachable',
@@ -1325,8 +1471,15 @@
                 cocLabel: 'Cash-on-cash return: ', perYear: '/yr',
                 splitWords: (s, d) => s + '% salary / ' + d + '% dividends',
                 yearN: (n) => 'Year ' + n, coefLabel: 'Multiplier: ×',
+                fnaccLabel: 'Closing UCC: ',
+                recoverLabel: (d) => 'Recovered by paying ' + d + ' of taxable dividends',
+                rrqNote: (pension, pv) => '👴 <strong>Retirement value of salary:</strong> this year\'s QPP contributions (salary/mix scenario) buy about <strong>$' + pension + '/yr of lifetime pension</strong> at 65 — an actuarial value of roughly <strong>' + pv + '</strong>. Dividends create none — factor this into the comparison.',
+                instalments: (amt, q) => '📅 <strong>Tax instalments:</strong> with ~' + amt + ' of taxes and contributions, quarterly instalments of about <strong>' + q + '</strong> will be required (Mar 15, Jun 15, Sep 15, Dec 15). Plan the cash flow.',
+                lossCarry: (amt) => '⚠️ <strong>Loss of ' + amt + '</strong> before taxes. The tax section shows $0 — but the loss is not wasted: carry it <strong>back 3 years</strong> (refund of taxes already paid) or <strong>forward 20 years</strong> against future profits. Use the break-even above to aim for the tipping point.',
+                beMonthly: (m, amt) => ' · in-season monthly break-even (' + m + ' mo): ' + amt,
+                ownerRow: (idx, pct, net) => 'Owner ' + idx + ' (' + pct + '%): ' + net,
                 grindNote: (lim) => '📉 <strong>Reduced SBD limit:</strong> the corporation\'s passive investment income shrinks the business limit to <strong>' + lim + '</strong> (instead of $500,000). The excess is taxed at the general rate (26.5%) but generates eligible dividends, taxed less in your hands.',
-                ownersNote: (n, ta, sal, div) => '👥 <strong>' + n + ' active owners</strong> (equal shares, same personal situation): amounts above are totals. Net per owner — self-employed/partnership: <strong>' + ta + '</strong>, salary: <strong>' + sal + '</strong>, dividends: <strong>' + div + '</strong>. Splitting profit among several people lowers total tax thanks to bracket progressivity.'
+                ownersNote: (n, mode, ta, sal, div) => '👥 <strong>' + n + ' active owners</strong> (' + mode + ', same personal situation): amounts above are totals. Net per owner — self-employed/partnership: <strong>' + ta + '</strong>, salary: <strong>' + sal + '</strong>, dividends: <strong>' + div + '</strong>. Splitting profit among several people lowers total tax thanks to bracket progressivity. ⚠️ TOSI: each shareholder must be ACTIVE (≥ 20 h/wk on average) — otherwise their dividends are taxed at the TOP marginal rate.'
             }
         };
 
@@ -1464,13 +1617,20 @@
             const be = E.breakEven(revenue, cogs + royalties, opexInputs + amort);
             if (isFinite(be.breakEvenRevenue)) {
                 $('kpiBreakEven').textContent = fmtMoney(be.breakEvenRevenue);
-                $('kpiSafety').textContent = t.safety + fmtPct(be.safetyMargin);
+                const months = Math.min(Math.max(Math.round(val('monthsOpen')) || 12, 1), 12);
+                $('kpiSafety').textContent = t.safety + fmtPct(be.safetyMargin) +
+                    (months < 12 ? t.beMonthly(months, fmtMoney(be.breakEvenRevenue / months)) : '');
             } else {
                 $('kpiBreakEven').textContent = t.unreachable;
                 $('kpiSafety').textContent = '';
             }
 
-            $('lossNote').style.display = profit < 0 ? 'block' : 'none';
+            if (profit < 0) {
+                $('lossNote').style.display = 'block';
+                $('lossNote').innerHTML = t.lossCarry(fmtMoney(-profit));
+            } else {
+                $('lossNote').style.display = 'none';
+            }
 
             // --- Fiscalité ---
             const taxableProfit = Math.max(0, profit);
@@ -1488,9 +1648,17 @@
                 })(),
                 otherPayrollPct: Math.min(val('otherPayroll'), 15) / 100,
                 owners: Math.min(Math.max(Math.round(val('owners')) || 1, 1), 10),
+                shares: (function () {
+                    const raw = ($('ownerShares').value || '').trim();
+                    if (!raw) return null;
+                    const parts = raw.split(/[,;\s]+/).map(parseFloat).filter(function (x) { return isFinite(x) && x > 0; });
+                    return parts.length >= 2 && parts.length <= 10 ? parts : null;
+                })(),
                 baseIncome: val('baseIncome'),
+                noPrivateInsurance: !$('privateInsurance').checked,
                 passiveIncome: val('passiveIncome')
             };
+            if (opts.shares) { opts.owners = opts.shares.length; $('owners').value = opts.shares.length; }
 
             const se = E.scenarioSelfEmployed(taxableProfit, opts);
             const sal = E.scenarioSalary(taxableProfit, wPct, opts);
@@ -1564,14 +1732,60 @@
                 $('grindNote').style.display = 'none';
             }
 
-            // Note multi-propriétaires
+            // Note multi-propriétaires (avec détail par associé si parts inégales)
             if (opts.owners > 1) {
                 $('ownersNote').style.display = 'block';
-                $('ownersNote').innerHTML = t.ownersNote(opts.owners,
-                    fmtMoney(se.netCashPerOwner), fmtMoney(sal.netCashPerOwner), fmtMoney(div.netCashPerOwner));
+                let detail = '';
+                if (opts.shares && div.perOwner) {
+                    detail = '<br>' + div.perOwner.map(function (o, k) {
+                        return t.ownerRow(k + 1, Math.round(o.share * 100), fmtMoney(o.net));
+                    }).join(' · ') + (lang() === 'en' ? ' (dividend scenario)' : ' (scénario dividendes)');
+                }
+                const shareMode = opts.shares
+                    ? (lang() === 'en' ? 'custom shares' : 'parts personnalisées')
+                    : (lang() === 'en' ? 'equal shares' : 'parts égales');
+                $('ownersNote').innerHTML = t.ownersNote(opts.owners, shareMode,
+                    fmtMoney(se.netCashPerOwner), fmtMoney(sal.netCashPerOwner), fmtMoney(div.netCashPerOwner)) + detail;
             } else {
                 $('ownersNote').style.display = 'none';
             }
+
+            // Valeur retraite RRQ du scénario mix/salaire
+            const accrualSalary = Math.max(mix.salary, sal.salary) / Math.max(opts.owners, 1);
+            if (taxableProfit > 0 && accrualSalary > 3500) {
+                const acc = E.qppPensionAccrual(accrualSalary);
+                $('rrqNote').style.display = 'block';
+                $('rrqNote').innerHTML = t.rrqNote(Math.round(acc.annualPension).toLocaleString(locale()), fmtMoney(acc.presentValue));
+            } else {
+                $('rrqNote').style.display = 'none';
+            }
+
+            // Acomptes provisionnels (TA) : exigés au-delà de ~1 800 $ d'impôt QC / 3 000 $ féd
+            if (taxableProfit > 0 && se.incomeTax + se.qpp + se.qpip > 4800) {
+                $('instalmentNote').style.display = 'block';
+                const annual = se.totalLevies;
+                $('instalmentNote').innerHTML = t.instalments(fmtMoney(annual), fmtMoney(annual / 4));
+            } else {
+                $('instalmentNote').style.display = 'none';
+            }
+
+            // Société de gestion : revenus de placement dans la société
+            const pc = E.passiveInvestmentTax({
+                interest: val('pcInterest'),
+                portfolioDividends: val('pcDivs'),
+                capitalGains: val('pcGains')
+            });
+            $('pcTax').textContent = fmtMoney(pc.totalTax);
+            $('pcRdtoh').textContent = fmtMoney(pc.refundable);
+            $('pcRecover').textContent = pc.refundable > 0 ? t.recoverLabel(fmtMoney(pc.dividendsToRecoverRdtoh)) : '';
+            $('pcCda').textContent = fmtMoney(pc.cda);
+            $('pcAaii').textContent = fmtMoney(pc.aaii);
+
+            // Calculateur DPA
+            const ccaCls = CCA_CLASSES[$('ccaClass').value] || CCA_CLASSES.c8;
+            const cca = E.ccaDeduction(val('ccaUcc'), val('ccaAdd'), ccaCls.rate);
+            $('ccaResult').textContent = fmtMoney(cca.total);
+            $('ccaClosing').textContent = t.fnaccLabel + fmtMoney(cca.closingUcc);
 
             saveState();
 
@@ -1622,8 +1836,10 @@
             });
             $('saleGain').textContent = fmtMoney(sale.gain);
             $('saleExempt').textContent = fmtMoney(sale.exempt);
-            $('saleTax').textContent = fmtMoney(sale.tax);
+            $('saleTax').textContent = fmtMoney(sale.regularTax);
+            $('saleAmt').textContent = fmtMoney(sale.amt);
             $('saleNet').textContent = fmtMoney(sale.net);
+            $('saleNetRec').textContent = (lang() === 'en' ? 'If AMT fully recovered: ' : 'Si IMR pleinement récupéré : ') + fmtMoney(sale.netAfterAmtRecovery);
 
             // --- Et si ? (sensibilité) ---
             const rF = 1 + parseInt($('wiRev').value, 10) / 100;
@@ -1664,7 +1880,7 @@
             $('projValue5').textContent = fmtMoney(val5.mid);
 
             // --- Coût total d'un employé ---
-            const ec = E.employerCostOfSalary(val('empSalary'), opts.fssEmployerRate, opts.otherPayrollPct);
+            const ec = E.employerCostOfSalary(val('empSalary'), opts.fssEmployerRate, opts.otherPayrollPct, $('empEI').checked);
             $('empCharges').textContent = fmtMoney(ec.total);
             $('empCost').textContent = fmtMoney(ec.totalCost);
             $('empCoef').textContent = t.coefLabel + ec.coefficient.toFixed(2);
@@ -2120,6 +2336,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             populateSectors();
             populateFssTypes();
+            populateCcaClasses();
 
             // Capturer les valeurs par défaut AVANT toute restauration
             // (sert à « Réinitialiser ce dossier » sans recharger la page)
@@ -2140,14 +2357,32 @@
             $('btnPrint').addEventListener('click', smartPrint);
             $('btnReset').addEventListener('click', function () { armButton(this, doReset); });
             $('applySector').addEventListener('click', applySectorRatios);
+            $('btnCcaApply').addEventListener('click', function () {
+                const cls = CCA_CLASSES[$('ccaClass').value] || CCA_CLASSES.c8;
+                const cca = window.JCProfitEngine.ccaDeduction(val('ccaUcc'), val('ccaAdd'), cls.rate);
+                $('expAmort').value = Math.round(cca.total);
+                recalc();
+            });
+            $('btnAaiiApply').addEventListener('click', function () {
+                const pc = window.JCProfitEngine.passiveInvestmentTax({
+                    interest: val('pcInterest'),
+                    portfolioDividends: val('pcDivs'),
+                    capitalGains: val('pcGains')
+                });
+                $('passiveIncome').value = Math.round(pc.aaii);
+                recalc();
+            });
             ['revenue', 'cogs', 'otherPayroll', 'valAddbacks', 'valMultLow', 'valMultHigh',
              'acqPrice', 'acqDown', 'acqRate', 'acqYears', 'empSalary', 'wiRev', 'wiExp',
              'projGrowth', 'projInfl', 'salePrice', 'saleAcb', 'saleLcge',
-             'owners', 'baseIncome', 'passiveIncome', 'royaltiesPct', 'taxablePct'].concat(EXPENSE_IDS).concat(['expAmort']).forEach(function (id) {
+             'owners', 'baseIncome', 'passiveIncome', 'royaltiesPct', 'taxablePct',
+             'ownerShares', 'monthsOpen', 'pcInterest', 'pcDivs', 'pcGains',
+             'ccaUcc', 'ccaAdd'].concat(EXPENSE_IDS).concat(['expAmort']).forEach(function (id) {
                 $(id).addEventListener('input', recalc);
             });
             ['sector', 'fssSector'].forEach(function (id) { $(id).addEventListener('change', recalc); });
-            ['qcSbd', 'afterApril'].forEach(function (id) { $(id).addEventListener('change', recalc); });
+            ['qcSbd', 'afterApril', 'privateInsurance', 'empEI'].forEach(function (id) { $(id).addEventListener('change', recalc); });
+            $('ccaClass').addEventListener('change', recalc);
             $('withdrawal').addEventListener('input', recalc);
 
             // Fraîcheur des paramètres fiscaux
@@ -2188,6 +2423,7 @@
         document.addEventListener('languageChanged', function () {
             populateSectors();
             populateFssTypes();
+            populateCcaClasses();
             recalc();
         });
     </script>

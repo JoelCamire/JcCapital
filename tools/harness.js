@@ -268,13 +268,21 @@ check('5. Vente', 'Prix < PBR → gain 0, impôt 0, net = prix', (i) => {
     const s = E.saleNetProceeds({ price: 100000, acb: 200000, lcgeRemaining: 1250000 });
     if (s.gain !== 0 || s.tax !== 0 || !near(s.net, 100000, 0.01)) i.push('vente à perte mal gérée');
 });
-check('5. Vente', 'Gain 1,25 M$ pile → tout exonéré', (i) => {
+check('5. Vente', 'Gain 1,25 M$ pile → régulier nul, mais IMR présent (règles 2024+)', (i) => {
     const s = E.saleNetProceeds({ price: 1250000, acb: 0, lcgeRemaining: 1250000 });
-    if (s.tax !== 0) i.push(`impôt=${Math.round(s.tax)}`);
+    if (s.regularTax !== 0) i.push(`impôt régulier=${Math.round(s.regularTax)}`);
+    // Assiette IMR = 30 % du gain exonéré (375 k$) > exemptions → IMR payable, récupérable 7 ans
+    if (!(s.amt > 20000 && s.amt < 120000)) i.push(`IMR=${Math.round(s.amt)} hors plage plausible`);
+    if (!near(s.netAfterAmtRecovery, 1250000, 1)) i.push('net après récupération IMR ≠ prix');
 });
-check('5. Vente', 'Gain 5 M$, ECGC 0 → impôt ≈ 50 % × marginal', (i) => {
+check('5. Vente', 'Gain 5 M$, ECGC 0 → régulier ~25 %, IMR excédentaire payable', (i) => {
     const s = E.saleNetProceeds({ price: 5000000, acb: 0, lcgeRemaining: 0 });
-    if (s.effRateOnGain < 0.20 || s.effRateOnGain > 0.27) i.push(`taux=${(s.effRateOnGain * 100).toFixed(1)} %`);
+    const regRate = s.regularTax / s.gain;
+    if (regRate < 0.20 || regRate > 0.27) i.push(`taux régulier=${(regRate * 100).toFixed(1)} %`);
+    // IMR : 100 % du gain à 20,5 %+19 % dépasse le régulier (50 % à ~53 %) → excédent payable
+    if (!(s.amt > 0)) i.push('IMR absent sur gros gain');
+    if (s.effRateOnGain < 0.28 || s.effRateOnGain > 0.40) i.push(`taux total an 1=${(s.effRateOnGain * 100).toFixed(1)} %`);
+    if (!near(s.net + s.amt, s.netAfterAmtRecovery, 1)) i.push('cohérence net/récupération brisée');
 });
 check('5. Vente', 'ECGC partielle déjà utilisée', (i) => {
     const s = E.saleNetProceeds({ price: 1000000, acb: 0, lcgeRemaining: 400000 });
@@ -390,10 +398,11 @@ check('8. Nouveautés', 'FSS sur dividendes : présent et ≤ 1 000 $', (i) => {
     if (!(d.fss > 0)) i.push('FSS absent des dividendes');
     if (d.fss > 1000 * (d.owners || 1)) i.push('FSS > max');
 });
-check('8. Nouveautés', 'Vente : FSS inclus dans l\'impôt du gain non exonéré', (i) => {
+check('8. Nouveautés', 'Vente : FSS inclus dans l\'impôt régulier du gain non exonéré', (i) => {
     const s = E.saleNetProceeds({ price: 2000000, acb: 0, lcgeRemaining: 1250000 });
     const noFss = E.personalTax({ ordinaryIncome: 375000 }).total;
-    if (!near(s.tax, noFss + 1000, 2)) i.push(`impôt=${Math.round(s.tax)} vs ${Math.round(noFss)}+FSS`);
+    if (!near(s.regularTax, noFss + 1000, 2)) i.push(`régulier=${Math.round(s.regularTax)} vs ${Math.round(noFss)}+FSS`);
+    if (!near(s.tax, s.regularTax + s.amt, 1)) i.push('total ≠ régulier + IMR');
 });
 check('8. Nouveautés', 'TPS/TVQ : clinique 100 % exonérée → pas d\'inscription', (i) => {
     const g = E.salesTaxInfo(400000, 0);
@@ -521,7 +530,8 @@ check('9. Cas complexes', 'Vente 8 M$ avec ECGC épuisée à moitié + gros PBR'
     if (!near(sale.gain, 6500000, 1)) i.push('gain incorrect');
     if (!near(sale.exempt, 625000, 1)) i.push('exonération incorrecte');
     if (!near(sale.taxableGain, (6500000 - 625000) * 0.5, 1)) i.push('gain imposable incorrect');
-    if (sale.net < sale.gain * 0.6) i.push('net incohérent');
+    if (sale.netAfterAmtRecovery < sale.gain * 0.6) i.push('net (après récupération IMR) incohérent');
+    if (!(sale.amt >= 0)) i.push('IMR invalide');
 });
 check('9. Cas complexes', 'Agri 12 M$ revenus, 92 % de charges, 3 associés, FSS primaire', (i) => {
     const profit = 12000000 * 0.08;
@@ -532,6 +542,115 @@ check('9. Cas complexes', 'Agri 12 M$ revenus, 92 % de charges, 3 associés, FSS
     fiscalInvariants(i, 'AGRI-TA', se, profit);
     fiscalInvariants(i, 'AGRI-SAL', sal, profit);
     fiscalInvariants(i, 'AGRI-MIX', mix, profit);
+});
+
+// ============================================================
+// GROUPE 10 — IMR, société de gestion, DPA, retraite, parts, AE, RAMQ
+// ============================================================
+check('10. Ajouts', 'IMR : nul sur petite vente (200 k$ exonérés)', (i) => {
+    const s = E.saleNetProceeds({ price: 200000, acb: 0, lcgeRemaining: 1250000 });
+    if (s.amt !== 0) i.push(`IMR=${Math.round(s.amt)} sur petit gain`);
+    if (s.tax !== 0) i.push('impôt non nul');
+});
+check('10. Ajouts', 'IMR : cohérence net + IMR = net après récupération', (i) => {
+    for (const price of [1000000, 2500000, 6000000]) {
+        const s = E.saleNetProceeds({ price: price, acb: 100000, lcgeRemaining: 1250000 });
+        if (!near(s.net + s.amt, s.netAfterAmtRecovery, 1)) i.push(`incohérence à ${price}`);
+        if (s.amt < 0) i.push('IMR négatif');
+    }
+});
+check('10. Ajouts', 'Société de gestion : 100 k$ intérêts → ~50,17 % dont 30,67 % remboursable', (i) => {
+    const r = E.passiveInvestmentTax({ interest: 100000 });
+    if (!near(r.totalTax, 50170, 5)) i.push(`impôt=${Math.round(r.totalTax)}`);
+    if (!near(r.refundable, 30670, 5)) i.push(`IMRTD=${Math.round(r.refundable)}`);
+    if (!near(r.netTaxIfDistributed, 19500, 10)) i.push('net après remboursement incorrect');
+    if (r.aaii !== 100000) i.push('RPTA incorrect');
+});
+check('10. Ajouts', 'Société de gestion : dividendes partie IV 100 % remboursables', (i) => {
+    const r = E.passiveInvestmentTax({ portfolioDividends: 80000 });
+    if (!near(r.totalTax, 80000 * 0.3833, 2)) i.push('partie IV incorrecte');
+    if (!near(r.refundable, r.totalTax, 1)) i.push('pas 100 % remboursable');
+});
+check('10. Ajouts', 'Société de gestion : gains 300 k$ → CDC 150 k$, RPTA 150 k$', (i) => {
+    const r = E.passiveInvestmentTax({ capitalGains: 300000 });
+    if (!near(r.cda, 150000, 1)) i.push(`CDC=${Math.round(r.cda)}`);
+    if (!near(r.aaii, 150000, 1)) i.push(`RPTA=${Math.round(r.aaii)}`);
+});
+check('10. Ajouts', 'DPA : catégories et FNACC de clôture', (i) => {
+    const r = E.ccaDeduction(200000, 100000, 0.20);
+    if (!near(r.total, 60000, 1)) i.push(`DPA=${Math.round(r.total)}`);
+    if (!near(r.closingUcc, 240000, 1)) i.push('FNACC clôture incorrecte');
+    if (E.ccaDeduction(0, 0, 0.3).total !== 0) i.push('zéro non géré');
+});
+check('10. Ajouts', 'Retraite RRQ : plafonné au MGA, proportionnel sous le MGA', (i) => {
+    const full = E.qppPensionAccrual(74600);
+    const half = E.qppPensionAccrual(37300);
+    if (!near(full.annualPension, 17200 / 40, 1)) i.push('accrual max incorrect');
+    if (!near(half.annualPension, full.annualPension / 2, 1)) i.push('proportionnalité brisée');
+    if (!near(E.qppPensionAccrual(200000).annualPension, full.annualPension, 0.01)) i.push('pas plafonné');
+});
+check('10. Ajouts', 'Parts 60/40 : identités comptables et somme = parts égales à 50/50', (i) => {
+    const uneq = E.scenarioSelfEmployed(200000, { shares: [0.6, 0.4] });
+    fiscalInvariants(i, 'P6040', uneq, 200000);
+    if (uneq.perOwner.length !== 2) i.push('perOwner incorrect');
+    if (!near(uneq.perOwner[0].gross, 120000, 1)) i.push('part 60 % mal appliquée');
+    const eq1 = E.scenarioSelfEmployed(200000, { shares: [0.5, 0.5] });
+    const eq2 = E.scenarioSelfEmployed(200000, { owners: 2 });
+    if (!near(eq1.totalLevies, eq2.totalLevies, 1)) i.push('50/50 ≠ owners:2');
+    // Progressivité sur l'IMPÔT seul (les cotisations RRQ plafonnées peuvent
+    // rendre 60/40 marginalement moins cher au total — vérifié à la main)
+    if (uneq.incomeTax < eq1.incomeTax - 1) i.push('impôt 60/40 < impôt 50/50 (progressivité violée)');
+});
+check('10. Ajouts', 'Parts en POURCENTAGES (70,30) ≡ fractions (0.7,0.3) — format de l\'interface', (i) => {
+    const pct = E.scenarioSelfEmployed(200000, { shares: [70, 30] });
+    const frac = E.scenarioSelfEmployed(200000, { shares: [0.7, 0.3] });
+    if (!near(pct.totalLevies, frac.totalLevies, 1)) i.push('pourcentages ≠ fractions');
+    if (pct.perOwner.length !== 2 || !near(pct.perOwner[0].share, 0.7, 0.001)) i.push('parts 70/30 mal normalisées');
+    const w = E.scenarioDividends(300000, 1, { qcSbdEligible: true, afterApril2026: true, shares: [50, 25, 25] });
+    if (w.perOwner.length !== 3) i.push('poids arbitraires rejetés');
+    fiscalInvariants(i, 'PCT', pct, 200000);
+});
+check('10. Ajouts', 'Parts invalides → repli sur parts égales', (i) => {
+    const bad = E.scenarioSelfEmployed(100000, { shares: [0, 0], owners: 2 });
+    const eq = E.scenarioSelfEmployed(100000, { owners: 2 });
+    if (!near(bad.totalLevies, eq.totalLevies, 1)) i.push('repli non appliqué');
+});
+check('10. Ajouts', 'Parts 60/40 dans dividendes et mix : invariants', (i) => {
+    const opts = { qcSbdEligible: true, afterApril2026: true, shares: [0.6, 0.4] };
+    fiscalInvariants(i, 'D6040', E.scenarioDividends(400000, 1, opts), 400000);
+    fiscalInvariants(i, 'M6040', E.optimizeMix(400000, 1, opts), 400000);
+});
+check('10. Ajouts', 'Déduction pour travailleurs : réduit le QC, plafonnée à 1 450 $', (i) => {
+    const sans = E.personalTax({ ordinaryIncome: 60000 });
+    const avec = E.personalTax({ ordinaryIncome: 60000, qcWorkIncome: 60000 });
+    const eco = sans.qc - avec.qc;
+    if (!(eco > 100)) i.push('aucun effet');
+    if (eco > 1450 * 0.2575 + 1) i.push(`économie ${Math.round(eco)} dépasse le plafond`);
+    if (!near(sans.fed, avec.fed, 0.01)) i.push('le fédéral ne devrait pas bouger');
+});
+check('10. Ajouts', 'AE : employé régulier vs actionnaire exempté', (i) => {
+    const avec = E.employerCostOfSalary(60000, 0.0165, 0.02, true);
+    const sans = E.employerCostOfSalary(60000, 0.0165, 0.02, false);
+    if (!near(avec.ei, 60000 * 0.0131 * 1.4, 1)) i.push('AE employeur incorrecte');
+    if (sans.ei !== 0) i.push('actionnaire devrait être exempté');
+    const cap = E.employerCostOfSalary(150000, 0.0165, 0.02, true);
+    if (!near(cap.ei, 68500 * 0.0131 * 1.4, 1)) i.push('AE non plafonnée');
+});
+check('10. Ajouts', 'RAMQ : ajoutée seulement sans assurance privée', (i) => {
+    const priv = E.scenarioSelfEmployed(80000, {});
+    const pub = E.scenarioSelfEmployed(80000, { noPrivateInsurance: true });
+    if (!near(pub.totalLevies - priv.totalLevies, 737, 1)) i.push('écart RAMQ ≠ 737');
+    fiscalInvariants(i, 'RAMQ', pub, 80000);
+    const pub3 = E.scenarioDividends(300000, 1, { qcSbdEligible: true, afterApril2026: true, owners: 3, noPrivateInsurance: true });
+    if (!near(pub3.ramq, 737 * 3, 1)) i.push('RAMQ multi-proprios incorrecte');
+});
+check('10. Ajouts', 'Toutes options combinées : parts 50/30/20, RAMQ, base 60 k$, grind, retrait 70 %', (i) => {
+    const opts = { qcSbdEligible: true, afterApril2026: true, shares: [0.5, 0.3, 0.2],
+                   baseIncome: 60000, noPrivateInsurance: true, passiveIncome: 70000,
+                   fssEmployerRate: 0.0165, otherPayrollPct: 0.02 };
+    fiscalInvariants(i, 'FULL-SAL', E.scenarioSalary(500000, 0.7, opts), 500000);
+    fiscalInvariants(i, 'FULL-DIV', E.scenarioDividends(500000, 0.7, opts), 500000);
+    fiscalInvariants(i, 'FULL-MIX', E.optimizeMix(500000, 0.7, opts), 500000);
 });
 
 // ============================================================
