@@ -682,10 +682,12 @@
             <p class="eyebrow">Une décision, un chiffre</p>
             <h1>50 000 $ dans votre gestion&nbsp;: <em>payer ou investir&nbsp;?</em></h1>
             <p class="lede">
-                Faire le paiement, c'est l'équivalent d'un rendement garanti d'environ
-                <strong>5&nbsp;% par année</strong>. C'est le seuil à battre — rien de plus, rien de moins.
-                Cette page vous montre, chiffres à l'appui, ce que le même 50&nbsp;000&nbsp;$ peut
-                faire s'il reste investi dans votre société de gestion.
+                Le capital est <strong>déjà dans votre société de gestion</strong>. La seule question&nbsp;:
+                est-ce qu'il en sort pour faire le paiement, ou est-ce qu'il y reste pour travailler&nbsp;?
+                Faire le paiement équivaut à un rendement garanti d'environ <strong>5&nbsp;% sur
+                l'année</strong> — c'est le seuil à battre, rien de plus, rien de moins. Cette page vous
+                montre, chiffres à l'appui, ce que le même 50&nbsp;000&nbsp;$ peut faire en un an là où
+                il se trouve déjà — et ce qui arrive si on le laisse courir.
             </p>
 
             <div class="fork" id="fork">
@@ -694,17 +696,18 @@
                     <h2>Faire le paiement</h2>
                     <p>Le capital sort de la société. La dépense d'environ 5&nbsp;% par année disparaît —
                         c'est un gain certain, mais plafonné, et l'argent ne travaille plus jamais pour vous.</p>
-                    <div class="opt-kpi">Valeur équivalente dans 10 ans
-                        <b class="num" id="kpiPaiement">81&nbsp;445&nbsp;$</b>
+                    <div class="opt-kpi">Valeur équivalente dans 1 an
+                        <b class="num" id="kpiPaiement">52&nbsp;500&nbsp;$</b>
                     </div>
                 </div>
                 <div class="option invest">
                     <p class="opt-label">Option B</p>
-                    <h2>Investir dans la gestion</h2>
-                    <p>Le capital reste votre actif. Il compose année après année dans un portefeuille
-                        aligné sur votre profil — avec la fiscalité avantageuse d'une société de gestion.</p>
-                    <div class="opt-kpi">Valeur projetée dans 10 ans à 7&nbsp;%
-                        <b class="num" id="kpiInvest">98&nbsp;358&nbsp;$</b>
+                    <h2>Le laisser travailler dans la gestion</h2>
+                    <p>Aucun déplacement, aucune sortie de fonds&nbsp;: le capital reste où il est et
+                        compose dans un portefeuille aligné sur votre profil — avec la fiscalité
+                        avantageuse d'une société de gestion.</p>
+                    <div class="opt-kpi">Valeur projetée dans 1 an à 7&nbsp;%
+                        <b class="num" id="kpiInvest">53&nbsp;500&nbsp;$</b>
                     </div>
                 </div>
             </div>
@@ -715,7 +718,9 @@
             <div class="sec-head">
                 <h2>Faites le calcul vous-même</h2>
                 <p>Ajustez les hypothèses — le graphique et l'écart se recalculent instantanément.
-                    L'option paiement est la ligne pointillée&nbsp;: c'est elle qu'il faut dépasser.</p>
+                    L'option paiement est la ligne pointillée&nbsp;: c'est elle qu'il faut dépasser.
+                    Commencez sur un an, puis étirez l'horizon&nbsp;: c'est là que l'écart devient
+                    spectaculaire.</p>
             </div>
 
             <div class="sim">
@@ -731,8 +736,9 @@
                             selon votre profil d'investisseur.</p>
                     </div>
                     <div class="controle">
-                        <label for="inHorizon">Horizon <output id="outHorizon" for="inHorizon">10 ans</output></label>
-                        <input type="range" id="inHorizon" min="1" max="25" step="1" value="10">
+                        <label for="inHorizon">Horizon <output id="outHorizon" for="inHorizon">1 an</output></label>
+                        <input type="range" id="inHorizon" min="1" max="25" step="1" value="1">
+                        <p class="hint">La décision se joue sur un an — mais rien n'oblige à s'arrêter là.</p>
                     </div>
                     <div class="controle">
                         <label for="inSeuil">Seuil à battre (option paiement) <output id="outSeuil" for="inSeuil">5,0 %</output></label>
@@ -745,18 +751,18 @@
                     <div class="tuiles">
                         <div class="tuile">
                             <p class="t-label"><span class="pastille or"></span>Investi</p>
-                            <p class="t-val num" id="tuileInvest">98 358 $</p>
-                            <p class="t-sub num" id="tuileInvestSub">à 7,0 % sur 10 ans</p>
+                            <p class="t-val num" id="tuileInvest">53 500 $</p>
+                            <p class="t-sub num" id="tuileInvestSub">à 7,0 % sur 1 an</p>
                         </div>
                         <div class="tuile">
                             <p class="t-label"><span class="pastille bleu"></span>Paiement</p>
-                            <p class="t-val num" id="tuilePaiement">81 445 $</p>
+                            <p class="t-val num" id="tuilePaiement">52 500 $</p>
                             <p class="t-sub num" id="tuilePaiementSub">équivalent à 5,0 % garanti</p>
                         </div>
                         <div class="tuile avantage">
                             <p class="t-label">Avantage net à investir</p>
-                            <p class="t-val num" id="tuileEcart">+16 927 $</p>
-                            <p class="t-sub num" id="tuileEcartSub">soit 20,8 % de plus que l'option paiement</p>
+                            <p class="t-val num" id="tuileEcart">+1 000 $</p>
+                            <p class="t-sub num" id="tuileEcartSub">soit 1,9 % de plus que l'option paiement</p>
                         </div>
                     </div>
 
@@ -776,9 +782,9 @@
                     </details>
 
                     <p class="bascule" id="phraseBascule">
-                        Chaque point de rendement au-dessus du seuil vaut <b>≈ 9 500 $</b> de plus
-                        sur cet horizon. Et chaque année d'attente avant d'investir coûte
-                        <b>≈ 6 400 $</b> de valeur finale.
+                        Chaque point de rendement au-dessus de 7,0 % vaut <b>≈ 500 $</b> de plus
+                        sur 1 an. Et chaque année d'attente avant d'investir coûte
+                        <b>≈ 3 500 $</b> de valeur finale.
                     </p>
                 </div>
             </div>
@@ -812,10 +818,11 @@
             </div>
 
             <p class="bascule">
-                Le paiement offre un 5&nbsp;% certain — c'est vrai, et il faut le dire. Mais avec un
-                horizon de 10&nbsp;ans et plus, une stratégie équilibrée ou de croissance vise
-                précisément la zone <b>au-dessus</b> de ce seuil. Le risque se gère par le profil,
-                la diversification et le temps — pas en renonçant au potentiel.
+                Le paiement offre un 5&nbsp;% certain — c'est vrai, et il faut le dire. Mais une
+                stratégie équilibrée ou de croissance vise précisément la zone <b>au-dessus</b> de
+                ce seuil — et sur un an, l'écart à combler n'est que de quelques points. Le risque
+                se gère par le profil et la diversification&nbsp;; et si le capital peut rester
+                investi au-delà de l'année, le temps transforme cet écart en montagne.
             </p>
         </section>
 
@@ -831,10 +838,11 @@
             <div class="cartes-fiscales">
                 <div class="carte-f">
                     <p class="cf-num">Avantage 01</p>
-                    <h3>Chaque dollar de la gestion est un dollar avant impôt personnel</h3>
-                    <p>Pour investir le même montant personnellement, il faudrait d'abord vous verser un
-                        dividende… imposable. L'argent qui reste dans la société travaille donc sur une
-                        base plus grosse dès le départ.</p>
+                    <h3>Ce 50 000 $ est déjà de l'argent avant impôt personnel</h3>
+                    <p>Il est déjà au meilleur endroit pour investir&nbsp;: pour bâtir le même
+                        portefeuille personnellement, il faudrait d'abord vous verser un dividende…
+                        imposable. En restant dans la société, le capital travaille au complet, sans
+                        passer par l'impôt.</p>
                     <div class="mini">
                         <div class="controle">
                             <label for="inTaux">Votre taux marginal sur dividende
@@ -910,11 +918,12 @@
                 <details class="obj">
                     <summary>«&nbsp;Et si les marchés baissent&nbsp;?&nbsp;»</summary>
                     <div class="obj-corps">
-                        Ils baisseront — certaines années. La question n'est pas d'éviter la volatilité,
-                        mais de lui donner le temps de jouer pour vous&nbsp;: sur des horizons de
-                        10&nbsp;ans et plus, les portefeuilles diversifiés ont historiquement traversé
-                        les cycles. C'est exactement pourquoi on calibre la stratégie sur votre profil
-                        de risque et votre horizon avant d'investir un seul dollar.
+                        C'est possible — sur un an, aucun portefeuille de marché n'est garanti, et il
+                        faut le dire franchement. C'est exactement pourquoi la stratégie se calibre sur
+                        votre profil et votre vrai horizon avant d'investir un seul dollar&nbsp;: si le
+                        paiement peut attendre ou s'étaler, chaque année de plus donne au capital le
+                        temps de traverser les cycles — et historiquement, c'est le temps qui fait
+                        gagner les portefeuilles diversifiés.
                     </div>
                 </details>
                 <details class="obj">
@@ -953,8 +962,8 @@
             <p class="eyebrow">Le verdict, avec vos chiffres</p>
             <h2>Le paiement rapporte 5&nbsp;%. Votre capital peut viser mieux — et le rester.</h2>
             <p class="phrase-live num" id="phraseVerdict">
-                À 7,0 % net, votre 50 000 $ vaut 98 358 $ dans 10 ans —
-                soit 16 927 $ de plus que l'option paiement. Dans votre société de gestion,
+                À 7,0 % net, votre 50 000 $ vaut 53 500 $ dans 1 an —
+                soit 1 000 $ de plus que l'option paiement. Dans votre société de gestion,
                 avec la fiscalité qui joue pour vous.
             </p>
             <div class="cta-rang">
@@ -986,8 +995,8 @@
 
     <!-- Barre verdict flottante -->
     <div class="barre-verdict" id="barreVerdict" aria-hidden="true">
-        <span class="bv-texte num" id="bvTexte">Avantage à investir&nbsp;: <b>+16 927 $</b>
-            <span class="long">sur 10 ans à 7,0 % net</span></span>
+        <span class="bv-texte num" id="bvTexte">Avantage à investir&nbsp;: <b>+1 000 $</b>
+            <span class="long">sur 1 an à 7,0 % net</span></span>
         <a href="#verdict">Voir le verdict</a>
     </div>
 
@@ -999,6 +1008,7 @@
         const fmt$ = new Intl.NumberFormat("fr-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 });
         const fmtPct = v => v.toLocaleString("fr-CA", { minimumFractionDigits: 1, maximumFractionDigits: 2 }) + " %";
         const fv = (p, r, n) => p * Math.pow(1 + r / 100, n);
+        const anLbl = n => n + (n > 1 ? " ans" : " an");
 
         const C = {
             or: "#BD8830", bleu: "#4D90D6",
@@ -1009,7 +1019,7 @@
         const FONT = "'Outfit','Avenir Next','Segoe UI',sans-serif";
 
         /* ---------- État ---------- */
-        const etat = { montant: 50000, rendement: 7, horizon: 10, seuil: 5, taux: 40 };
+        const etat = { montant: 50000, rendement: 7, horizon: 1, seuil: 5, taux: 40 };
 
         /* ---------- Canvas haute densité ---------- */
         function prepCanvas(canvas, cssH) {
@@ -1026,7 +1036,7 @@
         /* ============================================================
            GRAPHIQUE 1 — courbes investi vs seuil
            ============================================================ */
-        const geoCourbes = { x0: 0, x1: 0, y0: 0, y1: 0, maxV: 1 };
+        const geoCourbes = { x0: 0, x1: 0, y0: 0, y1: 0, minV: 0, maxV: 1 };
 
         function serieAnnees() {
             const inv = [], pay = [];
@@ -1041,27 +1051,32 @@
             const { ctx, w, h } = prepCanvas($("chartCourbes"), 340);
             const { inv, pay } = serieAnnees();
             const n = etat.horizon;
-            const maxV = Math.max(inv[n], pay[n]) * 1.06;
+            /* Axe ancré au capital initial : sur un horizon court, un axe partant
+               de zéro écraserait l'écart entre les deux options. */
+            const haut = Math.max(inv[n], pay[n]);
+            const minV = Math.max(0, etat.montant - (haut - etat.montant) * 0.06);
+            const maxV = haut + (haut - etat.montant) * 0.06;
 
-            const padL = 74, padR = 16, padT = 18, padB = 34;
+            const petit = (maxV - minV) < 6000;
+            const padL = petit ? 86 : 74, padR = 16, padT = 18, padB = 34;
             const x0 = padL, x1 = w - padR, y0 = h - padB, y1 = padT;
-            Object.assign(geoCourbes, { x0, x1, y0, y1, maxV });
+            Object.assign(geoCourbes, { x0, x1, y0, y1, minV, maxV });
 
             const X = a => x0 + (a / n) * (x1 - x0);
-            const Y = v => y0 - (v / maxV) * (y0 - y1);
+            const Y = v => y0 - ((v - minV) / (maxV - minV)) * (y0 - y1);
 
             ctx.clearRect(0, 0, w, h);
             ctx.font = "11px " + FONT;
 
             /* grille horizontale + étiquettes $ */
-            const pas = niceStep(maxV / 4);
+            const pas = niceStep((maxV - minV) / 4);
             ctx.textAlign = "right"; ctx.textBaseline = "middle";
-            for (let v = 0; v <= maxV; v += pas) {
+            for (let v = Math.ceil(minV / pas) * pas; v <= maxV; v += pas) {
                 const y = Y(v);
                 ctx.strokeStyle = C.grille; ctx.lineWidth = 1;
                 ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
                 ctx.fillStyle = C.sourd;
-                ctx.fillText(kFmt(v), x0 - 10, y);
+                ctx.fillText(petit ? fmt$.format(v) : kFmt(v), x0 - 10, y);
             }
 
             /* étiquettes années */
@@ -1098,11 +1113,11 @@
             ctx.textAlign = "right"; ctx.textBaseline = "bottom";
             ctx.font = "700 12px " + FONT;
             ctx.fillStyle = C.beige;
-            ctx.fillText(kFmt(inv[n]), X(n) - 4, Y(inv[n]) - 8);
+            ctx.fillText(petit ? fmt$.format(inv[n]) : kFmt(inv[n]), X(n) - 4, Y(inv[n]) - 8);
             ctx.fillStyle = C.sourd;
             const yPayLbl = Math.min(Y(pay[n]) + 20, y0 - 4);
             ctx.textBaseline = "top";
-            ctx.fillText(kFmt(pay[n]), X(n) - 4, yPayLbl);
+            ctx.fillText(petit ? fmt$.format(pay[n]) : kFmt(pay[n]), X(n) - 4, yPayLbl);
         }
 
         function pointFinal(ctx, x, y, coul) {
@@ -1138,7 +1153,7 @@
                 const dpr = window.devicePixelRatio || 1;
                 ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
                 const X = x0 + (a / n) * (x1 - x0);
-                const Y = v => geoCourbes.y0 - (v / geoCourbes.maxV) * (geoCourbes.y0 - geoCourbes.y1);
+                const Y = v => geoCourbes.y0 - ((v - geoCourbes.minV) / (geoCourbes.maxV - geoCourbes.minV)) * (geoCourbes.y0 - geoCourbes.y1);
                 ctx.strokeStyle = "rgba(234,224,213,0.25)"; ctx.lineWidth = 1;
                 ctx.beginPath(); ctx.moveTo(X, geoCourbes.y1); ctx.lineTo(X, geoCourbes.y0); ctx.stroke();
                 [[inv[a], C.or], [pay[a], C.bleu]].forEach(([v, c]) => {
@@ -1256,7 +1271,7 @@
                 const valFin = fv(etat.montant, hit.s.r, etat.horizon);
                 tip.innerHTML = "<b>" + hit.s.nom + "</b><br>" +
                     "Hypothèse : <b>" + fmtPct(hit.s.r) + "</b> / an<br>" +
-                    fmt$.format(etat.montant) + " sur " + etat.horizon + " ans → <b>" + fmt$.format(valFin) + "</b><br>" +
+                    fmt$.format(etat.montant) + " sur " + anLbl(etat.horizon) + " → <b>" + fmt$.format(valFin) + "</b><br>" +
                     (hit.s.r > etat.seuil
                         ? "Franchit le seuil de " + fmtPct(etat.seuil)
                         : "Sous le seuil de " + fmtPct(etat.seuil));
@@ -1281,7 +1296,7 @@
             $("tableCourbes").innerHTML = html;
 
             let h2 = "<tr><th>Stratégie</th><th>Hypothèse / an</th><th>" +
-                fmt$.format(etat.montant) + " sur " + etat.horizon + " ans</th></tr>";
+                fmt$.format(etat.montant) + " sur " + anLbl(etat.horizon) + "</th></tr>";
             SCENARIOS.forEach(s => {
                 h2 += "<tr><td>" + s.nom + "</td><td>" + fmtPct(s.r) + "</td><td>" +
                     fmt$.format(fv(etat.montant, s.r, etat.horizon)) + "</td></tr>";
@@ -1309,12 +1324,12 @@
             $("kpiPaiement").textContent = fmt$.format(vPay);
             $("kpiInvest").textContent = fmt$.format(vInv);
             const kpiInvLbl = $("kpiInvest").parentElement;
-            kpiInvLbl.childNodes[0].textContent = "Valeur projetée dans " + horizon + " ans à " + fmtPct(rendement).replace(" %", " %") + " ";
-            $("kpiPaiement").parentElement.childNodes[0].textContent = "Valeur équivalente dans " + horizon + " ans ";
+            kpiInvLbl.childNodes[0].textContent = "Valeur projetée dans " + anLbl(horizon) + " à " + fmtPct(rendement) + " ";
+            $("kpiPaiement").parentElement.childNodes[0].textContent = "Valeur équivalente dans " + anLbl(horizon) + " ";
 
             /* tuiles */
             $("tuileInvest").textContent = fmt$.format(vInv);
-            $("tuileInvestSub").textContent = "à " + fmtPct(rendement) + " sur " + horizon + " ans";
+            $("tuileInvestSub").textContent = "à " + fmtPct(rendement) + " sur " + anLbl(horizon);
             $("tuilePaiement").textContent = fmt$.format(vPay);
             $("tuilePaiementSub").textContent = "équivalent à " + fmtPct(seuil) + " garanti";
             $("tuileEcart").textContent = (ecart >= 0 ? "+" : "−") + fmt$.format(Math.abs(ecart));
@@ -1327,20 +1342,20 @@
             const coutDelai = horizon > 1 ? vInv - fv(montant, rendement, horizon - 1) : vInv - montant;
             $("phraseBascule").innerHTML =
                 "Chaque point de rendement au-dessus de " + fmtPct(rendement) + " vaut <b>≈ " +
-                fmt$.format(valPoint) + "</b> de plus sur " + horizon + " ans. Et chaque année d'attente " +
+                fmt$.format(valPoint) + "</b> de plus sur " + anLbl(horizon) + ". Et chaque année d'attente " +
                 "avant d'investir coûte <b>≈ " + fmt$.format(coutDelai) + "</b> de valeur finale.";
 
             /* verdict */
             $("phraseVerdict").innerHTML =
                 "À <b>" + fmtPct(rendement) + "</b> net, votre " + fmt$.format(montant) + " vaut <b>" +
-                fmt$.format(vInv) + "</b> dans " + horizon + " ans — soit <b>" +
+                fmt$.format(vInv) + "</b> dans " + anLbl(horizon) + " — soit <b>" +
                 fmt$.format(ecart) + "</b> de " + (ecart >= 0 ? "plus" : "moins") +
                 " que l'option paiement. Dans votre société de gestion, avec la fiscalité qui joue pour vous.";
 
             /* barre flottante */
             $("bvTexte").innerHTML = "Avantage à investir&nbsp;: <b>" +
                 (ecart >= 0 ? "+" : "−") + fmt$.format(Math.abs(ecart)) + "</b> <span class='long'>sur " +
-                horizon + " ans à " + fmtPct(rendement) + " net</span>";
+                anLbl(horizon) + " à " + fmtPct(rendement) + " net</span>";
 
             dessineCourbes();
             dessineScenarios();
