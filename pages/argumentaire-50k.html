@@ -682,30 +682,32 @@
             <p class="eyebrow">Une décision, un chiffre</p>
             <h1>50 000 $ dans votre gestion&nbsp;: <em>payer ou investir&nbsp;?</em></h1>
             <p class="lede">
-                Le capital est <strong>déjà dans votre société de gestion</strong>. La seule question&nbsp;:
-                est-ce qu'il en sort pour faire le paiement, ou est-ce qu'il y reste pour travailler&nbsp;?
-                Faire le paiement équivaut à un rendement garanti d'environ <strong>5&nbsp;% sur
-                l'année</strong> — c'est le seuil à battre, rien de plus, rien de moins. Cette page vous
-                montre, chiffres à l'appui, ce que le même 50&nbsp;000&nbsp;$ peut faire en un an là où
-                il se trouve déjà — et ce qui arrive si on le laisse courir.
+                Le capital est <strong>déjà dans votre société de gestion</strong>. Payer comptant ne
+                coûte aucun intérêt — mais le 50&nbsp;000&nbsp;$ sort et ne travaille plus. Financer le
+                paiement coûte environ <strong>4,5&nbsp;% d'intérêt</strong>, et le capital reste
+                investi. Le vrai seuil à battre est donc 4,5&nbsp;% — et nous plaçons la barre à
+                <strong>5&nbsp;%</strong>, au-dessus du coût réel, par simple discipline&nbsp;: si le
+                placement doit gagner, qu'il gagne avec une marge.
             </p>
 
             <div class="fork" id="fork">
                 <div class="option">
                     <p class="opt-label">Option A</p>
-                    <h2>Faire le paiement</h2>
-                    <p>Le capital sort de la société. La dépense d'environ 5&nbsp;% par année disparaît —
-                        c'est un gain certain, mais plafonné, et l'argent ne travaille plus jamais pour vous.</p>
+                    <h2>Payer comptant</h2>
+                    <p>Aucun intérêt à payer — c'est l'attrait. Mais le capital sort de la société et ne
+                        travaille plus jamais. L'économie réelle, c'est le financement évité&nbsp;:
+                        environ 4,5&nbsp;% par année. Un gain certain, mais plafonné là.</p>
                     <div class="opt-kpi">Valeur équivalente dans 1 an
                         <b class="num" id="kpiPaiement">52&nbsp;500&nbsp;$</b>
                     </div>
                 </div>
                 <div class="option invest">
                     <p class="opt-label">Option B</p>
-                    <h2>Le laisser travailler dans la gestion</h2>
-                    <p>Aucun déplacement, aucune sortie de fonds&nbsp;: le capital reste où il est et
-                        compose dans un portefeuille aligné sur votre profil — avec la fiscalité
-                        avantageuse d'une société de gestion.</p>
+                    <h2>Financer, et laisser le capital travailler</h2>
+                    <p>Le paiement s'étale à ~4,5&nbsp;% d'intérêt pendant que le 50&nbsp;000&nbsp;$
+                        reste investi dans la gestion, aligné sur votre profil. Chaque point de
+                        rendement au-dessus du coût du financement est du gain net — dans un
+                        environnement fiscalement avantageux.</p>
                     <div class="opt-kpi">Valeur projetée dans 1 an à 7&nbsp;%
                         <b class="num" id="kpiInvest">53&nbsp;500&nbsp;$</b>
                     </div>
@@ -741,9 +743,10 @@
                         <p class="hint">La décision se joue sur un an — mais rien n'oblige à s'arrêter là.</p>
                     </div>
                     <div class="controle">
-                        <label for="inSeuil">Seuil à battre (option paiement) <output id="outSeuil" for="inSeuil">5,0 %</output></label>
+                        <label for="inSeuil">Seuil à battre (coût du financement) <output id="outSeuil" for="inSeuil">5,0 %</output></label>
                         <input type="range" id="inSeuil" min="3" max="8" step="0.25" value="5">
-                        <p class="hint">Le «&nbsp;rendement garanti&nbsp;» qu'offre le paiement évité.</p>
+                        <p class="hint">Coût réel du financement&nbsp;: ~4,5&nbsp;%. On fixe la barre à
+                            5&nbsp;% pour exiger une marge de sécurité au placement.</p>
                     </div>
                 </div>
 
@@ -818,11 +821,12 @@
             </div>
 
             <p class="bascule">
-                Le paiement offre un 5&nbsp;% certain — c'est vrai, et il faut le dire. Mais une
-                stratégie équilibrée ou de croissance vise précisément la zone <b>au-dessus</b> de
-                ce seuil — et sur un an, l'écart à combler n'est que de quelques points. Le risque
-                se gère par le profil et la diversification&nbsp;; et si le capital peut rester
-                investi au-delà de l'année, le temps transforme cet écart en montagne.
+                Payer comptant offre un ~4,5&nbsp;% certain — c'est vrai, et il faut le dire. Notre
+                barre de 5&nbsp;% est déjà <b>au-dessus</b> de ce coût réel&nbsp;: une marge de
+                sécurité intégrée d'avance dans la gestion des attentes. Une stratégie équilibrée ou
+                de croissance vise précisément la zone au-delà de ce seuil&nbsp;; le risque se gère
+                par le profil et la diversification — et si le capital peut rester investi au-delà
+                de l'année, le temps transforme cet écart en montagne.
             </p>
         </section>
 
@@ -895,7 +899,8 @@
                     <p>Le capital investi demeure liquide&nbsp;: il peut être redéployé, servir de coussin
                         ou appuyer un financement futur de la société. Une fois le paiement fait,
                         cette option n'existe plus. Investir, c'est garder <strong>le rendement et la
-                        flexibilité</strong> — le paiement n'offre ni l'un ni l'autre au-delà de son 5&nbsp;%.</p>
+                        flexibilité</strong> — le paiement comptant n'offre ni l'un ni l'autre au-delà
+                        de l'intérêt évité.</p>
                 </div>
             </div>
 
@@ -927,13 +932,14 @@
                     </div>
                 </details>
                 <details class="obj">
-                    <summary>«&nbsp;Payer, c'est un rendement garanti. Pourquoi prendre un risque&nbsp;?&nbsp;»</summary>
+                    <summary>«&nbsp;Payer comptant, c'est zéro intérêt. Pourquoi me financer&nbsp;?&nbsp;»</summary>
                     <div class="obj-corps">
-                        C'est l'argument le plus sérieux, et il mérite une réponse honnête&nbsp;: oui,
-                        le paiement est un 5&nbsp;% sans risque. Mais il est aussi <em>plafonné à
-                        5&nbsp;%</em>, il consomme le capital, et il renonce aux avantages fiscaux de la
-                        gestion. Investir, c'est échanger un plafond contre un potentiel — encadré par
-                        un profil de risque, pas par la chance.
+                        C'est l'argument le plus sérieux, et il mérite une réponse honnête&nbsp;: payer
+                        comptant «&nbsp;rapporte&nbsp;» le financement évité, environ 4,5&nbsp;% sans
+                        risque. Mais c'est <em>plafonné là</em>, ça consomme le capital, et ça renonce
+                        aux avantages fiscaux de la gestion. C'est d'ailleurs pourquoi on place la barre
+                        à 5&nbsp;% — au-dessus du coût réel&nbsp;: si le placement ne peut pas viser
+                        mieux que le financement <em>avec une marge</em>, on ne le recommande pas.
                     </div>
                 </details>
                 <details class="obj">
@@ -960,7 +966,7 @@
         <!-- ================= VERDICT ================= -->
         <div class="verdict" id="verdict">
             <p class="eyebrow">Le verdict, avec vos chiffres</p>
-            <h2>Le paiement rapporte 5&nbsp;%. Votre capital peut viser mieux — et le rester.</h2>
+            <h2>Payer comptant rapporte 4,5&nbsp;%, une fois. Votre capital peut viser mieux — et le rester.</h2>
             <p class="phrase-live num" id="phraseVerdict">
                 À 7,0 % net, votre 50 000 $ vaut 53 500 $ dans 1 an —
                 soit 1 000 $ de plus que l'option paiement. Dans votre société de gestion,
