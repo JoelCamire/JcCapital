@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>50 000 $ : payer ou investir ? – JC Capital</title>
+    <meta name="description"
+        content="Argumentaire interactif : au lieu de faire un paiement, investir 50 000 $ dans votre société de gestion. Simulez le rendement, l'écart face au seuil de 5 % et les avantages fiscaux." />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/png" href="../img/favicon-32.png">
+    <!-- Google Fonts: Outfit (police du site — repli système élégant si hors ligne) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================================
+           JC Capital — Argumentaire « 50 000 $ : payer ou investir ? »
+           Thème unique assumé : l'identité sombre du site (noir, bleu
+           profond, beige, or). Tous les fonds et encres sont peints
+           explicitement — la page tient sur n'importe quel hôte.
+           ============================================================ */
+        :root {
+            --noir: #0A0908;
+            --bleu: #22333B;
+            --bleu-panneau: #1C2B32;
+            --beige: #EAE0D5;
+            --beige-doux: #C9BCA9;
+            --beige-sourd: #9C917F;
+            --or: #C6AC8F;
+            --brun: #5E503F;
+            /* Séries de données (validées CVD sur surface #22333B) */
+            --d-or: #BD8830;
+            --d-bleu: #4D90D6;
+            --grille: rgba(234, 224, 213, 0.08);
+            --font-main: 'Outfit', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-main);
+            font-weight: 300;
+            background-color: var(--noir);
+            background-image:
+                radial-gradient(circle at 50% -10%, var(--bleu) 0%, var(--noir) 62%);
+            background-repeat: no-repeat;
+            color: var(--beige);
+            line-height: 1.6;
+            overflow-x: clip;
+        }
+
+        ::selection { background: var(--or); color: var(--noir); }
+
+        a { color: var(--or); }
+
+        strong { font-weight: 700; color: var(--beige); }
+
+        .num { font-variant-numeric: tabular-nums; }
+
+        .wrap {
+            max-width: 1060px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ---------- En-tête ---------- */
+        header.top {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 26px 0 0;
+        }
+
+        .wordmark {
+            font-weight: 800;
+            font-size: 1.15rem;
+            letter-spacing: 0.02em;
+            color: var(--beige);
+            text-decoration: none;
+        }
+
+        .wordmark span { color: var(--or); }
+
+        .doc-tag {
+            font-size: 0.72rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--beige-sourd);
+        }
+
+        /* ---------- Héros ---------- */
+        .hero { padding: 72px 0 24px; }
+
+        .eyebrow {
+            font-size: 0.78rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: var(--or);
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            font-size: clamp(2.1rem, 5.4vw, 3.6rem);
+            font-weight: 800;
+            line-height: 1.08;
+            letter-spacing: -0.015em;
+            text-wrap: balance;
+            max-width: 17ch;
+        }
+
+        h1 em {
+            font-style: normal;
+            color: var(--or);
+        }
+
+        .hero p.lede {
+            margin-top: 22px;
+            max-width: 58ch;
+            font-size: 1.08rem;
+            color: var(--beige-doux);
+        }
+
+        /* La fourche : deux options */
+        .fork {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin: 44px 0 0;
+        }
+
+        .option {
+            border: 1px solid var(--brun);
+            border-radius: 14px;
+            padding: 26px 24px 24px;
+            background: rgba(34, 51, 59, 0.45);
+        }
+
+        .option.invest {
+            background: linear-gradient(160deg, rgba(198, 172, 143, 0.13), rgba(34, 51, 59, 0.55) 55%);
+            border-color: var(--or);
+        }
+
+        .option .opt-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--beige-sourd);
+        }
+
+        .option.invest .opt-label { color: var(--or); }
+
+        .option h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin: 8px 0 10px;
+            line-height: 1.2;
+        }
+
+        .option p { font-size: 0.95rem; color: var(--beige-doux); max-width: 42ch; }
+
+        .option .opt-kpi {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(94, 80, 63, 0.6);
+            font-size: 0.9rem;
+            color: var(--beige-sourd);
+        }
+
+        .option .opt-kpi b {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--beige);
+        }
+
+        .option.invest .opt-kpi b { color: var(--or); }
+
+        /* ---------- Sections ---------- */
+        section { padding: 84px 0 0; }
+
+        .sec-head { max-width: 640px; margin-bottom: 34px; }
+
+        .sec-head h2 {
+            font-size: clamp(1.5rem, 3.2vw, 2.1rem);
+            font-weight: 700;
+            line-height: 1.15;
+            letter-spacing: -0.01em;
+            text-wrap: balance;
+        }
+
+        .sec-head p { margin-top: 12px; color: var(--beige-doux); }
+
+        /* ---------- Simulateur ---------- */
+        .sim {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 22px;
+            align-items: start;
+        }
+
+        .panneau {
+            background: rgba(34, 51, 59, 0.7);
+            border: 1px solid var(--brun);
+            border-radius: 14px;
+            padding: 24px;
+        }
+
+        .controle { margin-bottom: 22px; }
+
+        .controle:last-child { margin-bottom: 0; }
+
+        .controle label {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--beige-doux);
+            margin-bottom: 8px;
+        }
+
+        .controle output {
+            font-size: 1.02rem;
+            font-weight: 700;
+            color: var(--or);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--brun);
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--or);
+            border: 3px solid var(--noir);
+            box-shadow: 0 0 0 1px var(--or);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--or);
+            border: 3px solid var(--noir);
+            box-shadow: 0 0 0 1px var(--or);
+        }
+
+        input[type="range"]:focus-visible {
+            box-shadow: 0 0 0 3px rgba(198, 172, 143, 0.45);
+        }
+
+        .hint {
+            font-size: 0.76rem;
+            color: var(--beige-sourd);
+            margin-top: 7px;
+            line-height: 1.45;
+        }
+
+        /* Tuiles de résultat */
+        .tuiles {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .tuile {
+            background: rgba(34, 51, 59, 0.7);
+            border: 1px solid var(--brun);
+            border-radius: 12px;
+            padding: 16px 18px;
+        }
+
+        .tuile .t-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.74rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--beige-sourd);
+        }
+
+        .pastille {
+            width: 9px; height: 9px;
+            border-radius: 50%;
+            flex: none;
+        }
+
+        .pastille.or { background: var(--d-or); }
+        .pastille.bleu { background: var(--d-bleu); }
+
+        .tuile .t-val {
+            font-size: clamp(1.25rem, 2.6vw, 1.7rem);
+            font-weight: 800;
+            color: var(--beige);
+            margin-top: 6px;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .tuile .t-sub {
+            font-size: 0.78rem;
+            color: var(--beige-sourd);
+            margin-top: 2px;
+        }
+
+        .tuile.avantage {
+            background: linear-gradient(150deg, rgba(189, 136, 48, 0.22), rgba(34, 51, 59, 0.7) 60%);
+            border-color: var(--or);
+        }
+
+        .tuile.avantage .t-val { color: var(--or); }
+
+        /* Graphiques */
+        .chart-box { position: relative; }
+
+        .chart-box canvas {
+            display: block;
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .tooltip {
+            position: absolute;
+            pointer-events: none;
+            background: var(--noir);
+            border: 1px solid var(--brun);
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: var(--beige-doux);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.12s ease;
+            z-index: 5;
+        }
+
+        .tooltip b { color: var(--beige); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+        .legende {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            margin-top: 12px;
+            font-size: 0.82rem;
+            color: var(--beige-doux);
+        }
+
+        .legende .lg { display: inline-flex; align-items: center; gap: 8px; }
+
+        .lg i {
+            width: 18px; height: 0;
+            border-top: 3px solid;
+            border-radius: 2px;
+            flex: none;
+        }
+
+        .lg.or i { border-color: var(--d-or); }
+        .lg.bleu i { border-color: var(--d-bleu); border-top-style: dashed; }
+
+        details.donnees { margin-top: 14px; font-size: 0.85rem; }
+
+        details.donnees summary {
+            cursor: pointer;
+            color: var(--beige-sourd);
+            font-size: 0.8rem;
+        }
+
+        details.donnees summary:focus-visible { outline: 2px solid var(--or); outline-offset: 2px; }
+
+        details.donnees .table-scroll { overflow-x: auto; margin-top: 10px; }
+
+        details.donnees table { border-collapse: collapse; min-width: 420px; }
+
+        details.donnees th, details.donnees td {
+            text-align: right;
+            padding: 5px 14px;
+            border-bottom: 1px solid rgba(94, 80, 63, 0.5);
+            font-variant-numeric: tabular-nums;
+            color: var(--beige-doux);
+            font-weight: 300;
+        }
+
+        details.donnees th { color: var(--beige); font-weight: 500; }
+
+        details.donnees th:first-child, details.donnees td:first-child { text-align: left; }
+
+        .note-chart {
+            margin-top: 14px;
+            font-size: 0.78rem;
+            color: var(--beige-sourd);
+            max-width: 68ch;
+        }
+
+        /* Phrase de bascule */
+        .bascule {
+            margin-top: 26px;
+            border-left: 3px solid var(--or);
+            padding: 6px 0 6px 20px;
+            font-size: 1.05rem;
+            color: var(--beige-doux);
+            max-width: 62ch;
+        }
+
+        .bascule b { color: var(--or); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+        /* ---------- Avantage société de gestion ---------- */
+        .cartes-fiscales {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .carte-f {
+            background: rgba(34, 51, 59, 0.55);
+            border: 1px solid var(--brun);
+            border-radius: 14px;
+            padding: 24px;
+        }
+
+        .carte-f .cf-num {
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: var(--or);
+            text-transform: uppercase;
+        }
+
+        .carte-f h3 {
+            font-size: 1.12rem;
+            font-weight: 700;
+            margin: 8px 0 10px;
+            line-height: 1.25;
+            text-wrap: balance;
+        }
+
+        .carte-f p { font-size: 0.92rem; color: var(--beige-doux); }
+
+        .carte-f .mini {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(94, 80, 63, 0.6);
+        }
+
+        /* Barres CDC */
+        .cdc-barres { display: grid; gap: 8px; margin-top: 10px; }
+
+        .cdc-ligne { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 10px; font-size: 0.8rem; color: var(--beige-sourd); }
+
+        .barre-rang { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+        .cdc-ligne .barre {
+            height: 22px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--noir);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            flex: none;
+            width: 44%;
+        }
+
+        .barre.imposable { background: var(--beige-sourd); }
+        .barre.cdc { background: var(--d-or); color: #0A0908; }
+
+        .cdc-note {
+            font-size: 0.76rem;
+            color: var(--or);
+            line-height: 1.3;
+        }
+
+        .cdc-note.sourde { color: var(--beige-sourd); }
+
+        /* ---------- Scénarios ---------- */
+        .scenarios .panneau { padding: 26px 24px 20px; }
+
+        /* ---------- Objections ---------- */
+        .objections { max-width: 760px; }
+
+        details.obj {
+            border: 1px solid var(--brun);
+            border-radius: 12px;
+            background: rgba(34, 51, 59, 0.45);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        details.obj summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 22px;
+            font-size: 1.02rem;
+            font-weight: 500;
+            color: var(--beige);
+        }
+
+        details.obj summary::-webkit-details-marker { display: none; }
+
+        details.obj summary::after {
+            content: "+";
+            font-size: 1.3rem;
+            font-weight: 300;
+            color: var(--or);
+            transition: transform 0.2s ease;
+            flex: none;
+        }
+
+        details.obj[open] summary::after { transform: rotate(45deg); }
+
+        details.obj summary:focus-visible { outline: 2px solid var(--or); outline-offset: -2px; }
+
+        details.obj .obj-corps {
+            padding: 0 22px 20px;
+            font-size: 0.94rem;
+            color: var(--beige-doux);
+            max-width: 68ch;
+        }
+
+        /* ---------- Verdict / CTA ---------- */
+        .verdict {
+            margin-top: 90px;
+            border-top: 1px solid var(--brun);
+            padding: 70px 0 40px;
+            text-align: left;
+        }
+
+        .verdict h2 {
+            font-size: clamp(1.6rem, 3.6vw, 2.4rem);
+            font-weight: 800;
+            line-height: 1.12;
+            letter-spacing: -0.01em;
+            max-width: 24ch;
+            text-wrap: balance;
+        }
+
+        .verdict .phrase-live {
+            margin-top: 18px;
+            font-size: 1.12rem;
+            color: var(--beige-doux);
+            max-width: 60ch;
+        }
+
+        .verdict .phrase-live b { color: var(--or); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+        .cta-rang { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+
+        .btn {
+            display: inline-block;
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 999px;
+            padding: 13px 28px;
+            letter-spacing: 0.02em;
+        }
+
+        .btn.plein { background: var(--or); color: var(--noir); }
+
+        .btn.plein:hover { background: var(--beige); }
+
+        .btn.ligne { border: 1px solid var(--brun); color: var(--beige); }
+
+        .btn.ligne:hover { border-color: var(--or); color: var(--or); }
+
+        .btn:focus-visible { outline: 2px solid var(--beige); outline-offset: 3px; }
+
+        /* ---------- Pied de page ---------- */
+        footer.legal {
+            margin-top: 60px;
+            border-top: 1px solid rgba(94, 80, 63, 0.6);
+            padding: 34px 0 46px;
+            font-size: 0.74rem;
+            line-height: 1.65;
+            color: var(--beige-sourd);
+        }
+
+        footer.legal p + p { margin-top: 10px; }
+
+        /* ---------- Barre verdict flottante ---------- */
+        .barre-verdict {
+            position: fixed;
+            left: 0; right: 0; bottom: 0;
+            background: rgba(10, 9, 8, 0.92);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid var(--brun);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 18px;
+            font-size: 0.88rem;
+            color: var(--beige-doux);
+            transform: translateY(110%);
+            transition: transform 0.3s ease;
+            z-index: 50;
+        }
+
+        .barre-verdict.visible { transform: translateY(0); }
+
+        .barre-verdict b { color: var(--or); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+        .barre-verdict a {
+            flex: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--noir);
+            background: var(--or);
+            text-decoration: none;
+            border-radius: 999px;
+            padding: 7px 16px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            *, *::before, *::after { transition: none !important; animation: none !important; }
+        }
+
+        /* ---------- Mobile ---------- */
+        @media (max-width: 860px) {
+            .fork { grid-template-columns: 1fr; }
+            .sim { grid-template-columns: 1fr; }
+            .tuiles { grid-template-columns: 1fr 1fr; }
+            .tuile.avantage { grid-column: 1 / -1; }
+            .cartes-fiscales { grid-template-columns: 1fr; }
+            section { padding-top: 64px; }
+            .barre-verdict { font-size: 0.78rem; gap: 10px; }
+            .barre-verdict .bv-texte span.long { display: none; }
+        }
+
+        @media print {
+            .barre-verdict { display: none; }
+            body { background: #fff; color: #111; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+
+        <header class="top">
+            <a class="wordmark" href="https://jccapital.ca">JC <span>Capital</span></a>
+            <span class="doc-tag">Argumentaire interactif · Août 2026</span>
+        </header>
+
+        <!-- ================= HÉROS ================= -->
+        <div class="hero">
+            <p class="eyebrow">Une décision, un chiffre</p>
+            <h1>50 000 $ dans votre gestion&nbsp;: <em>payer ou investir&nbsp;?</em></h1>
+            <p class="lede">
+                Faire le paiement, c'est l'équivalent d'un rendement garanti d'environ
+                <strong>5&nbsp;% par année</strong>. C'est le seuil à battre — rien de plus, rien de moins.
+                Cette page vous montre, chiffres à l'appui, ce que le même 50&nbsp;000&nbsp;$ peut
+                faire s'il reste investi dans votre société de gestion.
+            </p>
+
+            <div class="fork" id="fork">
+                <div class="option">
+                    <p class="opt-label">Option A</p>
+                    <h2>Faire le paiement</h2>
+                    <p>Le capital sort de la société. La dépense d'environ 5&nbsp;% par année disparaît —
+                        c'est un gain certain, mais plafonné, et l'argent ne travaille plus jamais pour vous.</p>
+                    <div class="opt-kpi">Valeur équivalente dans 10 ans
+                        <b class="num" id="kpiPaiement">81&nbsp;445&nbsp;$</b>
+                    </div>
+                </div>
+                <div class="option invest">
+                    <p class="opt-label">Option B</p>
+                    <h2>Investir dans la gestion</h2>
+                    <p>Le capital reste votre actif. Il compose année après année dans un portefeuille
+                        aligné sur votre profil — avec la fiscalité avantageuse d'une société de gestion.</p>
+                    <div class="opt-kpi">Valeur projetée dans 10 ans à 7&nbsp;%
+                        <b class="num" id="kpiInvest">98&nbsp;358&nbsp;$</b>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= SIMULATEUR ================= -->
+        <section id="simulateur">
+            <div class="sec-head">
+                <h2>Faites le calcul vous-même</h2>
+                <p>Ajustez les hypothèses — le graphique et l'écart se recalculent instantanément.
+                    L'option paiement est la ligne pointillée&nbsp;: c'est elle qu'il faut dépasser.</p>
+            </div>
+
+            <div class="sim">
+                <div class="panneau" role="group" aria-label="Hypothèses de simulation">
+                    <div class="controle">
+                        <label for="inMontant">Montant <output id="outMontant" for="inMontant">50 000 $</output></label>
+                        <input type="range" id="inMontant" min="10000" max="200000" step="5000" value="50000">
+                    </div>
+                    <div class="controle">
+                        <label for="inRendement">Rendement annuel net espéré <output id="outRendement" for="inRendement">7,0 %</output></label>
+                        <input type="range" id="inRendement" min="2" max="12" step="0.25" value="7">
+                        <p class="hint">Rendement net de frais, composé annuellement. Hypothèse à calibrer
+                            selon votre profil d'investisseur.</p>
+                    </div>
+                    <div class="controle">
+                        <label for="inHorizon">Horizon <output id="outHorizon" for="inHorizon">10 ans</output></label>
+                        <input type="range" id="inHorizon" min="1" max="25" step="1" value="10">
+                    </div>
+                    <div class="controle">
+                        <label for="inSeuil">Seuil à battre (option paiement) <output id="outSeuil" for="inSeuil">5,0 %</output></label>
+                        <input type="range" id="inSeuil" min="3" max="8" step="0.25" value="5">
+                        <p class="hint">Le «&nbsp;rendement garanti&nbsp;» qu'offre le paiement évité.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="tuiles">
+                        <div class="tuile">
+                            <p class="t-label"><span class="pastille or"></span>Investi</p>
+                            <p class="t-val num" id="tuileInvest">98 358 $</p>
+                            <p class="t-sub num" id="tuileInvestSub">à 7,0 % sur 10 ans</p>
+                        </div>
+                        <div class="tuile">
+                            <p class="t-label"><span class="pastille bleu"></span>Paiement</p>
+                            <p class="t-val num" id="tuilePaiement">81 445 $</p>
+                            <p class="t-sub num" id="tuilePaiementSub">équivalent à 5,0 % garanti</p>
+                        </div>
+                        <div class="tuile avantage">
+                            <p class="t-label">Avantage net à investir</p>
+                            <p class="t-val num" id="tuileEcart">+16 927 $</p>
+                            <p class="t-sub num" id="tuileEcartSub">soit 20,8 % de plus que l'option paiement</p>
+                        </div>
+                    </div>
+
+                    <div class="chart-box" id="boxCourbes">
+                        <canvas id="chartCourbes" height="340" role="img"
+                            aria-label="Courbes comparant la croissance du capital investi et la valeur équivalente de l'option paiement, année par année"></canvas>
+                        <div class="tooltip" id="tipCourbes"></div>
+                    </div>
+                    <div class="legende">
+                        <span class="lg or"><i></i>Capital investi</span>
+                        <span class="lg bleu"><i></i>Option paiement (seuil)</span>
+                    </div>
+
+                    <details class="donnees">
+                        <summary>Voir les données année par année</summary>
+                        <div class="table-scroll"><table id="tableCourbes"></table></div>
+                    </details>
+
+                    <p class="bascule" id="phraseBascule">
+                        Chaque point de rendement au-dessus du seuil vaut <b>≈ 9 500 $</b> de plus
+                        sur cet horizon. Et chaque année d'attente avant d'investir coûte
+                        <b>≈ 6 400 $</b> de valeur finale.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SCÉNARIOS ================= -->
+        <section class="scenarios" id="scenarios">
+            <div class="sec-head">
+                <h2>Battre 5&nbsp;%, est-ce réaliste&nbsp;?</h2>
+                <p>Voici des hypothèses de rendement à long terme couramment utilisées en planification
+                    financière, avant personnalisation. Le seuil de 5&nbsp;% est la ligne pointillée&nbsp;:
+                    on voit tout de suite quelles stratégies le franchissent.</p>
+            </div>
+
+            <div class="panneau">
+                <div class="chart-box" id="boxScenarios">
+                    <canvas id="chartScenarios" height="300" role="img"
+                        aria-label="Barres comparant des hypothèses de rendement annuel à long terme par type de stratégie, avec le seuil de 5 pour cent"></canvas>
+                    <div class="tooltip" id="tipScenarios"></div>
+                </div>
+                <p class="note-chart">
+                    Hypothèses de projection à long terme, à titre illustratif seulement — elles ne
+                    constituent ni une promesse ni une prévision. Le rendement d'un portefeuille réel
+                    dépend de sa composition, des frais et des marchés. La comparaison honnête se fait
+                    toujours <strong>net de frais</strong> contre le seuil de 5&nbsp;%.
+                </p>
+                <details class="donnees">
+                    <summary>Voir les données</summary>
+                    <div class="table-scroll"><table id="tableScenarios"></table></div>
+                </details>
+            </div>
+
+            <p class="bascule">
+                Le paiement offre un 5&nbsp;% certain — c'est vrai, et il faut le dire. Mais avec un
+                horizon de 10&nbsp;ans et plus, une stratégie équilibrée ou de croissance vise
+                précisément la zone <b>au-dessus</b> de ce seuil. Le risque se gère par le profil,
+                la diversification et le temps — pas en renonçant au potentiel.
+            </p>
+        </section>
+
+        <!-- ================= AVANTAGE GESTION ================= -->
+        <section id="gestion">
+            <div class="sec-head">
+                <h2>L'avantage caché&nbsp;: c'est dans votre société de gestion</h2>
+                <p>C'est ici que la comparaison dépasse le simple rendement. Un dollar investi dans la
+                    gestion ne joue pas dans la même ligue qu'un dollar dépensé — ni même qu'un dollar
+                    investi personnellement.</p>
+            </div>
+
+            <div class="cartes-fiscales">
+                <div class="carte-f">
+                    <p class="cf-num">Avantage 01</p>
+                    <h3>Chaque dollar de la gestion est un dollar avant impôt personnel</h3>
+                    <p>Pour investir le même montant personnellement, il faudrait d'abord vous verser un
+                        dividende… imposable. L'argent qui reste dans la société travaille donc sur une
+                        base plus grosse dès le départ.</p>
+                    <div class="mini">
+                        <div class="controle">
+                            <label for="inTaux">Votre taux marginal sur dividende
+                                <output id="outTaux" for="inTaux">40 %</output></label>
+                            <input type="range" id="inTaux" min="25" max="48" step="1" value="40">
+                        </div>
+                        <p class="hint num" id="phraseTaux">
+                            Pour placer 50 000 $ personnellement, il faudrait sortir
+                            ≈ 83 333 $ de la gestion. En investissant directement dans la société,
+                            les 50 000 $ travaillent au complet.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="carte-f">
+                    <p class="cf-num">Avantage 02</p>
+                    <h3>Le gain en capital nourrit le compte de dividende en capital (CDC)</h3>
+                    <p>Dans une société, seulement la moitié d'un gain en capital est imposable.
+                        L'autre moitié crédite le CDC — et peut ressortir plus tard en dividende
+                        <strong>libre d'impôt</strong> entre vos mains.</p>
+                    <div class="mini">
+                        <p class="hint" style="margin-top:0">Exemple&nbsp;: un gain en capital réalisé de 10&nbsp;000&nbsp;$</p>
+                        <div class="cdc-barres">
+                            <div class="cdc-ligne"><span>Moitié imposable</span>
+                                <div class="barre-rang">
+                                    <div class="barre imposable num">5 000 $</div>
+                                    <span class="cdc-note sourde">imposée dans la société</span>
+                                </div></div>
+                            <div class="cdc-ligne"><span>Moitié au CDC</span>
+                                <div class="barre-rang">
+                                    <div class="barre cdc num">5 000 $</div>
+                                    <span class="cdc-note">→ sortable à 0 % d'impôt</span>
+                                </div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="carte-f">
+                    <p class="cf-num">Avantage 03</p>
+                    <h3>L'impôt corporatif sur les placements est en partie remboursable</h3>
+                    <p>Les revenus de placement d'une société génèrent de l'IMRTD&nbsp;: une portion de
+                        l'impôt payé revient à la société lorsqu'elle verse un dividende imposable.
+                        Le coût fiscal réel est donc plus bas qu'il n'y paraît — c'est un impôt
+                        <strong>reporté</strong> plus que perdu.</p>
+                </div>
+
+                <div class="carte-f">
+                    <p class="cf-num">Avantage 04</p>
+                    <h3>Un placement reste un actif. Un paiement est définitif.</h3>
+                    <p>Le capital investi demeure liquide&nbsp;: il peut être redéployé, servir de coussin
+                        ou appuyer un financement futur de la société. Une fois le paiement fait,
+                        cette option n'existe plus. Investir, c'est garder <strong>le rendement et la
+                        flexibilité</strong> — le paiement n'offre ni l'un ni l'autre au-delà de son 5&nbsp;%.</p>
+                </div>
+            </div>
+
+            <p class="bascule">
+                Autrement dit&nbsp;: le seuil de 5&nbsp;% se compare à un rendement <b>dans un
+                environnement fiscalement avantagé</b>, sur du capital qui n'a pas été amputé par
+                l'impôt personnel. La barre est plus facile à franchir qu'elle n'en a l'air.
+                <br><span style="font-size:0.8rem; color:var(--beige-sourd)">Illustrations fiscales
+                simplifiées — à valider avec votre fiscaliste ou comptable avant toute décision.</span>
+            </p>
+        </section>
+
+        <!-- ================= OBJECTIONS ================= -->
+        <section id="objections">
+            <div class="sec-head">
+                <h2>Vos objections, de front</h2>
+            </div>
+
+            <div class="objections">
+                <details class="obj">
+                    <summary>«&nbsp;Et si les marchés baissent&nbsp;?&nbsp;»</summary>
+                    <div class="obj-corps">
+                        Ils baisseront — certaines années. La question n'est pas d'éviter la volatilité,
+                        mais de lui donner le temps de jouer pour vous&nbsp;: sur des horizons de
+                        10&nbsp;ans et plus, les portefeuilles diversifiés ont historiquement traversé
+                        les cycles. C'est exactement pourquoi on calibre la stratégie sur votre profil
+                        de risque et votre horizon avant d'investir un seul dollar.
+                    </div>
+                </details>
+                <details class="obj">
+                    <summary>«&nbsp;Payer, c'est un rendement garanti. Pourquoi prendre un risque&nbsp;?&nbsp;»</summary>
+                    <div class="obj-corps">
+                        C'est l'argument le plus sérieux, et il mérite une réponse honnête&nbsp;: oui,
+                        le paiement est un 5&nbsp;% sans risque. Mais il est aussi <em>plafonné à
+                        5&nbsp;%</em>, il consomme le capital, et il renonce aux avantages fiscaux de la
+                        gestion. Investir, c'est échanger un plafond contre un potentiel — encadré par
+                        un profil de risque, pas par la chance.
+                    </div>
+                </details>
+                <details class="obj">
+                    <summary>«&nbsp;Et les frais de gestion&nbsp;?&nbsp;»</summary>
+                    <div class="obj-corps">
+                        Ils sont dans le calcul, pas à côté&nbsp;: toutes les comparaisons de cette page
+                        se font en rendement <em>net de frais</em>. Les frais vous seront présentés en
+                        toute transparence avant d'investir — et le seuil de 5&nbsp;% reste la mesure de
+                        vérité&nbsp;: si la stratégie ne peut pas viser mieux net, on ne la propose pas.
+                    </div>
+                </details>
+                <details class="obj">
+                    <summary>«&nbsp;J'aurai peut-être besoin de cet argent.&nbsp;»</summary>
+                    <div class="obj-corps">
+                        Raison de plus pour investir plutôt que payer&nbsp;: un portefeuille de fonds
+                        communs demeure liquide et peut être racheté au besoin, alors qu'un paiement est
+                        irréversible. Si un besoin de liquidité est prévisible, on le planifie dans la
+                        stratégie dès le départ.
+                    </div>
+                </details>
+            </div>
+        </section>
+
+        <!-- ================= VERDICT ================= -->
+        <div class="verdict" id="verdict">
+            <p class="eyebrow">Le verdict, avec vos chiffres</p>
+            <h2>Le paiement rapporte 5&nbsp;%. Votre capital peut viser mieux — et le rester.</h2>
+            <p class="phrase-live num" id="phraseVerdict">
+                À 7,0 % net, votre 50 000 $ vaut 98 358 $ dans 10 ans —
+                soit 16 927 $ de plus que l'option paiement. Dans votre société de gestion,
+                avec la fiscalité qui joue pour vous.
+            </p>
+            <div class="cta-rang">
+                <a class="btn plein" href="https://jccapital.ca/#booking">Planifier 30 minutes avec Joël</a>
+                <a class="btn ligne" href="mailto:joelcamire@jccapital.ca?subject=Investir%2050%20000%20%24%20dans%20ma%20gestion">Écrire à joelcamire@jccapital.ca</a>
+            </div>
+        </div>
+
+        <!-- ================= LÉGAL ================= -->
+        <footer class="legal">
+            <p>Les projections de cette page sont des illustrations mathématiques fondées sur les
+                hypothèses que vous choisissez&nbsp;; elles ne constituent ni une promesse de rendement
+                ni une prévision. Les illustrations fiscales (dividendes, CDC, IMRTD) sont simplifiées
+                et doivent être validées avec un fiscaliste ou un comptable selon votre situation.
+                Les fonds communs de placement peuvent donner lieu à des commissions et à des frais de
+                gestion&nbsp;; ils ne sont pas garantis, leur valeur fluctue fréquemment et le rendement
+                passé n'est pas garant du rendement futur.</p>
+            <p>JC Capital est le nom commercial de Joël Camiré, stagiaire en assurance de personnes et
+                représentant de courtier en épargne collective inscrit auprès de l'Autorité des marchés
+                financiers (AMF) et rattaché à SFL Gestion de patrimoine, cabinet de services financiers.
+                Sa période probatoire en assurance de personnes se déroule sous la supervision d'un
+                représentant certifié. Les fonds communs de placement sont offerts par l'entremise de
+                Gestion de patrimoine Worldsource inc. Les renseignements présentés sont fournis à titre
+                informatif et éducatif seulement&nbsp;; ils ne constituent pas un conseil financier,
+                fiscal, juridique ou de placement personnalisé. Avant toute décision, consultez votre
+                représentant ainsi qu'un fiscaliste ou un comptable.</p>
+        </footer>
+    </div>
+
+    <!-- Barre verdict flottante -->
+    <div class="barre-verdict" id="barreVerdict" aria-hidden="true">
+        <span class="bv-texte num" id="bvTexte">Avantage à investir&nbsp;: <b>+16 927 $</b>
+            <span class="long">sur 10 ans à 7,0 % net</span></span>
+        <a href="#verdict">Voir le verdict</a>
+    </div>
+
+    <script>
+        "use strict";
+
+        /* ---------- Utilitaires ---------- */
+        const $ = id => document.getElementById(id);
+        const fmt$ = new Intl.NumberFormat("fr-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 });
+        const fmtPct = v => v.toLocaleString("fr-CA", { minimumFractionDigits: 1, maximumFractionDigits: 2 }) + " %";
+        const fv = (p, r, n) => p * Math.pow(1 + r / 100, n);
+
+        const C = {
+            or: "#BD8830", bleu: "#4D90D6",
+            beige: "#EAE0D5", sourd: "#9C917F",
+            grille: "rgba(234,224,213,0.08)",
+            panneau: "#22333B"
+        };
+        const FONT = "'Outfit','Avenir Next','Segoe UI',sans-serif";
+
+        /* ---------- État ---------- */
+        const etat = { montant: 50000, rendement: 7, horizon: 10, seuil: 5, taux: 40 };
+
+        /* ---------- Canvas haute densité ---------- */
+        function prepCanvas(canvas, cssH) {
+            const dpr = window.devicePixelRatio || 1;
+            const w = canvas.parentElement.clientWidth;
+            canvas.style.height = cssH + "px";
+            canvas.width = Math.round(w * dpr);
+            canvas.height = Math.round(cssH * dpr);
+            const ctx = canvas.getContext("2d");
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            return { ctx, w, h: cssH };
+        }
+
+        /* ============================================================
+           GRAPHIQUE 1 — courbes investi vs seuil
+           ============================================================ */
+        const geoCourbes = { x0: 0, x1: 0, y0: 0, y1: 0, maxV: 1 };
+
+        function serieAnnees() {
+            const inv = [], pay = [];
+            for (let a = 0; a <= etat.horizon; a++) {
+                inv.push(fv(etat.montant, etat.rendement, a));
+                pay.push(fv(etat.montant, etat.seuil, a));
+            }
+            return { inv, pay };
+        }
+
+        function dessineCourbes() {
+            const { ctx, w, h } = prepCanvas($("chartCourbes"), 340);
+            const { inv, pay } = serieAnnees();
+            const n = etat.horizon;
+            const maxV = Math.max(inv[n], pay[n]) * 1.06;
+
+            const padL = 74, padR = 16, padT = 18, padB = 34;
+            const x0 = padL, x1 = w - padR, y0 = h - padB, y1 = padT;
+            Object.assign(geoCourbes, { x0, x1, y0, y1, maxV });
+
+            const X = a => x0 + (a / n) * (x1 - x0);
+            const Y = v => y0 - (v / maxV) * (y0 - y1);
+
+            ctx.clearRect(0, 0, w, h);
+            ctx.font = "11px " + FONT;
+
+            /* grille horizontale + étiquettes $ */
+            const pas = niceStep(maxV / 4);
+            ctx.textAlign = "right"; ctx.textBaseline = "middle";
+            for (let v = 0; v <= maxV; v += pas) {
+                const y = Y(v);
+                ctx.strokeStyle = C.grille; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+                ctx.fillStyle = C.sourd;
+                ctx.fillText(kFmt(v), x0 - 10, y);
+            }
+
+            /* étiquettes années */
+            ctx.textAlign = "center"; ctx.textBaseline = "top";
+            const pasA = n > 16 ? 5 : (n > 8 ? 2 : 1);
+            for (let a = 0; a <= n; a += pasA) {
+                ctx.fillStyle = C.sourd;
+                ctx.fillText(a === 0 ? "auj." : "an " + a, X(a), y0 + 10);
+            }
+
+            /* aire sous la courbe investie */
+            const grad = ctx.createLinearGradient(0, y1, 0, y0);
+            grad.addColorStop(0, "rgba(189,136,48,0.22)");
+            grad.addColorStop(1, "rgba(189,136,48,0)");
+            ctx.beginPath();
+            inv.forEach((v, a) => a === 0 ? ctx.moveTo(X(a), Y(v)) : ctx.lineTo(X(a), Y(v)));
+            ctx.lineTo(X(n), y0); ctx.lineTo(X(0), y0); ctx.closePath();
+            ctx.fillStyle = grad; ctx.fill();
+
+            /* courbe seuil (pointillée bleue) */
+            ctx.beginPath();
+            pay.forEach((v, a) => a === 0 ? ctx.moveTo(X(a), Y(v)) : ctx.lineTo(X(a), Y(v)));
+            ctx.strokeStyle = C.bleu; ctx.lineWidth = 2; ctx.setLineDash([6, 5]); ctx.stroke();
+            ctx.setLineDash([]);
+
+            /* courbe investie (or) */
+            ctx.beginPath();
+            inv.forEach((v, a) => a === 0 ? ctx.moveTo(X(a), Y(v)) : ctx.lineTo(X(a), Y(v)));
+            ctx.strokeStyle = C.or; ctx.lineWidth = 2.5; ctx.stroke();
+
+            /* points terminaux accentués + étiquettes directes */
+            pointFinal(ctx, X(n), Y(inv[n]), C.or);
+            pointFinal(ctx, X(n), Y(pay[n]), C.bleu);
+            ctx.textAlign = "right"; ctx.textBaseline = "bottom";
+            ctx.font = "700 12px " + FONT;
+            ctx.fillStyle = C.beige;
+            ctx.fillText(kFmt(inv[n]), X(n) - 4, Y(inv[n]) - 8);
+            ctx.fillStyle = C.sourd;
+            const yPayLbl = Math.min(Y(pay[n]) + 20, y0 - 4);
+            ctx.textBaseline = "top";
+            ctx.fillText(kFmt(pay[n]), X(n) - 4, yPayLbl);
+        }
+
+        function pointFinal(ctx, x, y, coul) {
+            ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fillStyle = coul; ctx.fill();
+            ctx.lineWidth = 2; ctx.strokeStyle = "#0A0908"; ctx.stroke();
+        }
+
+        function niceStep(brut) {
+            const mag = Math.pow(10, Math.floor(Math.log10(brut)));
+            const r = brut / mag;
+            return (r >= 5 ? 10 : r >= 2 ? 5 : r >= 1 ? 2 : 1) * mag;
+        }
+
+        function kFmt(v) {
+            return v >= 1e6 ? (v / 1e6).toLocaleString("fr-CA", { maximumFractionDigits: 2 }) + " M$"
+                : Math.round(v / 1000).toLocaleString("fr-CA") + " k$";
+        }
+
+        /* Survol : réticule + infobulle */
+        (function () {
+            const box = $("boxCourbes"), tip = $("tipCourbes"), canvas = $("chartCourbes");
+            function bouge(ev) {
+                const rect = canvas.getBoundingClientRect();
+                const mx = (ev.touches ? ev.touches[0].clientX : ev.clientX) - rect.left;
+                const { x0, x1 } = geoCourbes;
+                if (mx < x0 - 8 || mx > x1 + 8) { tip.style.opacity = 0; dessineCourbes(); return; }
+                const n = etat.horizon;
+                const a = Math.max(0, Math.min(n, Math.round((mx - x0) / (x1 - x0) * n)));
+                const { inv, pay } = serieAnnees();
+                dessineCourbes();
+                const ctx = canvas.getContext("2d");
+                const dpr = window.devicePixelRatio || 1;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                const X = x0 + (a / n) * (x1 - x0);
+                const Y = v => geoCourbes.y0 - (v / geoCourbes.maxV) * (geoCourbes.y0 - geoCourbes.y1);
+                ctx.strokeStyle = "rgba(234,224,213,0.25)"; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(X, geoCourbes.y1); ctx.lineTo(X, geoCourbes.y0); ctx.stroke();
+                [[inv[a], C.or], [pay[a], C.bleu]].forEach(([v, c]) => {
+                    ctx.beginPath(); ctx.arc(X, Y(v), 5, 0, Math.PI * 2);
+                    ctx.fillStyle = c; ctx.fill();
+                    ctx.lineWidth = 2; ctx.strokeStyle = "#0A0908"; ctx.stroke();
+                });
+                tip.innerHTML = "<b>" + (a === 0 ? "Aujourd'hui" : "Année " + a) + "</b><br>" +
+                    "Investi : <b>" + fmt$.format(inv[a]) + "</b><br>" +
+                    "Paiement : <b>" + fmt$.format(pay[a]) + "</b><br>" +
+                    "Écart : <b>" + fmt$.format(inv[a] - pay[a]) + "</b>";
+                tip.style.opacity = 1;
+                const tw = tip.offsetWidth;
+                tip.style.left = Math.min(Math.max(X - tw / 2, 0), rect.width - tw) + "px";
+                tip.style.top = (geoCourbes.y1 - 6) + "px";
+            }
+            function sort() { tip.style.opacity = 0; dessineCourbes(); }
+            box.addEventListener("mousemove", bouge);
+            box.addEventListener("mouseleave", sort);
+            box.addEventListener("touchmove", bouge, { passive: true });
+            box.addEventListener("touchend", sort);
+        })();
+
+        /* ============================================================
+           GRAPHIQUE 2 — barres de scénarios vs seuil
+           ============================================================ */
+        const SCENARIOS = [
+            { nom: "Épargne à intérêt élevé", r: 2.5, c: "#6E5A33" },
+            { nom: "CPG", r: 3.5, c: "#846B33" },
+            { nom: "Portefeuille prudent", r: 4.5, c: "#9A7A33" },
+            { nom: "Portefeuille équilibré", r: 6.0, c: "#B08B33" },
+            { nom: "Portefeuille croissance", r: 7.0, c: "#C69A38" },
+            { nom: "Actions mondiales (long terme)", r: 8.0, c: "#DCAF45" }
+        ];
+        const barresGeo = [];
+
+        function dessineScenarios() {
+            const { ctx, w, h } = prepCanvas($("chartScenarios"), 300);
+            const padL = 16, padR = 16, padT = 26, padB = 64;
+            const x0 = padL, x1 = w - padR, y0 = h - padB, y1 = padT;
+            const maxR = 9;
+            const Y = v => y0 - (v / maxR) * (y0 - y1);
+
+            ctx.clearRect(0, 0, w, h);
+            ctx.font = "11px " + FONT;
+
+            /* grille */
+            ctx.textAlign = "left"; ctx.textBaseline = "bottom";
+            for (let v = 0; v <= maxR; v += 2) {
+                ctx.strokeStyle = C.grille; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(x0, Y(v)); ctx.lineTo(x1, Y(v)); ctx.stroke();
+            }
+
+            const nb = SCENARIOS.length;
+            const slot = (x1 - x0) / nb;
+            const bw = Math.min(64, slot - 14);
+            barresGeo.length = 0;
+
+            SCENARIOS.forEach((s, i) => {
+                const cx = x0 + slot * i + slot / 2;
+                const bx = cx - bw / 2, by = Y(s.r), bh = y0 - by;
+                barresGeo.push({ bx, by, bw, bh, cx, s });
+                /* barre à bout arrondi ancrée à la base, contour surface 2px implicite via espacement */
+                ctx.fillStyle = s.c;
+                arrondiHaut(ctx, bx, by, bw, bh, 4); ctx.fill();
+                /* étiquette de valeur directe */
+                ctx.fillStyle = C.beige; ctx.font = "700 12px " + FONT;
+                ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+                ctx.fillText(s.r.toLocaleString("fr-CA", { minimumFractionDigits: 1 }) + " %", cx, by - 6);
+                /* nom sous la barre (2 lignes max) */
+                ctx.fillStyle = C.sourd; ctx.font = "10.5px " + FONT;
+                ctx.textBaseline = "top";
+                enveloppe(ctx, s.nom, cx, y0 + 10, slot - 6, 13);
+            });
+
+            /* ligne de seuil */
+            const ys = Y(etat.seuil);
+            ctx.strokeStyle = C.bleu; ctx.lineWidth = 2; ctx.setLineDash([6, 5]);
+            ctx.beginPath(); ctx.moveTo(x0, ys); ctx.lineTo(x1, ys); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = C.bleu; ctx.font = "700 11px " + FONT;
+            ctx.textAlign = "left"; ctx.textBaseline = "bottom";
+            ctx.fillText("Seuil : " + fmtPct(etat.seuil) + " (option paiement)", x0 + 2, ys - 5);
+        }
+
+        function arrondiHaut(ctx, x, y, w, h, r) {
+            r = Math.min(r, h);
+            ctx.beginPath();
+            ctx.moveTo(x, y + h);
+            ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r);
+            ctx.lineTo(x + w - r, y); ctx.arcTo(x + w, y, x + w, y + r, r);
+            ctx.lineTo(x + w, y + h); ctx.closePath();
+        }
+
+        function enveloppe(ctx, texte, cx, ty, maxW, lh) {
+            const mots = texte.split(" ");
+            let ligne = "", lignes = [];
+            mots.forEach(m => {
+                const test = ligne ? ligne + " " + m : m;
+                if (ctx.measureText(test).width > maxW && ligne) { lignes.push(ligne); ligne = m; }
+                else ligne = test;
+            });
+            lignes.push(ligne);
+            lignes.slice(0, 3).forEach((l, i) => ctx.fillText(l, cx, ty + i * lh));
+        }
+
+        /* survol barres */
+        (function () {
+            const box = $("boxScenarios"), tip = $("tipScenarios"), canvas = $("chartScenarios");
+            box.addEventListener("mousemove", ev => {
+                const rect = canvas.getBoundingClientRect();
+                const mx = ev.clientX - rect.left, my = ev.clientY - rect.top;
+                const hit = barresGeo.find(b => mx >= b.bx - 6 && mx <= b.bx + b.bw + 6 && my >= b.by - 14 && my <= b.by + b.bh);
+                if (!hit) { tip.style.opacity = 0; return; }
+                const valFin = fv(etat.montant, hit.s.r, etat.horizon);
+                tip.innerHTML = "<b>" + hit.s.nom + "</b><br>" +
+                    "Hypothèse : <b>" + fmtPct(hit.s.r) + "</b> / an<br>" +
+                    fmt$.format(etat.montant) + " sur " + etat.horizon + " ans → <b>" + fmt$.format(valFin) + "</b><br>" +
+                    (hit.s.r > etat.seuil
+                        ? "Franchit le seuil de " + fmtPct(etat.seuil)
+                        : "Sous le seuil de " + fmtPct(etat.seuil));
+                tip.style.opacity = 1;
+                const tw = tip.offsetWidth;
+                tip.style.left = Math.min(Math.max(hit.cx - tw / 2, 0), rect.width - tw) + "px";
+                tip.style.top = Math.max(hit.by - 96, 0) + "px";
+            });
+            box.addEventListener("mouseleave", () => tip.style.opacity = 0);
+        })();
+
+        /* ============================================================
+           Tables de données (accessibilité / vérification)
+           ============================================================ */
+        function majTables() {
+            const { inv, pay } = serieAnnees();
+            let html = "<tr><th>Année</th><th>Investi</th><th>Paiement</th><th>Écart</th></tr>";
+            for (let a = 0; a <= etat.horizon; a++) {
+                html += "<tr><td>" + a + "</td><td>" + fmt$.format(inv[a]) + "</td><td>" +
+                    fmt$.format(pay[a]) + "</td><td>" + fmt$.format(inv[a] - pay[a]) + "</td></tr>";
+            }
+            $("tableCourbes").innerHTML = html;
+
+            let h2 = "<tr><th>Stratégie</th><th>Hypothèse / an</th><th>" +
+                fmt$.format(etat.montant) + " sur " + etat.horizon + " ans</th></tr>";
+            SCENARIOS.forEach(s => {
+                h2 += "<tr><td>" + s.nom + "</td><td>" + fmtPct(s.r) + "</td><td>" +
+                    fmt$.format(fv(etat.montant, s.r, etat.horizon)) + "</td></tr>";
+            });
+            $("tableScenarios").innerHTML = h2;
+        }
+
+        /* ============================================================
+           Mise à jour globale
+           ============================================================ */
+        function recalc() {
+            const { montant, rendement, horizon, seuil } = etat;
+            const vInv = fv(montant, rendement, horizon);
+            const vPay = fv(montant, seuil, horizon);
+            const ecart = vInv - vPay;
+            const pct = vPay > 0 ? (ecart / vPay) * 100 : 0;
+
+            /* sorties des curseurs */
+            $("outMontant").textContent = fmt$.format(montant);
+            $("outRendement").textContent = fmtPct(rendement);
+            $("outHorizon").textContent = horizon + (horizon > 1 ? " ans" : " an");
+            $("outSeuil").textContent = fmtPct(seuil);
+
+            /* héros */
+            $("kpiPaiement").textContent = fmt$.format(vPay);
+            $("kpiInvest").textContent = fmt$.format(vInv);
+            const kpiInvLbl = $("kpiInvest").parentElement;
+            kpiInvLbl.childNodes[0].textContent = "Valeur projetée dans " + horizon + " ans à " + fmtPct(rendement).replace(" %", " %") + " ";
+            $("kpiPaiement").parentElement.childNodes[0].textContent = "Valeur équivalente dans " + horizon + " ans ";
+
+            /* tuiles */
+            $("tuileInvest").textContent = fmt$.format(vInv);
+            $("tuileInvestSub").textContent = "à " + fmtPct(rendement) + " sur " + horizon + " ans";
+            $("tuilePaiement").textContent = fmt$.format(vPay);
+            $("tuilePaiementSub").textContent = "équivalent à " + fmtPct(seuil) + " garanti";
+            $("tuileEcart").textContent = (ecart >= 0 ? "+" : "−") + fmt$.format(Math.abs(ecart));
+            $("tuileEcartSub").textContent = ecart >= 0
+                ? "soit " + pct.toLocaleString("fr-CA", { maximumFractionDigits: 1 }) + " % de plus que l'option paiement"
+                : "sous ces hypothèses, le paiement gagne — montez le rendement ou l'horizon";
+
+            /* phrase de bascule */
+            const valPoint = fv(montant, rendement + 1, horizon) - vInv;
+            const coutDelai = horizon > 1 ? vInv - fv(montant, rendement, horizon - 1) : vInv - montant;
+            $("phraseBascule").innerHTML =
+                "Chaque point de rendement au-dessus de " + fmtPct(rendement) + " vaut <b>≈ " +
+                fmt$.format(valPoint) + "</b> de plus sur " + horizon + " ans. Et chaque année d'attente " +
+                "avant d'investir coûte <b>≈ " + fmt$.format(coutDelai) + "</b> de valeur finale.";
+
+            /* verdict */
+            $("phraseVerdict").innerHTML =
+                "À <b>" + fmtPct(rendement) + "</b> net, votre " + fmt$.format(montant) + " vaut <b>" +
+                fmt$.format(vInv) + "</b> dans " + horizon + " ans — soit <b>" +
+                fmt$.format(ecart) + "</b> de " + (ecart >= 0 ? "plus" : "moins") +
+                " que l'option paiement. Dans votre société de gestion, avec la fiscalité qui joue pour vous.";
+
+            /* barre flottante */
+            $("bvTexte").innerHTML = "Avantage à investir&nbsp;: <b>" +
+                (ecart >= 0 ? "+" : "−") + fmt$.format(Math.abs(ecart)) + "</b> <span class='long'>sur " +
+                horizon + " ans à " + fmtPct(rendement) + " net</span>";
+
+            dessineCourbes();
+            dessineScenarios();
+            majTables();
+        }
+
+        /* widget fiscal */
+        function recalcTaux() {
+            $("outTaux").textContent = etat.taux + " %";
+            const brut = etat.montant / (1 - etat.taux / 100);
+            $("phraseTaux").textContent =
+                "Pour placer " + fmt$.format(etat.montant) + " personnellement, il faudrait sortir ≈ " +
+                fmt$.format(brut) + " de la gestion. En investissant directement dans la société, les " +
+                fmt$.format(etat.montant) + " travaillent au complet.";
+        }
+
+        /* ---------- Liaisons ---------- */
+        [["inMontant", "montant"], ["inRendement", "rendement"], ["inHorizon", "horizon"], ["inSeuil", "seuil"]]
+            .forEach(([id, cle]) => {
+                $(id).addEventListener("input", e => {
+                    etat[cle] = parseFloat(e.target.value);
+                    recalc();
+                    if (cle === "montant") recalcTaux();
+                });
+            });
+        $("inTaux").addEventListener("input", e => { etat.taux = parseInt(e.target.value, 10); recalcTaux(); });
+
+        let rafR;
+        window.addEventListener("resize", () => {
+            cancelAnimationFrame(rafR);
+            rafR = requestAnimationFrame(() => { dessineCourbes(); dessineScenarios(); });
+        });
+
+        /* barre flottante : visible entre le simulateur et le verdict */
+        (function () {
+            const barre = $("barreVerdict");
+            const sim = $("simulateur"), verdict = $("verdict");
+            function verifie() {
+                const simTop = sim.getBoundingClientRect().top;
+                const verTop = verdict.getBoundingClientRect().top;
+                const on = simTop < window.innerHeight * 0.35 && verTop > window.innerHeight * 0.85;
+                barre.classList.toggle("visible", on);
+                barre.setAttribute("aria-hidden", String(!on));
+            }
+            window.addEventListener("scroll", verifie, { passive: true });
+            verifie();
+        })();
+
+        recalc();
+        recalcTaux();
+    </script>
+</body>
+
+</html>
