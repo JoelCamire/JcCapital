@@ -443,14 +443,14 @@
  {
   "id": 64,
   "group": "5. Vente",
-  "name": "Gain 1,25 M$ pile → tout exonéré",
+  "name": "Gain 1,25 M$ pile → régulier nul, mais IMR présent (règles 2024+)",
   "pass": true,
   "issues": []
  },
  {
   "id": 65,
   "group": "5. Vente",
-  "name": "Gain 5 M$, ECGC 0 → impôt ≈ 50 % × marginal",
+  "name": "Gain 5 M$, ECGC 0 → régulier ~25 %, IMR excédentaire payable",
   "pass": true,
   "issues": []
  },
@@ -779,7 +779,7 @@
  {
   "id": 112,
   "group": "8. Nouveautés",
-  "name": "Vente : FSS inclus dans l'impôt du gain non exonéré",
+  "name": "Vente : FSS inclus dans l'impôt régulier du gain non exonéré",
   "pass": true,
   "issues": []
  },
@@ -906,6 +906,111 @@
   "id": 130,
   "group": "9. Cas complexes",
   "name": "Agri 12 M$ revenus, 92 % de charges, 3 associés, FSS primaire",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 131,
+  "group": "10. Ajouts",
+  "name": "IMR : nul sur petite vente (200 k$ exonérés)",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 132,
+  "group": "10. Ajouts",
+  "name": "IMR : cohérence net + IMR = net après récupération",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 133,
+  "group": "10. Ajouts",
+  "name": "Société de gestion : 100 k$ intérêts → ~50,17 % dont 30,67 % remboursable",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 134,
+  "group": "10. Ajouts",
+  "name": "Société de gestion : dividendes partie IV 100 % remboursables",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 135,
+  "group": "10. Ajouts",
+  "name": "Société de gestion : gains 300 k$ → CDC 150 k$, RPTA 150 k$",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 136,
+  "group": "10. Ajouts",
+  "name": "DPA : catégories et FNACC de clôture",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 137,
+  "group": "10. Ajouts",
+  "name": "Retraite RRQ : plafonné au MGA, proportionnel sous le MGA",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 138,
+  "group": "10. Ajouts",
+  "name": "Parts 60/40 : identités comptables et somme = parts égales à 50/50",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 139,
+  "group": "10. Ajouts",
+  "name": "Parts en POURCENTAGES (70,30) ≡ fractions (0.7,0.3) — format de l'interface",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 140,
+  "group": "10. Ajouts",
+  "name": "Parts invalides → repli sur parts égales",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 141,
+  "group": "10. Ajouts",
+  "name": "Parts 60/40 dans dividendes et mix : invariants",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 142,
+  "group": "10. Ajouts",
+  "name": "Déduction pour travailleurs : réduit le QC, plafonnée à 1 450 $",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 143,
+  "group": "10. Ajouts",
+  "name": "AE : employé régulier vs actionnaire exempté",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 144,
+  "group": "10. Ajouts",
+  "name": "RAMQ : ajoutée seulement sans assurance privée",
+  "pass": true,
+  "issues": []
+ },
+ {
+  "id": 145,
+  "group": "10. Ajouts",
+  "name": "Toutes options combinées : parts 50/30/20, RAMQ, base 60 k$, grind, retrait 70 %",
   "pass": true,
   "issues": []
  }
