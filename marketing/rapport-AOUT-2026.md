@@ -1,5 +1,5 @@
 # Rapport mensuel de contenu — Août 2026
-**JC Capital | Joël Camiré, stagiaire en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
+**JC Capital | Joël Camiré, représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
 
 **Généré le : 1er août 2026**
 

@@ -1,5 +1,5 @@
 # Idées vidéos — Août 2026
-**JC Capital | Joël Camiré, stagiaire en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
+**JC Capital | Joël Camiré, représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
 
 ---
 
@@ -61,7 +61,7 @@ Lien dans ma bio pour l'article complet — et pour réserver une consultation s
 ### Description YouTube (avec mention de conformité) :
 Dans cette vidéo, j'explique pourquoi la convention d'actionnaires doit être financée par l'assurance — et pourquoi beaucoup de PME québécoises sont exposées sans le savoir.
 
-Joël Camiré est stagiaire en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine, inscrit à l'AMF.
+Joël Camiré est représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine, inscrit à l'AMF.
 
 📅 Réserver une consultation : https://calendly.com/joelcamire-jccapital/consultation
 
@@ -164,7 +164,7 @@ Lien dans la description. Et dis-moi en commentaires : quelle est ta protection 
 ### Description YouTube (avec mention de conformité) :
 Dans cette vidéo, je couvre les 5 protections financières essentielles pour les travailleurs autonomes québécois : assurance invalidité, fonds d'urgence, REER, CELI et assurance vie.
 
-Joël Camiré est stagiaire en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine, inscrit à l'AMF.
+Joël Camiré est représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine, inscrit à l'AMF.
 
 📅 Réserver une consultation : https://calendly.com/joelcamire-jccapital/consultation
 🌐 jccapital.ca | 📞 (581) 398-6747
@@ -236,7 +236,7 @@ Lien dans ma bio. »
 ### Description YouTube (avec mention de conformité) :
 Producteurs agricoles du Québec : planifier la relève de votre ferme tôt peut représenter des centaines de milliers de dollars d'économies fiscales. Voici pourquoi attendre coûte cher.
 
-Joël Camiré est stagiaire en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine, inscrit à l'AMF.
+Joël Camiré est représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine, inscrit à l'AMF.
 
 📅 Réserver une consultation : https://calendly.com/joelcamire-jccapital/consultation
 
