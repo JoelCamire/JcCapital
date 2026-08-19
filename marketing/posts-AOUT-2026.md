@@ -1,5 +1,5 @@
 # Posts sociaux — Août 2026
-**JC Capital | Joël Camiré, stagiaire en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
+**JC Capital | Joël Camiré, représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
 
 ---
 
@@ -282,7 +282,7 @@ Ce qu'on peut couvrir en 60 minutes :
 ✓ Actions concrètes à mettre en place avant le 31 décembre
 ✓ Questions sur vos assurances, votre REER, votre convention d'actionnaires
 
-Je suis Joël Camiré, stagiaire en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.
+Je suis Joël Camiré, représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.
 
 Basé à Québec. Je sers également Lévis, la Beauce, Portneuf et la région de Chaudière-Appalaches.
 
@@ -374,7 +374,7 @@ Si vous êtes dans la région de Québec, Lévis ou la Beauce et que vous souhai
 
 ---
 
-*JC Capital — Joël Camiré, stagiaire en assurance de personnes et représentant de courtier en épargne collective, en partenariat avec SFL Gestion de patrimoine.*
+*JC Capital — Joël Camiré, représentant en assurance de personnes et représentant de courtier en épargne collective, en partenariat avec SFL Gestion de patrimoine.*
 
 #JCCapital #ConseillerFinancier #Québec #Beauce #EntrepreneursQuébec
 
@@ -425,7 +425,7 @@ Si l'une de ces cases n'est pas cochée — c'est pour ça que j'existe.
 
 ---
 
-*Joël Camiré, stagiaire en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine. À titre informatif. Ne constitue pas un conseil personnalisé.*
+*Joël Camiré, représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine. À titre informatif. Ne constitue pas un conseil personnalisé.*
 
 #RentréeFinancière #Québec #Entrepreneurs #JCCapital
 
