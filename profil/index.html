@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profil d'investisseur JC Capital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --noir:#0A0908; --nuit:#22333B; --brun:#5E503F; --or:#C6AC8F; --beige:#EAE0D5;
+    --papier:#F6F1EA; --encre:#1B1A17; --muet:#7A6E62; --ligne:#D9CDBD; --alerte:#A8574E; --sfl:#00874E;
+    --font:'Outfit',system-ui,-apple-system,"Segoe UI",sans-serif; --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--papier);color:var(--encre);font-family:var(--font);font-size:15px;line-height:1.5}
+  button,input,select{font-family:inherit}
+  button:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:2px solid var(--or);outline-offset:2px}
+
+  .band{background:var(--noir);color:var(--beige);padding:22px 40px 18px;border-bottom:3px solid var(--or)}
+  .band .wrap{max-width:1280px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+  .brand{font-weight:700;letter-spacing:.18em;font-size:19px;color:#fff}
+  .brand small{display:block;font-weight:400;letter-spacing:.32em;font-size:10px;color:var(--or);margin-top:4px}
+  .band h1{margin:12px 0 0;font-weight:300;font-size:26px;color:var(--beige)}
+  .band h1 b{font-weight:600;color:#fff}
+  .band h1 em{font-style:normal;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--or);display:block;margin-top:6px}
+  .modebar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .mbtn{border:1px solid rgba(198,172,143,.6);background:transparent;color:var(--beige);border-radius:6px;padding:9px 14px;font-size:13px;cursor:pointer;transition:all .15s}
+  .mbtn:hover{background:var(--or);color:var(--noir)}
+  .mbtn.on{background:var(--or);color:var(--noir);font-weight:600}
+  .mbtn:disabled{opacity:.35;cursor:not-allowed}
+
+  .page{max-width:1280px;margin:0 auto;padding:26px 40px 80px;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:36px;align-items:start}
+  @media (max-width:1020px){.page{grid-template-columns:1fr;padding:20px 18px 60px}.band{padding:18px 18px 14px}.aside{position:static!important}}
+
+  .card{background:#fff;border:1px solid var(--ligne);border-radius:10px;padding:20px 22px;margin-bottom:20px}
+  .card h2{margin:0 0 4px;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--brun);font-weight:600}
+  .card .lead{margin:0 0 14px;color:var(--muet);font-size:13.5px}
+  .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+  .field label{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muet);margin-bottom:5px}
+  .field input,.field select{width:100%;border:1px solid var(--ligne);border-radius:6px;padding:9px 11px;font:inherit;font-size:15px;background:#fff;color:var(--encre)}
+
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:20px}
+  .tab{border:1px solid var(--ligne);background:#fff;border-radius:999px;padding:8px 14px;font-size:14px;cursor:pointer;color:var(--encre);display:flex;gap:9px;align-items:center;transition:all .15s}
+  .tab.active{background:var(--nuit);color:#fff;border-color:var(--nuit)}
+  .tab .dot{width:9px;height:9px;border-radius:50%;background:var(--ligne);flex:none}
+  .tab.done .dot,.tab.active .dot{background:var(--or)}
+  .tab .x{opacity:.5;font-size:16px;line-height:1;margin-left:2px}
+  .tab .x:hover{opacity:1}
+  select.tab-add{border-style:dashed;color:var(--brun);background:transparent;-webkit-appearance:none;appearance:none;padding:9px 14px;border-radius:999px;border:1px dashed var(--ligne);cursor:pointer}
+
+  .sec{margin-bottom:26px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--nuit);padding-bottom:8px;margin-bottom:2px}
+  .sec-head .dim{font-family:var(--mono);font-size:11.5px;color:var(--or);letter-spacing:.08em;flex:none}
+  .sec-head h3{margin:0;font-size:19px;font-weight:500;color:var(--nuit)}
+  .sec-head .why{margin-left:auto;font-size:11.5px;color:var(--muet);text-align:right;max-width:300px;line-height:1.4}
+  .q{padding:16px 0 12px;border-bottom:1px solid var(--ligne)}
+  .q:last-child{border-bottom:0}
+  .q>p{margin:0 0 4px;font-weight:500;font-size:15.5px}
+  .q>p .n{font-family:var(--mono);color:var(--or);font-size:11.5px;margin-right:8px}
+  .q .aide{margin:0 0 10px;font-size:12.5px;color:var(--muet);line-height:1.45}
+  .opts{display:flex;flex-direction:column;gap:5px}
+  .opt{display:flex;gap:11px;align-items:flex-start;padding:9px 12px;border:1px solid transparent;border-radius:8px;cursor:pointer;transition:background .12s,border-color .12s}
+  .opt:hover{background:var(--papier)}
+  .opt input{margin-top:4px;accent-color:var(--brun);flex:none}
+  .opt.sel{background:var(--beige);border-color:var(--or)}
+  .opt .txt{flex:1}
+  .opt .txt b{display:block;font-weight:600}
+  .opt .txt small{display:block;color:var(--muet);font-size:12.5px;line-height:1.4;margin-top:2px}
+  .opts.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:6px}
+  .money{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:6px}
+  .split{margin-top:12px;background:var(--papier);border:1px solid var(--ligne);border-radius:8px;padding:12px 14px;font-size:13.5px;line-height:1.55}
+  .split b{font-family:var(--mono);font-size:13px}
+  .warn{margin-top:10px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.45;background:rgba(168,87,78,.1);border:1px solid rgba(168,87,78,.45);color:#7d3a33}
+  .warn.stop{background:rgba(168,87,78,.16);font-weight:500}
+
+  /* portefeuilles Q12 */
+  .pf{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:8px}
+  .pfc{border:1px solid var(--ligne);border-radius:10px;padding:12px;cursor:pointer;background:#fff;transition:all .15s}
+  .pfc:hover{border-color:var(--or)}
+  .pfc.sel{border-color:var(--or);background:var(--beige);box-shadow:0 0 0 1px var(--or)}
+  .pfc h5{margin:0;font-size:14px;font-weight:600;display:block}
+  .pfc h5 span{display:block;font-family:var(--mono);font-size:11px;color:var(--muet);font-weight:400;margin-top:1px}
+  .pfc svg{display:block;width:100%;height:86px;margin:6px 0}
+  .pfstat{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:4px 0 6px;font-size:10.5px;color:var(--muet);text-align:center}
+  .pfstat b{display:block;font-family:var(--mono);font-size:12px;color:var(--encre);font-weight:500;margin-top:1px}
+  .pfc p{margin:0;font-size:12px;color:var(--muet);line-height:1.4}
+
+  .aside{position:sticky;top:16px}
+  .res{background:var(--nuit);color:var(--beige);border-radius:12px;padding:22px;box-shadow:0 20px 40px -24px rgba(10,9,8,.6)}
+  .res h2{margin:0;font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--or);font-weight:500}
+  .res .acct{font-size:13px;opacity:.75;margin-top:2px}
+  .profil{margin:16px 0 4px;font-size:27px;font-weight:600;color:#fff;line-height:1.1}
+  .profil.empty{font-weight:300;font-size:19px;opacity:.7}
+  .risk{font-family:var(--mono);font-size:11px;color:var(--or);letter-spacing:.02em;line-height:1.7}
+  .ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:16px 0 6px}
+  .rung{height:8px;border-radius:2px;background:rgba(234,224,213,.18);position:relative}
+  .rung.on{background:var(--or)}
+  .rung.sec{background:rgba(198,172,143,.45)}
+  .rung.cur::after{content:"";position:absolute;left:50%;top:-9px;transform:translateX(-50%);border:6px solid transparent;border-top:8px solid #fff}
+  .ladder-lbl{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;font-size:9px;letter-spacing:.03em;text-transform:uppercase;opacity:.6;text-align:center;margin-bottom:14px;line-height:1.25}
+  .calc{display:grid;gap:6px;margin-bottom:14px;font-size:12px}
+  .calc div{display:grid;grid-template-columns:88px 1fr;gap:8px;align-items:baseline}
+  .calc span{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--or)}
+  .calc b{font-weight:500;color:#fff}
+  .calc em{font-style:normal;opacity:.75}
+  .limit{margin-top:2px;font-size:12.5px;line-height:1.45;padding:10px 12px;border-left:2px solid var(--or);background:rgba(198,172,143,.08)}
+  .alloc{margin-top:16px;border-top:1px solid rgba(234,224,213,.2);padding-top:12px}
+  .alloc h4{margin:0 0 8px;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--or);font-weight:500}
+  .stack{display:flex;height:20px;border-radius:4px;overflow:hidden;background:rgba(0,0,0,.25)}
+  .stack i{display:block;height:100%;transition:width .4s}
+  .stack .l{background:#EAE0D5}.stack .rf{background:#C6AC8F}.stack .ac{background:#5E503F}
+  .legend{display:flex;justify-content:space-between;font-size:11.5px;margin-top:6px;font-family:var(--mono);gap:8px}
+  .legend b{font-weight:500;color:#fff}
+  .flags{margin-top:14px;display:grid;gap:7px}
+  .flag{font-size:12px;line-height:1.4;padding:8px 10px;border-radius:6px;background:rgba(168,87,78,.2);border:1px solid rgba(168,87,78,.5)}
+  .flag.info{background:rgba(234,224,213,.08);border-color:rgba(234,224,213,.25)}
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+  .btn{border:1px solid var(--or);background:transparent;color:var(--beige);border-radius:6px;padding:10px 12px;font-size:13px;cursor:pointer;transition:all .15s}
+  .btn:hover{background:var(--or);color:var(--noir)}
+  .btn.solid{background:var(--or);color:var(--noir);font-weight:600}
+  .btn.solid:hover{background:#fff}
+  .progress{font-size:11.5px;opacity:.7;margin-top:10px;text-align:center;font-family:var(--mono)}
+
+  .note{background:#fff;border:1px solid var(--ligne);border-radius:10px;padding:20px 22px;margin-top:20px}
+  .note h2{margin:0 0 10px;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--brun);font-weight:600}
+  .note pre{white-space:pre-wrap;font:inherit;font-size:13.5px;line-height:1.55;margin:0}
+  .note .tools{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .note .btn{color:var(--nuit);border-color:var(--nuit)}
+  .note .btn:hover{background:var(--nuit);color:#fff}
+  table.recap{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.recap th{text-align:left;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muet);font-weight:500;padding:8px 9px;border-bottom:1px solid var(--ligne)}
+  table.recap td{padding:9px;border-bottom:1px solid var(--ligne)}
+  table.recap td.m{font-family:var(--mono);font-size:12.5px}
+  .foot{margin-top:22px;font-size:11.5px;color:var(--muet);line-height:1.55;border-top:1px solid var(--ligne);padding-top:12px}
+
+  /* document client */
+  .doc{max-width:880px;margin:0 auto;padding:32px 40px 80px}
+  @media (max-width:980px){.doc{padding:20px 18px 60px}}
+  .doc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-bottom:2px solid var(--nuit);padding-bottom:14px;margin-bottom:20px}
+  .doc-head h2{margin:0;font-size:25px;font-weight:300;color:var(--nuit)}
+  .doc-head h2 b{font-weight:600}
+  .doc-head .ref{font-family:var(--mono);font-size:10.5px;color:var(--muet);text-align:right;line-height:1.7}
+  .doc-intro{font-size:14px;margin:0 0 18px;line-height:1.55}
+  .idgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;background:#fff;border:1px solid var(--ligne);border-radius:10px;padding:15px 18px;margin-bottom:24px}
+  .idgrid label{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muet)}
+  .idgrid div span{font-size:14.5px;font-weight:500}
+  .acc{background:#fff;border:1px solid var(--ligne);border-radius:10px;margin-bottom:24px;overflow:hidden}
+  .acc-top,.acc-alloc,.acc-split,.qa .row,.qa h4{break-inside:avoid}
+  .qa h4{break-after:avoid}
+  .acc-top{background:var(--nuit);color:var(--beige);padding:16px 20px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
+  .acc-top .t{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--or)}
+  .acc-top .p{font-size:25px;font-weight:600;color:#fff;line-height:1.1;margin-top:3px}
+  .acc-top .sub{font-size:12.5px;opacity:.82;margin-top:4px}
+  .acc-top .sc{font-family:var(--mono);font-size:11px;text-align:right;line-height:1.8}
+  .acc-top .sc b{color:#fff;font-weight:500}
+  .acc-alloc{padding:13px 20px;border-bottom:1px solid var(--ligne);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
+  .acc-alloc .stack{height:15px;background:var(--papier)}
+  .acc-alloc .legend b{color:var(--encre)}
+  .acc-alloc .rk{font-size:12px;color:var(--muet);white-space:nowrap}
+  .acc-alloc .rk b{color:var(--encre);font-weight:500}
+  .acc-split{padding:12px 20px;border-bottom:1px solid var(--ligne);font-size:13px;line-height:1.55;background:var(--papier)}
+  .acc-split b{font-family:var(--mono);font-size:12.5px}
+  .acc-desc{padding:12px 20px;border-bottom:1px solid var(--ligne);font-size:13px;line-height:1.55}
+  .qa{padding:6px 20px 12px}
+  .qa h4{margin:12px 0 3px;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--brun);font-weight:600}
+  .qa .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;padding:6px 0;border-bottom:1px dotted var(--ligne);font-size:13px}
+  .qa .row:last-child{border-bottom:0}
+  .qa dt{color:var(--muet);margin:0}
+  .qa dt .n{font-family:var(--mono);font-size:10.5px;color:var(--or);margin-right:6px}
+  .qa dd{margin:0;font-weight:500}
+  @media (max-width:640px){.qa .row{grid-template-columns:1fr;gap:2px}.acc-alloc,.acc-top{grid-template-columns:1fr}.acc-top .sc{text-align:left}.acc-alloc .rk{white-space:normal}}
+  .attest{background:#fff;border:1px solid var(--ligne);border-radius:10px;padding:20px 22px;margin-bottom:20px;break-inside:avoid}
+  .attest h3{margin:0 0 10px;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--brun);font-weight:600}
+  .attest p{margin:0 0 8px;font-size:13.5px;line-height:1.55}
+  .sigs{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:20px}
+  @media (max-width:640px){.sigs{grid-template-columns:1fr}}
+  .sigbox{border:1px solid var(--ligne);border-radius:8px;overflow:hidden;background:#fff}
+  .sigbox canvas{display:block;width:100%;height:140px;touch-action:none;cursor:crosshair;background:#fff}
+  .sigbox .cap{display:flex;justify-content:space-between;align-items:center;padding:7px 11px;border-top:1px solid var(--ligne);font-size:11px;color:var(--muet);background:var(--papier)}
+  .sigbox .cap button{border:0;background:transparent;color:var(--brun);cursor:pointer;font-size:11.5px;text-decoration:underline;padding:0}
+  .sigmeta{display:grid;grid-template-columns:1fr auto;gap:12px;margin-top:8px}
+  .sigmeta input{border:0;border-bottom:1px solid var(--encre);background:transparent;font:inherit;font-size:14px;padding:4px 2px;width:100%}
+  .sigmeta label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muet);display:block}
+  .client-bar{position:sticky;bottom:0;background:var(--noir);color:var(--beige);padding:13px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;border-top:2px solid var(--or)}
+  .client-bar p{margin:0;font-size:12.5px;max-width:560px;line-height:1.45}
+  .client-bar .btns{display:flex;gap:8px;flex-wrap:wrap}
+  .doc-foot{margin-top:22px;font-size:11px;color:var(--muet);line-height:1.55;border-top:1px solid var(--ligne);padding-top:12px}
+  .sfl{display:inline-block;background:var(--sfl);color:#fff;font-weight:700;font-size:9px;letter-spacing:.12em;padding:2px 7px;border-radius:3px;margin-right:6px;vertical-align:middle}
+  .empty{padding:36px;text-align:center;color:var(--muet);background:#fff;border:1px dashed var(--ligne);border-radius:10px}
+
+  /* déclarations réglementaires — oui / non */
+  .dec{padding:13px 0;border-bottom:1px solid var(--ligne)}
+  .dec:last-of-type{border-bottom:0}
+  .dec .qq{font-size:14.5px;font-weight:500;margin:0 0 3px}
+  .dec .aide{margin:0 0 9px}
+  .yn{display:flex;gap:8px;flex-wrap:wrap}
+  .yn label{display:flex;gap:7px;align-items:center;border:1px solid var(--ligne);border-radius:999px;padding:6px 15px;cursor:pointer;font-size:14px;transition:background .12s,border-color .12s}
+  .yn label:hover{background:var(--papier)}
+  .yn label.sel{background:var(--beige);border-color:var(--or);font-weight:500}
+  .yn input{accent-color:var(--brun);flex:none}
+  .dec .sub{margin-top:10px}
+  .dec .sub[hidden]{display:none}
+  .consent{background:var(--papier);border:1px solid var(--or);border-radius:8px;padding:14px 16px;margin-top:16px}
+  .consent label{display:flex;gap:11px;align-items:flex-start;cursor:pointer;font-size:13.5px;line-height:1.5}
+  .consent input{margin-top:3px;flex:none;accent-color:var(--brun)}
+  .manque{border-color:var(--alerte)!important;box-shadow:0 0 0 2px rgba(168,87,78,.15)}
+
+  /* transmission */
+  .env{background:#fff;border:1px solid var(--ligne);border-radius:10px;padding:20px 22px;margin-bottom:20px}
+  .env h3{margin:0 0 6px;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--brun);font-weight:600}
+  .env p{margin:0 0 12px;font-size:13.5px;line-height:1.55;color:var(--muet)}
+  .env .row2{display:flex;gap:10px;flex-wrap:wrap}
+  .env .btn{color:var(--nuit);border-color:var(--nuit)}
+  .env .btn:hover{background:var(--nuit);color:#fff}
+  .env .btn.solid{background:var(--nuit);color:#fff;font-weight:600}
+  .env .btn.solid:hover{background:var(--noir)}
+  .env .btn:disabled{opacity:.4;cursor:not-allowed}
+  .etat{margin-top:12px;font-size:13px;line-height:1.5;padding:11px 13px;border-radius:8px;display:none}
+  .etat.on{display:block}
+  .etat.ok{background:rgba(0,135,78,.08);border:1px solid rgba(0,135,78,.4);color:#0a5c37}
+  .etat.err{background:rgba(168,87,78,.1);border:1px solid rgba(168,87,78,.45);color:#7d3a33}
+  .etat.att{background:var(--papier);border:1px solid var(--ligne);color:var(--muet)}
+  .recu{font-family:var(--mono);font-size:12.5px;background:var(--papier);border:1px solid var(--ligne);border-radius:6px;padding:9px 11px;margin-top:9px;word-break:break-all}
+  .envwrap{padding-top:0;padding-bottom:40px}
+  .envwrap[hidden]{display:none}
+
+  /* parcours en deux étapes — visible seulement pour le client */
+  .etapes{display:none;gap:0;align-items:stretch;margin:0 0 22px;border:1px solid var(--ligne);border-radius:10px;overflow:hidden;background:#fff}
+  body.m-fill .etapes{display:flex}
+  .etape{flex:1;padding:12px 16px;display:flex;gap:11px;align-items:center;font-size:13.5px;color:var(--muet);border-right:1px solid var(--ligne)}
+  .etape:last-child{border-right:0}
+  .etape .num{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--ligne);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;flex:none}
+  .etape.on{background:var(--nuit);color:#fff}
+  .etape.on .num{border-color:var(--or);background:var(--or);color:var(--noir);font-weight:600}
+  .etape.fait .num{border-color:var(--or);color:var(--brun)}
+  @media (max-width:640px){.etape{font-size:12.5px;padding:10px 12px}}
+
+  /* bandeau de tête du document, côté client */
+  .banniere{background:var(--nuit);color:var(--beige);border-radius:10px;padding:16px 20px;margin-bottom:22px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+  .banniere p{margin:0;font-size:13.5px;line-height:1.5;max-width:520px}
+  .banniere b{color:#fff}
+  .banniere .btn{border-color:var(--or);color:var(--beige);white-space:nowrap}
+  .banniere .btn:hover{background:var(--or);color:var(--noir)}
+  body:not(.m-fill):not(.readonly) .banniere{display:none}
+
+  /* barre du bas quand tout est répondu */
+  .fillbar.pret{background:var(--nuit)}
+  .fillbar.pret .btn.solid{background:var(--or);color:var(--noir);border-color:var(--or);font-weight:600;font-size:14.5px;padding:12px 20px}
+  .fillbar.pret #fill-msg{color:#fff}
+
+  body.m-client #view-conseiller,body.m-client .modebar .cons-only{display:none}
+  body.m-conseiller #view-client{display:none}
+  body.m-client .band h1{display:none}
+  body.readonly .client-bar .cons-only{display:none}
+
+  .mbtn.solid-or{background:var(--or);color:var(--noir);font-weight:600;border-color:var(--or)}
+  .sendwrap[hidden]{display:none!important}
+  .sendwrap{position:fixed;inset:0;background:rgba(10,9,8,.55);z-index:20;display:flex;align-items:center;justify-content:center;padding:20px}
+  .sendbox{background:var(--papier);border:1px solid var(--ligne);border-radius:12px;max-width:560px;width:100%;padding:24px 26px;position:relative;max-height:90vh;overflow:auto}
+  .sendbox h3{margin:0 0 14px;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--brun)}
+  .sendclose{position:absolute;top:10px;right:14px;border:0;background:transparent;font-size:26px;line-height:1;color:var(--muet);cursor:pointer}
+  .sendopt{background:#fff;border:1px solid var(--ligne);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+  .sendopt h4{margin:0 0 5px;font-size:15px;font-weight:600}
+  .sendopt p{margin:0 0 10px;font-size:13px;color:var(--muet);line-height:1.5}
+  .sendbtns{display:flex;gap:8px;flex-wrap:wrap}
+  .sendbox .btn{color:var(--nuit);border-color:var(--nuit)}
+  .sendbox .btn:hover{background:var(--nuit);color:#fff}
+  .sendbox .btn:disabled{opacity:.4;cursor:not-allowed}
+  .sendnote{font-size:12px;color:var(--muet);line-height:1.5;margin:8px 0 0}
+  textarea#a-notes{width:100%;border:1px solid var(--ligne);border-radius:6px;padding:9px 11px;font:inherit;font-size:14px;resize:vertical;background:#fff}
+  body.m-fill .card.interne{display:none!important}
+  .calc div{grid-template-columns:96px 1fr}
+  .acctools{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+  .acctools span{font-size:12.5px;color:var(--muet)}
+  .btn.danger{color:var(--alerte);border-color:var(--alerte);background:transparent;border-width:1px;border-style:solid;border-radius:6px;padding:8px 14px;font-size:13px;cursor:pointer}
+  .btn.danger:hover{background:var(--alerte);color:#fff}
+  .btn.danger:disabled{opacity:.35;cursor:not-allowed}
+  /* mode « le client remplit » */
+  body.m-fill .aside,body.m-fill #view-conseiller .note,body.m-fill .tab .x,body.m-fill select.tab-add,
+  body.m-fill .acctools,body.m-fill .sec-head .why,body.m-fill .cons-only{display:none!important}
+  body.m-fill .page{grid-template-columns:minmax(0,1fr);max-width:840px}
+  body.m-fill #view-client{display:none}
+  body.m-fill.showdoc #view-conseiller{display:none}
+  body.m-fill.showdoc #view-client{display:block}
+  .fillbar{position:sticky;bottom:0;background:var(--noir);color:var(--beige);padding:13px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;border-top:2px solid var(--or);z-index:8}
+  .fillbar p{margin:0;font-size:12.5px;max-width:560px;line-height:1.45}
+  .fillbar .gauche{display:flex;flex-direction:column;gap:7px;flex:1;min-width:230px}
+  .jauge{height:6px;border-radius:3px;background:rgba(234,224,213,.22);overflow:hidden;max-width:420px}
+  .jauge i{display:block;height:100%;background:var(--or);width:0;transition:width .35s ease}
+  .jauge-txt{font-family:var(--mono);font-size:11px;color:var(--or);letter-spacing:.04em}
+  body:not(.m-fill) .fillbar{display:none}
+  body.m-fill.showdoc .fillbar{display:none}
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--noir);color:var(--beige);padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;transition:all .25s;pointer-events:none;border:1px solid var(--or);z-index:9;max-width:90vw;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%)}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  @media print{
+    @page{margin:13mm 13mm 15mm}
+    body{background:#fff;font-size:11.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .band{padding:8px 0 10px;border-bottom:2px solid var(--or)}
+    .band h1,.modebar,#view-conseiller,.client-bar,.sigbox .cap button,.toast,.envwrap{display:none!important}
+    #view-client{display:block!important}
+    .doc{padding:12px 0 0;max-width:none}
+    .acc,.attest,.idgrid,.doc-foot{border-color:#bbb}
+    .attest,.idgrid{break-inside:avoid}
+    .doc-foot{break-inside:auto;font-size:9.5px}
+    .acc-top{break-after:avoid;background:var(--nuit)!important}
+    .qa .row{padding:2px 0;font-size:11px}
+    .attest p{font-size:12px;line-height:1.45}
+    .sigbox canvas{height:92px}
+    .doc-intro{font-size:12.5px;margin-bottom:12px}
+    .sigbox .cap{background:#fff}
+  }
+</style>
+</head>
+<body class="m-conseiller">
+
+<header class="band">
+  <div class="wrap">
+    <div>
+      <div class="brand">JC CAPITAL<small>FINANCE • FISCALITÉ • ASSURANCE</small></div>
+      <h1>Questionnaire de <b>profil d'investisseur</b><em>Grille OCRI · capacité et tolérance évaluées séparément · un profil par compte</em></h1>
+    </div>
+    <div class="modebar">
+      <button class="mbtn on cons-only" id="m-cons">Remplir</button>
+      <button class="mbtn cons-only" id="m-client">Document client</button>
+      <button class="mbtn cons-only solid-or" id="m-send">Envoyer au client</button>
+      <button class="mbtn cons-only" id="m-load">Reprendre une session</button>
+      <button class="mbtn" id="m-print">Imprimer / PDF</button>
+    </div>
+  </div>
+</header>
+
+<div class="sendwrap" id="sendwrap" hidden><div class="sendbox">
+  <button class="sendclose" id="send-close" aria-label="Fermer">×</button>
+  <h3>Envoyer au client</h3>
+  <div class="sendopt">
+    <h4>1 · À faire remplir par le client</h4>
+    <p>Le client répond lui-même aux questions sur son téléphone ou son ordinateur, voit son profil à la fin, signe et vous retourne le PDF. Les réponses déjà inscrites servent de point de départ.</p>
+    <div class="sendbtns"><button class="btn" id="s1-mail">Ouvrir le courriel</button><button class="btn" id="s1-link">Copier le lien</button><button class="btn" id="s1-txt">Copier le texte du courriel</button></div>
+  </div>
+  <div class="sendopt">
+    <h4>2 · Rempli, prêt à signer</h4>
+    <p>Le client ne voit que le document final : il relit ses réponses, signe et vous retourne le PDF. Il ne peut rien modifier.</p>
+    <div class="sendbtns"><button class="btn" id="s2-mail">Ouvrir le courriel</button><button class="btn" id="s2-link">Copier le lien</button><button class="btn" id="s2-txt">Copier le texte du courriel</button></div>
+    <p class="sendnote" id="s2-note"></p>
+  </div>
+  <p class="sendnote"><b>Le lien doit être hébergé pour fonctionner chez le client</b> (ex. jccapital.ca/profil). Ouvert depuis un fichier local, il ne mènera nulle part. Les réponses voyagent dans le lien lui-même, après le #, et ne sont jamais transmises à un serveur.</p>
+</div></div>
+
+<main class="page" id="view-conseiller">
+  <div>
+    <div class="etapes">
+      <div class="etape on" id="etape1"><span class="num">1</span><span>Vos réponses</span></div>
+      <div class="etape" id="etape2"><span class="num">2</span><span>Relire et signer</span></div>
+    </div>
+    <section class="card">
+      <h2>Identification</h2>
+      <p class="lead" id="lead-id">Le client répond dans ses mots. Le conseiller explique les questions, il ne suggère jamais les réponses.</p>
+      <div class="fields">
+        <div class="field"><label for="c-nom">Nom complet</label><input id="c-nom" placeholder="Prénom Nom" autocomplete="name"></div>
+        <div class="field"><label for="c-courriel">Courriel</label><input id="c-courriel" type="email" placeholder="nom@exemple.com" autocomplete="email"></div>
+        <div class="field"><label for="c-tel">Téléphone</label><input id="c-tel" type="tel" placeholder="581 000-0000" autocomplete="tel"></div>
+        <div class="field"><label for="c-naiss">Date de naissance</label><input id="c-naiss" type="date"></div>
+        <div class="field"><label for="c-adresse">Adresse</label><input id="c-adresse" placeholder="Numéro, rue, ville, code postal" autocomplete="street-address"></div>
+        <div class="field"><label for="c-civil">État civil</label>
+          <select id="c-civil"><option value="">—</option><option>Célibataire</option><option>Marié(e)</option><option>Conjoint(e) de fait</option><option>Séparé(e)</option><option>Divorcé(e)</option><option>Veuf / veuve</option></select></div>
+        <div class="field"><label for="c-dep">Personnes à charge</label>
+          <select id="c-dep"><option value="">—</option><option>Aucune</option><option>1</option><option>2</option><option>3</option><option>4 ou plus</option></select></div>
+        <div class="field"><label for="c-prof">Profession</label><input id="c-prof" placeholder="ex. productrice agricole"></div>
+        <div class="field"><label for="c-empl">Employeur / entreprise</label><input id="c-empl" placeholder="ex. Ferme Camiré inc."></div>
+        <div class="field"><label for="c-langue">Langue de correspondance</label>
+          <select id="c-langue"><option>Français</option><option>Anglais</option></select></div>
+        <div class="field"><label for="c-date">Date du questionnaire</label><input id="c-date" type="date"></div>
+        <div class="field cons-only"><label for="c-cons">Représentant</label><input id="c-cons" value="Joël Camiré"></div>
+        <div class="field cons-only"><label for="c-ctx">Contexte</label>
+          <select id="c-ctx"><option>Ouverture de compte</option><option>Révision annuelle</option><option>Révision — changement de situation</option><option>Révision — 36 mois</option></select></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Renseignements réglementaires</h2>
+      <p class="lead">Le courtier doit recueillir ces renseignements pour tout compte. Ils ne changent pas votre profil : ils encadrent la gestion du compte et la surveillance des opérations.</p>
+      <div id="declarations"></div>
+      <div class="consent">
+        <label><input type="checkbox" id="c-consent"><span><b>Consentement (Loi 25).</b> J'autorise la collecte, l'utilisation et la conservation des renseignements de ce questionnaire aux fins d'établir mon profil d'investisseur et la convenance des placements qui me seront proposés. Je sais que ces renseignements sont versés à mon dossier client tenu par le courtier, qu'ils ne sont communiqués qu'aux personnes qui doivent y avoir accès, et que je peux les consulter, les faire rectifier ou retirer mon consentement en tout temps.</span></label>
+      </div>
+    </section>
+
+    <div class="tabs" id="tabs"></div>
+
+    <section class="card">
+      <h2>Compte évalué</h2>
+      <p class="lead">Un compte = un objectif = un horizon = un profil. Le REER de la retraite et le CELI du projet dans 2 ans ne se traitent pas pareil.</p>
+      <div class="fields">
+        <div class="field"><label for="a-type">Type de compte</label>
+          <select id="a-type"></select></div>
+        <div class="field"><label for="a-but">À quoi sert cet argent?</label><input id="a-but" placeholder="ex. voyage 2031, retraite, coussin"></div>
+        <div class="field"><label for="a-titre">Titulaire / cotitulaire</label><input id="a-titre" placeholder="ex. individuel, conjoint"></div>
+      </div>
+      <div class="acctools"><button class="btn danger" id="a-del">Supprimer ce compte</button><span id="a-delnote"></span></div>
+    </section>
+
+    <section class="card interne">
+      <h2>Notes de discussion du représentant — ce compte (interne)</h2>
+      <p class="lead">Ce que le client a dit en ses mots sur ses écarts, ses contraintes, ce qui a été expliqué. Ces notes vont dans la note de dossier; elles ne sont jamais incluses dans le lien ou le document envoyés au client.</p>
+      <textarea id="a-notes" rows="3" placeholder="ex. Client comprend que le lac 2027 restera en CPG; accepte une baisse de 10 % sur la portion long terme; a demandé des explications sur les FNB."></textarea>
+    </section>
+
+    <div id="questionnaire"></div>
+
+    <section class="note">
+      <h2>Note de dossier — compte évalué (usage interne)</h2>
+      <pre id="note">Complète le questionnaire pour générer la note.</pre>
+      <div class="tools"><button class="btn" id="copy-note">Copier la note</button></div>
+    </section>
+
+    <section class="note">
+      <h2>Récapitulatif — tous les comptes</h2>
+      <table class="recap">
+        <thead><tr><th>Compte</th><th>Investi (5 ans)</th><th>Horizon</th><th>Profil AMF</th><th>Risque convenable</th><th>Actions</th></tr></thead>
+        <tbody id="recap"></tbody>
+      </table>
+      <div class="foot" id="methode"></div>
+    </section>
+  </div>
+
+  <aside class="aside">
+    <div class="res">
+      <h2>Profil retenu</h2>
+      <div class="acct" id="r-acct">—</div>
+      <div class="profil empty" id="r-profil">En attente des réponses</div>
+      <div class="risk" id="r-risk">&nbsp;</div>
+      <div class="ladder" id="ladder"></div>
+      <div class="ladder-lbl"><span>Très prudent</span><span>Prudent</span><span>Équilibre</span><span>Croissance</span><span>Croiss. dyn.</span></div>
+      <div class="calc" id="calc"></div>
+      <div class="limit" id="r-limit">La grille AMF retient la colonne la plus prudente qui reçoit au moins un vote. Réponds aux questions pour voir laquelle tranche.</div>
+      <div class="alloc">
+        <h4>Répartition indicative</h4>
+        <div class="stack" id="r-stack"><i class="l" style="width:33%"></i><i class="rf" style="width:34%"></i><i class="ac" style="width:33%"></i></div>
+        <div class="legend"><span>Liquid. <b id="al-l">—</b></span><span>Rev. fixe <b id="al-rf">—</b></span><span>Actions <b id="al-ac">—</b></span></div>
+      </div>
+      <div class="flags" id="flags"></div>
+      <div class="actions">
+        <button class="btn" id="reset">Effacer ce compte</button>
+        <button class="btn solid" id="dup">Dupliquer</button>
+      </div>
+      <div class="progress" id="progress">0 / 20 réponses</div>
+    </div>
+  </aside>
+</main>
+
+<div class="fillbar" id="fillbar">
+  <div class="gauche">
+    <p id="fill-msg">Répondez à chaque question. Il n'y a pas de bonne ou de mauvaise réponse : c'est votre situation qui compte.</p>
+    <div class="jauge"><i id="jauge-barre"></i></div>
+    <span class="jauge-txt" id="jauge-txt">0 %</span>
+  </div>
+  <button class="btn solid" id="fill-done">Voir mon profil et signer</button>
+</div>
+
+<section id="view-client">
+  <div class="doc" id="doc"></div>
+  <div class="doc envwrap" id="envwrap">
+    <div class="env" id="env">
+      <h3>Transmettre le document signé</h3>
+      <p id="env-lead">Un seul geste : votre représentant reçoit le document complet et signé, et vous en gardez une copie identique sur votre appareil.</p>
+      <div class="row2">
+        <button class="btn solid" id="env-go">Transmettre et recevoir ma copie</button>
+        <button class="btn" id="env-copie">Enregistrer ma copie seulement</button>
+        <button class="btn" id="env-print">Imprimer / PDF</button>
+      </div>
+      <div class="etat" id="env-etat"></div>
+    </div>
+  </div>
+  <div class="client-bar" id="client-bar">
+    <p id="client-msg">Vérifiez les réponses, signez dans le cadre, puis transmettez le document.</p>
+    <div class="btns">
+      <button class="btn cons-only" id="back-cons">← Retour au questionnaire</button>
+      <button class="btn solid" id="dl">Enregistrer le PDF signé</button>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   MOTEUR — reprend le Questionnaire de l'investisseur de l'OCRI
+   (Organisme canadien de réglementation des investissements) et sa
+   grille de pointage publiée : capacité (Q4-Q9) et tolérance (Q10-Q15)
+   sont deux totaux distincts; horizon, connaissances et objectif sont
+   des limiteurs. Le profil est la colonne LA PLUS À GAUCHE atteinte —
+   donc jamais plus élevé que le moins élevé de la capacité et de la
+   tolérance (Règlement 31-103, instruction complémentaire, 13.2).
+   Compléments repris du questionnaire de l'AMF : sommes requises d'ici
+   5 ans, événements pouvant forcer un retrait, piège du portefeuille
+   « sans perte ». Compléments JC Capital : fonds d'urgence, notes.
+   ===================================================================== */
+
+const PROFILS = [
+  { i:0, nom:'Très prudent', court:'Très prudent', risque:'Faible', l:25, rf:75, ac:0, eq:'0 %',
+    desc:"Votre tolérance au risque est très faible ou votre horizon est très court : aucune perte n'est acceptable. Placements sécuritaires seulement — CPG, marché monétaire, épargne à intérêt élevé — en échange d'un rendement modeste." },
+  { i:1, nom:'Prudent', court:'Prudent', risque:'Faible à moyen', l:5, rf:75, ac:20, eq:'10 à 30 %',
+    desc:"Vous pouvez tolérer une faible perte de capital et de légères fluctuations à court terme, en contrepartie de rendements modestes. Portefeuille surtout composé de titres à revenu fixe, avec une petite part d'actions." },
+  { i:2, nom:'Équilibre', court:'Équilibre', risque:'Moyen', l:5, rf:45, ac:50, eq:'40 à 60 %',
+    desc:"Vous acceptez certaines fluctuations et des pertes de capital modérées, avec un horizon au moins à moyen terme. Au moins 40 % de titres à revenu fixe et au plus 60 % d'actions." },
+  { i:3, nom:'Croissance', court:'Croissance', risque:'Moyen à élevé', l:0, rf:25, ac:75, eq:'60 à 85 %',
+    desc:"Vous tolérez de grandes fluctuations et des pertes modérées à substantielles en échange d'une plus-value à long terme. Pas d'exigence de revenu importante, horizon au moins à moyen terme. Proportion élevée d'actions." },
+  { i:4, nom:'Croissance dynamique', court:'Croiss. dynamique', risque:'Élevé', l:0, rf:10, ac:90, eq:'85 % et plus',
+    desc:"Votre tolérance au risque est très élevée, vos connaissances sont solides et votre horizon est long. Fluctuations importantes et pertes considérables possibles. Presque entièrement en actions." },
+];
+
+/* Portefeuilles de la question 15 — rendements annuels illustratifs sur 10 ans.
+   E (jamais de perte, rendement élevé) n'est pas dans le questionnaire OCRI :
+   c'est le piège « fraude » repris du questionnaire de l'AMF. */
+const PORTEFEUILLES = [
+  { id:'A', nom:'Portefeuille A', pts:0,  r:[3.1,4.0,2.3,3.8,2.8,2.8,4.5,3.1,3.0,3.6], fin:13834, pire:2.3, dd:0, rec:0,
+    d:"Aucune année en perte, mais c'est le portefeuille qui fait le moins croître le capital." },
+  { id:'B', nom:'Portefeuille B', pts:4,  r:[-2.0,5.0,3.4,15.2,3.2,1.3,10.6,-8.7,-4.7,18.1], fin:14562, pire:-8.7, dd:-13, rec:2,
+    d:"Trois années en perte sur dix. Le creux le plus profond a mis 2 ans à être récupéré." },
+  { id:'C', nom:'Portefeuille C', pts:6,  r:[15.5,23.2,-3.5,7.5,-13.1,4.3,-0.5,12.9,5.2,7.3], fin:16966, pire:-13.1, dd:-13, rec:3,
+    d:"Fluctue nettement plus. Il faut pouvoir vivre avec une perte de plus de 10 % en une seule année." },
+  { id:'D', nom:'Portefeuille D', pts:10, r:[-15.3,18.9,42.5,21.0,28.6,-24.3,0.5,-13.9,20.6,5.8], fin:18664, pire:-24.3, dd:-34, rec:5,
+    d:"Le plus payant sur 10 ans, mais il a perdu le tiers de sa valeur et a mis 5 ans à revenir à son sommet." },
+  { id:'E', nom:'Portefeuille E', pts:null, r:[11.2,12.3,12.7,14.1,13.7,13.0,8.9,13.5,11.6,9.1], fin:31049, pire:8.9, dd:0, rec:0,
+    d:"Le gestionnaire prévoit les hausses et les baisses : le portefeuille ne perd jamais et bat tous les autres." },
+];
+
+const EVENEMENTS = [
+  ['inst',"Des revenus instables"],['enf',"La naissance d'un enfant"],['mai',"L'achat d'une résidence"],['mar',"Un mariage / une union"],
+  ['div',"Un divorce / une séparation"],['inv',"Une invalidité prolongée"],['ret',"La retraite"],['emp',"Une perte d'emploi"],
+  ['hab',"Des dépenses imprévues en habitation"],['tra',"Des dépenses imprévues de transport"],['san',"Une santé précaire ou des activités à haut risque"],
+];
+
+/* o : [libellé, points, sous-texte] */
+const QUESTIONS = [
+  /* -------- 1 · l'investissement envisagé -------- */
+  { id:'H', sec:0, src:'OCRI Q1', t:"Quand pensez-vous avoir besoin de retirer une partie importante (le tiers ou plus) de ce compte, sans compter les retraits prévus d'ici 5 ans?",
+    aide:"Un horizon très court limite les options à des placements prudents (CPG, marché monétaire). Au-delà de trois ans, la latitude est plus grande.",
+    o:[["Moins de 1 an"],["1 à 3 ans"],["4 à 6 ans"],["7 à 9 ans"],["10 ans ou plus"]] },
+  { id:'O', sec:0, src:'OCRI Q3', t:"Quel est votre but principal pour ce compte?",
+    o:[["Sécurité — mettre l'argent à l'abri des pertes à court terme, ou pouvoir y accéder rapidement",0,"CPG, fonds du marché monétaire."],
+       ["Revenu — obtenir un revenu régulier; la croissance de la valeur importe moins",0,"Titres à revenu fixe, fonds d'obligations."],
+       ["Équilibre — obtenir un revenu et une certaine possibilité de croissance",0,"Au moins 40 % de revenu fixe et au plus 60 % d'actions."],
+       ["Croissance — faire croître le capital à long terme",0,"Proportion élevée d'actions, si l'horizon est long et que vous êtes disposé à prendre plus de risques et en avez la capacité."]] },
+  /* -------- 2 · connaissances -------- */
+  { id:'K', sec:1, src:'OCRI Q2', t:"Lequel des énoncés suivants décrit le mieux vos connaissances en matière de placement?",
+    o:[["Mes connaissances des placements et des marchés financiers sont très limitées",0,"Vous ne sauriez pas expliquer la différence entre une action, une obligation et un fonds commun."],
+       ["Je possède certaines connaissances des placements et des marchés financiers",0,"Vous pourriez expliquer la différence entre ces placements."],
+       ["Je possède de solides connaissances des placements",0,"Vous comprenez les différents produits et suivez l'évolution des marchés de près."]] },
+  { id:'Kb', sec:1, src:'AMF', multi:true, onlyIf:a=>a.K===2, t:"Lequel ou lesquels des énoncés suivants vous décrivent comme investisseur?",
+    aide:"Ces énoncés ne changent pas le profil : ils servent à repérer les excès de confiance et à en discuter.",
+    o:[["Je gère moi-même mon portefeuille en négociant beaucoup afin de maximiser le rendement"],["Je peux reconnaître un titre sous-évalué parmi un ensemble de titres"],["Je surveille les marchés et je repère les bulles et les creux, ce qui me permet d'en profiter"],["Je recherche des actions de sociétés très peu risquées qui procurent de bons dividendes"],["Je suis capable d'investir dans des placements peu risqués, mais très payants"]] },
+  /* -------- 3 · capacité à prendre des risques (OCRI Q4-Q9, points) -------- */
+  { id:'inc', sec:2, src:'OCRI Q4', cap:true, t:"Quel est votre revenu annuel (toutes sources confondues)?",
+    o:[["Moins de 25 000 $",0],["De 25 000 $ à 49 999 $",2],["De 50 000 $ à 74 999 $",4],["De 75 000 $ à 99 999 $",5],["De 100 000 $ à 199 999 $",7],["200 000 $ ou plus",10]] },
+  { id:'st', sec:2, src:'OCRI Q5', cap:true, t:"Vos sources de revenus actuelles et futures sont :",
+    o:[["Stables",8],["Relativement stables",4],["Instables",1]] },
+  { id:'fs', sec:2, src:'OCRI Q6', cap:true, t:"Comment décririez-vous votre situation financière générale?",
+    o:[["Aucune épargne et des dettes importantes",0],["Un peu d'épargne et de nombreuses dettes",2],["Une certaine quantité d'épargne et quelques dettes",5],["Une certaine quantité d'épargne et peu ou pas de dettes",7],["Beaucoup d'épargne et peu ou pas de dettes",10]] },
+  { id:'nw', sec:2, src:'OCRI Q7', cap:true, t:"À combien estimez-vous votre valeur nette (ce que vous possédez moins ce que vous devez)?",
+    o:[["Moins de 50 000 $",0],["De 50 000 $ à 99 999 $",2],["De 100 000 $ à 249 999 $",4],["De 250 000 $ à 499 999 $",6],["De 500 000 $ à 999 999 $",8],["1 000 000 $ ou plus",10]] },
+  { id:'sh', sec:2, src:'OCRI Q8', cap:true, t:"Quel pourcentage environ du total de votre épargne et de vos placements ce compte représente-t-il?",
+    aide:"Plus la part de vos avoirs que vous placez dans ce compte est grande, plus vous devriez être prudent avec cette portion.",
+    o:[["Moins de 25 %",10],["De 25 % à 50 %",5],["De 51 % à 75 %",4],["Plus de 75 %",2]] },
+  { id:'age', sec:2, src:'OCRI Q9', cap:true, t:"Dans quel groupe d'âge vous situez-vous?",
+    o:[["Moins de 35 ans",20],["De 35 à 54 ans",8],["De 55 à 64 ans",3],["65 ans ou plus",1]] },
+  { id:'FU', sec:2, src:'JC Capital', t:"Avez-vous un fonds d'urgence, en argent facilement accessible, sans devoir emprunter ni vendre de placements?",
+    aide:"Un fonds d'urgence correspond idéalement à au moins trois mois de dépenses. Sans coussin, une dépense imprévue force à vendre des placements au mauvais moment.",
+    o:[["Aucun"],["Moins de 3 mois de dépenses"],["3 à 6 mois de dépenses"],["Plus de 6 mois de dépenses"]] },
+  { id:'EV', sec:2, src:'AMF', multi:true, t:"Lesquels de ces événements pourraient survenir d'ici 5 ans ET vous obliger à utiliser une partie importante de ce compte plus tôt que prévu?",
+    aide:"Si un fonds d'urgence ou des assurances adéquates couvrent la situation, ne cochez rien.",
+    o:EVENEMENTS.map(e=>[e[1]]) },
+  /* -------- 4 · tolérance au risque (OCRI Q10-Q15, points) -------- */
+  { id:'t10', sec:3, src:'OCRI Q10', tol:true, t:"Quand vous prenez des décisions financières et de placement, vous êtes :",
+    o:[["Très prudent — j'essaie de réduire les risques et d'éviter toute possibilité de perte",0],["Prudent, mais disposé à accepter un risque minime",4],["Disposé à accepter un risque modéré et à tolérer des pertes pour un rendement potentiellement plus élevé",6],["Audacieux — je prends habituellement des risques considérables et je tolère des pertes importantes pour la possibilité d'un rendement plus élevé",10]] },
+  { id:'t11', sec:3, src:'OCRI Q11', tol:true, dyn:'t11', t:"La valeur d'un portefeuille fluctue à la hausse et à la baisse. En supposant que vous ayez placé 10 000 $, quelle baisse pourriez-vous tolérer sur une période de 12 mois?",
+    o:[["Je ne pourrais tolérer aucune perte",0],["300 $ (−3 %)",3],["1 000 $ (−10 %)",6],["2 000 $ (−20 %)",8],["Plus de 2 000 $ (plus de −20 %)",10]], pct:[0,3,10,20,25] },
+  { id:'t12', sec:3, src:'OCRI Q12', tol:true, t:"Quand vous devez prendre une décision financière importante, vous préoccupez-vous davantage des pertes possibles ou des gains possibles?",
+    o:[["Toujours des pertes possibles",0],["Habituellement des pertes possibles",3],["Habituellement des gains possibles",6],["Toujours des gains possibles",10]] },
+  { id:'t13', sec:3, src:'OCRI Q13', tol:true, dyn:'t13', t:"Voici la pire perte et le meilleur gain possibles sur un an pour quatre placements de 10 000 $. Dans lequel auriez-vous tendance à placer votre argent?",
+    o:[["Perte de 0 $ ou gain de 200 $",0],["Perte de 200 $ ou gain de 500 $",3],["Perte de 800 $ ou gain de 1 200 $",6],["Perte de 2 000 $ ou gain de 2 500 $",10]], pl:[[0,2],[2,5],[8,12],[20,25]] },
+  { id:'t14', sec:3, src:'OCRI Q14', tol:true, dyn:'t14', t:"De septembre à novembre 2008, les marchés boursiers nord-américains ont perdu plus de 30 %. Si vous déteniez un placement ayant perdu 30 % de sa valeur en trois mois, que feriez-vous?",
+    o:[["Je vendrais le reste du placement pour éviter des pertes supplémentaires",0],["Je vendrais une portion du placement qui reste pour protéger une partie de mon capital",3],["Je conserverais mon placement, sans en vendre, dans l'espoir d'un rendement futur plus élevé",5],["J'achèterais davantage maintenant que les prix sont plus bas",10]] },
+  { id:'t15', sec:3, src:'OCRI Q15', tol:true, portefeuilles:true, t:"Les graphiques illustrent la croissance de 10 000 $ selon le rendement annuel hypothétique de cinq portefeuilles sur 10 ans. Avec lequel seriez-vous le plus à l'aise?" },
+];
+const SECTIONS = [
+  { dim:'1', titre:"L'investissement envisagé", why:"Combien, pour quand, et pourquoi. L'horizon et l'objectif de ce compte précis sont des limites, pas des opinions." },
+  { dim:'2', titre:"Vos connaissances en placement", why:"Des connaissances limitées excluent les stratégies spéculatives, même si tout le reste le permettrait." },
+  { dim:'3', titre:"Votre capacité à prendre des risques", why:"Ce que votre situation permet d'absorber : revenus, épargne, dettes, âge, part de vos avoirs. Six questions additionnées." },
+  { dim:'4', titre:"Votre tolérance au risque", why:"Ce que vous acceptez de vivre quand ça baisse. Six questions additionnées. Le profil ne dépassera jamais le plus bas de la capacité et de la tolérance." },
+];
+const OBLIG = QUESTIONS.filter(q=>!q.onlyIf);
+const NB_Q = OBLIG.length;
+const TYPES_COMPTE = ['CELI','REER','CELIAPP','REEE','Non enregistré','Compte de société','CRI','FRV','FERR','REER de conjoint','Autre'];
+const FREQ = [['par semaine',52],['par deux semaines',26],['par mois',12],['par année',1]];
+const CONSEILLER_MAIL='joelcamire@jccapital.ca';
+const CONSEILLER_TEL='581 398-6747';
+const CERT_AMF='277067';
+const NEQ='2281795627';
+const COURTIER='Worldsource Financial Management inc.';
+const CABINET_ASS='SFL Gestion de patrimoine';
+
+/* Divulgation obligatoire. Ne doivent figurer ici QUE les titres inscrits au registre
+   de l'AMF au nom de Joël Camiré. Tout titre non inscrit — « conseiller en sécurité
+   financière » tant qu'il n'est pas au registre — constitue une infraction à la LDPSF. */
+const IDENTITE = `<b>Joël Camiré</b> — représentant en assurance de personnes rattaché à ${CABINET_ASS} (partenaire de Desjardins), et représentant de courtier en épargne collective pour ${COURTIER}. Certificat AMF n° ${CERT_AMF}. <b>JC Capital</b> est le nom commercial de Joël Camiré (NEQ ${NEQ}) : ce n'est ni un cabinet inscrit, ni une société incorporée. <b>Les produits et services d'épargne collective sont offerts par l'entremise de ${COURTIER}</b>, seul responsable de ces activités. ${CONSEILLER_TEL} · ${CONSEILLER_MAIL}`;
+
+const FOOT = `<span class="sfl">SFL</span>${IDENTITE}<br><br><b>Portée du document.</b> Ce questionnaire soutient l'obligation de connaissance du client et d'évaluation de la convenance (Règlement 31-103, art. 13.2 et 13.3 et instruction complémentaire; Loi sur la distribution de produits et services financiers). Il reprend le Questionnaire de l'investisseur et la grille de pointage de l'Organisme canadien de réglementation des investissements (OCRI), complétés par des éléments du questionnaire « Votre profil d'investisseur » de l'Autorité des marchés financiers. Le profil résultant est un <b>outil d'aide à la décision, et non une recommandation de placement</b> : la recommandation finale est établie par le représentant après discussion complète et documentée. Le profil est revu à chaque rencontre annuelle, au plus tard tous les 36 mois, et dès qu'un changement important de votre situation est porté à notre connaissance.<br><br><b>Renseignements personnels (Loi 25).</b> Les renseignements recueillis ici servent uniquement à établir votre profil d'investisseur et la convenance des placements qui vous seront proposés, et sont versés à votre dossier client tenu par ${COURTIER}. Ils sont conservés pendant la durée exigée par la réglementation et ne sont communiqués qu'aux personnes qui doivent y avoir accès : votre représentant, le courtier, et sur demande légale l'Autorité des marchés financiers ou l'OCRI. Vous pouvez en tout temps consulter ces renseignements, les faire rectifier ou retirer votre consentement, en écrivant à ${CONSEILLER_MAIL}. Responsable de la protection des renseignements personnels : Joël Camiré, ${CONSEILLER_TEL}.`;
+
+/* ---------------- déclarations réglementaires ----------------
+   Recueillies une seule fois par personne, pas par compte. Elles ne modifient
+   jamais le profil : elles encadrent l'ouverture et la surveillance du compte. */
+const DECS = [
+  { id:'initie', q:"Êtes-vous initié d'un émetteur assujetti?",
+    aide:"Un initié est notamment un administrateur ou un dirigeant d'une société cotée en bourse, ou une personne qui détient plus de 10 % de ses titres avec droit de vote.",
+    sub:"Nom de l'émetteur et votre lien avec lui" },
+  { id:'controle', q:"Participez-vous au contrôle d'un émetteur assujetti?",
+    aide:"Détenir, seul ou avec d'autres personnes agissant de concert, plus de 20 % des droits de vote d'une société cotée en bourse.",
+    sub:"Nom de l'émetteur et pourcentage détenu" },
+  { id:'ppe', q:"Êtes-vous, ou avez-vous déjà été, une personne politiquement exposée, un dirigeant d'une organisation internationale, ou un proche de l'un d'eux?",
+    aide:"Chef d'État, membre d'un gouvernement, juge d'une cour supérieure, officier général, dirigeant d'une société d'État, ambassadeur — au Canada ou ailleurs — ainsi que leur famille proche. Question exigée par la Loi sur le recyclage des produits de la criminalité et le financement des activités terroristes.",
+    sub:"Fonction occupée, pays et période" },
+  { id:'tiers', q:"Une autre personne que vous a-t-elle un intérêt dans ce compte, ou le pouvoir d'y donner des instructions?",
+    aide:"Procuration, mandat de protection, cotitulaire décisionnel, tutelle, curatelle, ou toute personne pour qui vous agiriez.",
+    sub:"Nom, lien avec vous et nature du pouvoir" },
+  { id:'lie', q:"Vous-même ou un membre de votre famille immédiate travaillez-vous pour un courtier, un conseiller inscrit ou une institution financière?",
+    aide:"Une autorisation écrite de cet employeur peut être exigée avant l'ouverture du compte.",
+    sub:"Nom de l'employeur et lien avec vous" },
+  { id:'levier', q:"Prévoyez-vous emprunter de l'argent pour investir dans ce compte?",
+    aide:"Emprunter pour investir amplifie autant les pertes que les gains, et la dette reste entièrement due même si le placement perd de la valeur. Une mise en garde écrite est obligatoire dans ce cas.",
+    sub:"Montant envisagé et source de l'emprunt" },
+];
+const SOURCES = ['Revenus d\'emploi ou d\'entreprise','Épargne accumulée','Transfert d\'un autre institution financière','Vente d\'un bien (immeuble, entreprise, équipement)','Héritage ou don','Indemnité ou règlement','Prestations de retraite','Autre'];
+
+/* ---------------- état ---------------- */
+function newAccount(type){ return { type:type||'CELI', but:'', titulaire:'', notes:'', mtInit:'', mtPer:'', freqPer:26, retInit:'', retPer:'', freqRet:26, ans:{} }; }
+function newPC(){ return { choix:null, nom:'', lien:'', tel:'', courriel:'' }; }
+function newReg(){ return { pc:newPC(), src:'', consent:false, d:{}, dt:{} }; }
+function newClient(){ return { nom:'',courriel:'',tel:'',naiss:'',adresse:'',civil:'',dep:'',prof:'',empl:'',langue:'Français',date:'',cons:'Joël Camiré',ctx:'Ouverture de compte' }; }
+let state = { client:newClient(), reg:newReg(), accounts:[ newAccount('CELI') ] };
+let cur = 0, readonly = false, role='cons';
+
+/* ---------------- lien partageable (fragment #, jamais transmis au serveur) ---------------- */
+function stateForClient(){ const s=JSON.parse(JSON.stringify(state)); s.accounts.forEach(a=>{ delete a.notes; }); return s; }
+function encodeState(forClient){ const o=forClient?stateForClient():state; return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function decodeState(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); return JSON.parse(decodeURIComponent(escape(atob(s)))); }
+function shareLink(r){ const u=new URL(location.href); u.hash='d='+encodeState(true)+'&r='+(r||'sign'); return u.href; }
+function backupCode(){ return encodeState(false); }
+/* remet un état venu d'un lien plus ancien au format courant — aucun champ ne doit manquer */
+function normaliser(s){
+  s=s||{}; s.client=Object.assign(newClient(), s.client||{});
+  const r=s.reg||{}; s.reg=Object.assign(newReg(), r);
+  s.reg.pc=Object.assign(newPC(), r.pc||{});
+  s.reg.d=r.d||{}; s.reg.dt=r.dt||{};
+  s.accounts=(Array.isArray(s.accounts)&&s.accounts.length?s.accounts:[newAccount('CELI')])
+    .map(a=>Object.assign(newAccount(a.type), a, {ans:a.ans||{}}));
+  return s;
+}
+(function boot(){
+  const m=location.hash.match(/^#d=([^&]+)(?:&r=([a-z]+))?/);
+  if(m){ try{ state=decodeState(m[1]); role=(m[2]==='fill')?'fill':'sign'; readonly=(role==='sign'); }catch(e){} }
+  state=normaliser(state);
+})();
+
+/* ---------------- sommes ---------------- */
+function n(v){ const x=parseFloat(v); return isFinite(x)&&x>0?x:0; }
+function sommes(a){
+  const invAn=n(a.mtPer)*(+a.freqPer||0), retAn=n(a.retPer)*(+a.freqRet||0);
+  const inv5=n(a.mtInit)+invAn*5, ret5=n(a.retInit)+retAn*5;
+  const secu=Math.min(ret5,inv5), risque=Math.max(inv5-secu,0);
+  return { inv1:n(a.mtInit)+invAn, inv5, ret5, secu, risque, base: risque>0?risque:(n(a.mtInit)||10000) };
+}
+
+/* ---------------- grille OCRI ---------------- */
+function Q(id){ return QUESTIONS.find(q=>q.id===id); }
+function complet(a){
+  return OBLIG.every(q=>{
+    const v=a.ans[q.id];
+    if(q.multi) return Array.isArray(v);
+    if(q.portefeuilles) return v!==undefined && v<4;
+    return v!==undefined;
+  });
+}
+function nbRepondu(a){ return OBLIG.filter(q=>{ const v=a.ans[q.id]; return q.multi?Array.isArray(v):(v!==undefined && !(q.portefeuilles && v===4)); }).length; }
+function points(a,q){ const v=a.ans[q.id]; if(q.portefeuilles) return v<4?PORTEFEUILLES[v].pts:0; return q.o[v][1]||0; }
+
+function compute(a){
+  const s=sommes(a), q=a.ans;
+  const r={ s, profil:null, secondaire:null, cols:null, capS:null, tolS:null, limiteurs:[], plafonds:[], alertes:[], notifs:[], toutSecu:false };
+  if(!complet(a)) return r;
+  const capS=QUESTIONS.filter(x=>x.cap).reduce((t,x)=>t+points(a,x),0);
+  const tolS=QUESTIONS.filter(x=>x.tol).reduce((t,x)=>t+points(a,x),0);
+  const capC= capS<15?1 : capS<=25?2 : capS<=40?3 : 4;
+  const tolC= tolS<20?0 : tolS<=24?1 : tolS<=30?2 : tolS<=45?3 : 4;
+  const hC=[0,1,3,3,4][q.H], kC=[2,3,4][q.K], oC=[0,1,2,4][q.O];
+  const cols=[
+    {k:'horizon',c:hC,txt:"horizon de placement : "+Q('H').o[q.H][0].toLowerCase()},
+    {k:'connaissances',c:kC,txt:"connaissances : "+Q('K').o[q.K][0].toLowerCase()},
+    {k:'objectif',c:oC,txt:"objectif déclaré : "+Q('O').o[q.O][0].split(' — ')[0].toLowerCase()},
+    {k:'capacité',c:capC,txt:"capacité à prendre des risques : "+capS+" points sur 68"},
+    {k:'tolérance',c:tolC,txt:"tolérance au risque : "+tolS+" points sur 60"},
+  ];
+  let idx=Math.min(...cols.map(c=>c.c));
+  r.cols=cols; r.capS=capS; r.tolS=tolS; r.limiteurs=cols.filter(c=>c.c===idx);
+  r.ocri=idx;
+  /* plafonds JC Capital — abaissent seulement */
+  if(q.FU===0 && idx>2){ idx=2; r.plafonds.push("aucun fonds d'urgence → plafond Équilibre tant qu'un coussin n'est pas constitué"); }
+  if(s.inv5>0 && s.risque<1){ idx=0; r.toutSecu=true; r.plafonds.push("toutes les sommes seront retirées d'ici 5 ans"); }
+  r.profil=PROFILS[idx]; r.secondaire=idx<4?PROFILS[idx+1]:null;
+
+  /* cohérence — alertes (à revoir avant de signer) et avertissements */
+  const A=t=>r.alertes.push(t), N=t=>r.notifs.push(t);
+  if(q.O===0 && q.t11>=3) A("Objectif « sécurité » (à l'abri des pertes), mais une baisse de 20 % ou plus serait tolérée sur 12 mois. Revoir l'une des deux réponses.");
+  if(q.O===0 && q.t15===3) A("Objectif « sécurité », mais choix du portefeuille D, qui a perdu près du quart de sa valeur en une année. Revoir l'une des deux réponses.");
+  if(q.O===3 && q.t15===0) A("Objectif « croissance », mais choix du portefeuille A, celui qui fait le moins croître le capital. Revoir l'une des deux réponses.");
+  if(q.t11===0 && q.t10>=2) A("Aucune perte tolérée sur 12 mois, mais le client se dit disposé à accepter un risque modéré ou considérable. Revoir l'une des deux réponses.");
+  if(q.t11===0 && q.t14>=2) A("Aucune perte tolérée, mais le client conserverait ou achèterait après une baisse de 30 %. Revoir l'une des deux réponses.");
+  if(q.K===0 && q.t15===3) A("Connaissances très limitées, mais choix du portefeuille le plus risqué. Expliquer ce qu'une perte de 25 % représente en dollars avant de valider.");
+  if(q.H<=1 && q.O===3) A("Horizon de 3 ans ou moins avec un objectif de croissance : incompatible. Le profil de ce compte reste prudent; un autre compte peut porter l'objectif de croissance.");
+  const ecart=Math.abs(capC-tolC);
+  if(ecart>=2) N((capC<tolC?"La capacité financière":"La tolérance au risque")+" limite le profil bien en dessous de "+(capC<tolC?"ce que le client accepterait":"ce que sa situation permettrait")+" ("+ecart+" colonnes d'écart). Nommer cet écart au client et noter sa réaction.");
+  if(q.K===2 && (q.Kb||[]).length) N("Excès de confiance possible : multiplier les transactions, croire repérer les titres sous-évalués ou les creux du marché sont des erreurs classiques. À discuter et à documenter.");
+  if(q.fs<=1) N("Peu d'épargne et dettes nombreuses : rembourser les dettes à taux élevé peut être plus payant qu'investir. À aborder avant la mise en place.");
+  if(q.sh===3) N("Ce compte représente plus de 75 % des avoirs : la diversification du compte lui-même est critique, et toute perte se répercute sur l'ensemble du patrimoine.");
+  if((q.EV||[]).length>0) N((q.EV||[]).length+" événement(s) pourraient forcer un retrait hâtif : vérifier le fonds d'urgence et les assurances (invalidité, habitation, automobile) avant de placer à long terme.");
+  if(q.FU<=1) N("Fonds d'urgence insuffisant : proposer d'en constituer un (3 à 6 mois de dépenses) avant ou en parallèle des placements.");
+  if(q.H<=1) N("Horizon court : vérifier les frais de sortie et la possibilité de récupérer les sommes avant l'échéance.");
+  if(q.age>=2 && q.O===3) N("Client de 55 ans ou plus avec objectif de croissance : valider l'horizon de décaissement et la présence d'autres revenus (régime de retraite, RRQ, PSV).");
+
+  /* --- cohérence additionnelle --- */
+  if(q.H<=1 && q.t15===3) A("Horizon de 3 ans ou moins, mais choix du portefeuille D, qui a mis 5 ans à revenir à son sommet après son creux. L'argent ne serait pas revenu à temps. Revoir l'une des deux réponses.");
+  if(q.t14===0 && q.t10>=2) A("Le client se dit disposé à accepter un risque modéré ou considérable, mais vendrait tout après une baisse de 30 %. C'est la réaction qui compte : elle est ce qui se produit vraiment. Revoir l'une des deux réponses.");
+  if(q.t13===0 && q.t11>=3) A("Aucune perte acceptée à la question du choix entre placements, mais une baisse de 20 % ou plus serait tolérée sur 12 mois. Revoir l'une des deux réponses.");
+  if(q.t11>=3 && q.t13<=1) A("Baisse de 20 % ou plus tolérée sur 12 mois, mais choix du placement qui ne peut presque rien perdre. Les deux réponses décrivent des personnes différentes. Revoir l'une des deux.");
+  if(q.sh===3 && idx>=3) A("Ce compte représente plus de 75 % des avoirs du client et se retrouve au profil "+PROFILS[idx].nom+". Une baisse importante toucherait la quasi-totalité de son patrimoine. Documenter la discussion sur cette concentration avant de signer.");
+  if(q.O===1 && q.t15===3) A("Objectif « revenu régulier », mais choix du portefeuille le plus volatil, qui ne verse pas un revenu stable. Revoir l'une des deux réponses.");
+  if(q.K===0 && q.t10===3) A("Connaissances très limitées, mais le client se décrit comme audacieux. Expliquer concrètement ce qu'une perte représente en dollars et reprendre la question.");
+
+  /* la date de naissance saisie doit concorder avec le groupe d'âge coché :
+     l'âge vaut 20 des 68 points de capacité, une erreur ici déplace le profil */
+  const naiss=(typeof state!=='undefined' && state.client) ? state.client.naiss : '';
+  if(naiss && q.age!==undefined){
+    const d0=new Date(naiss+'T00:00:00'), au=new Date();
+    let ans=au.getFullYear()-d0.getFullYear();
+    const m=au.getMonth()-d0.getMonth();
+    if(m<0 || (m===0 && au.getDate()<d0.getDate())) ans--;
+    if(ans>0 && ans<120){
+      const reel = ans<35?0 : ans<55?1 : ans<65?2 : 3;
+      if(reel!==q.age) A(`La date de naissance indiquée donne ${ans} ans (« ${Q('age').o[reel][0].toLowerCase()} »), mais le groupe d'âge coché est « ${Q('age').o[q.age][0].toLowerCase()} ». L'âge compte pour 20 des 68 points de capacité : corriger avant de signer.`);
+    }
+  }
+
+  /* déclarations réglementaires — elles ne changent pas le pointage, mais elles changent la convenance */
+  const R=(typeof state!=='undefined' && state.reg) ? state.reg : {d:{},pc:{}};
+  if(R.d && R.d.levier===1){
+    if(idx<=1) A("Le client prévoit emprunter pour investir alors que son profil est "+PROFILS[idx].nom+". L'effet de levier est difficilement conciliable avec un profil prudent : la dette est certaine, le rendement ne l'est pas. À déconseiller par écrit, ou à retirer.");
+    if(q.FU<=1) A("Emprunt pour investir sans fonds d'urgence suffisant : un imprévu forcerait à vendre au mauvais moment tout en continuant de payer l'emprunt. À régler avant toute mise en place.");
+    if(q.K===0) A("Emprunt pour investir avec des connaissances très limitées : s'assurer que le client comprend qu'il devra rembourser même si le placement baisse, et consigner cette explication.");
+    if(q.st===2) N("Revenus instables et emprunt pour investir : vérifier la capacité de rembourser dans une mauvaise année.");
+    N("Emprunt pour investir : la mise en garde réglementaire doit être remise au client et son accusé de réception conservé au dossier.");
+  }
+  if(R.d && R.d.tiers===1) N("Une autre personne a un intérêt ou un pouvoir sur ce compte : obtenir la procuration ou le mandat écrit et le verser au dossier avant toute opération.");
+  if(R.d && R.d.lie===1) N("Lien avec un courtier ou une institution financière : obtenir l'autorisation écrite de l'employeur avant l'ouverture du compte.");
+  if(R.d && (R.d.initie===1||R.d.controle===1)) N("Client initié ou participant au contrôle d'un émetteur assujetti : signaler au courtier; des restrictions de négociation et des obligations de déclaration s'appliquent.");
+  if(R.d && R.d.ppe===1) N("Personne politiquement exposée : mesures de vigilance renforcées exigées — établir l'origine du patrimoine et obtenir l'approbation de la haute direction du courtier.");
+  if(R.pc && R.pc.choix===0 && q.age>=2) N("Client de 55 ans ou plus qui refuse de désigner une personne de confiance : le refus est son droit, mais consigner qu'il a bien été proposé et expliqué.");
+  if(R.pc && (R.pc.choix===null||R.pc.choix===undefined)) N("Personne de confiance : la proposition n'a pas encore été faite. Elle est obligatoire, même si le client refuse.");
+  return r;
+}
+
+/* ---------------- rendu conseiller ---------------- */
+function renderTabs(){
+  const el=document.getElementById('tabs'); el.innerHTML='';
+  state.accounts.forEach((a,i)=>{
+    const s=sommes(a); const b=document.createElement('button');
+    b.className='tab'+(i===cur?' active':'')+(complet(a)?' done':'');
+    b.innerHTML=`<span class="dot"></span><span>${esc(a.type)}${a.but?' · '+esc(a.but):(s.inv5?' · '+fmt(s.inv5):'')}</span>`;
+    b.onclick=()=>{cur=i;renderAll();window.scrollTo({top:0,behavior:'smooth'});};
+    if(state.accounts.length>1){ const x=document.createElement('span'); x.className='x'; x.textContent='×'; x.title='Retirer ce compte';
+      x.onclick=(e)=>{e.stopPropagation(); if(confirm('Retirer le compte '+a.type+'?')){ state.accounts.splice(i,1); cur=Math.max(0,cur-(i<=cur?1:0)); renderAll(); }}; b.appendChild(x); }
+    el.appendChild(b);
+  });
+  const sel=document.createElement('select'); sel.className='tab-add';
+  sel.innerHTML='<option value="">+ Ajouter un compte…</option>'+TYPES_COMPTE.map(t=>`<option>${t}</option>`).join('');
+  sel.onchange=e=>{ if(e.target.value){ const na=newAccount(e.target.value); const src=state.accounts[cur];
+    /* les questions sur la personne (connaissances, capacité) sont copiées : elles ne changent pas d'un compte à l'autre */
+    ['K','Kb','inc','st','fs','nw','age','FU','EV'].forEach(k=>{ if(src.ans[k]!==undefined) na.ans[k]=JSON.parse(JSON.stringify(src.ans[k])); });
+    state.accounts.push(na); cur=state.accounts.length-1; renderAll(); window.scrollTo({top:0,behavior:'smooth'});
+    toast('Compte ajouté — les réponses sur votre situation personnelle ont été reprises; l\'horizon, l\'objectif, les montants et la tolérance sont à remplir'); } };
+  el.appendChild(sel);
+}
+
+/* ---------------- déclarations réglementaires ---------------- */
+function renderDeclarations(){
+  const root=document.getElementById('declarations'); if(!root) return;
+  const R=state.reg; root.innerHTML='';
+  const maj=()=>{ majTransmission(); renderDoc0(); };
+
+  const bloc=(titre,aide)=>{
+    const d=document.createElement('div'); d.className='dec';
+    const p=document.createElement('p'); p.className='qq'; p.textContent=titre; d.appendChild(p);
+    if(aide){ const a=document.createElement('p'); a.className='aide'; a.textContent=aide; d.appendChild(a); }
+    root.appendChild(d); return d;
+  };
+  const champ=(lab,val,on,type)=>{
+    const f=document.createElement('div'); f.className='field';
+    const l=document.createElement('label'); l.textContent=lab;
+    const i=document.createElement('input'); i.type=type||'text'; i.value=val||'';
+    i.addEventListener('input',e=>{ on(e.target.value); maj(); });
+    f.appendChild(l); f.appendChild(i); return f;
+  };
+  const yn=(d,nom,valeur,on,ouiTxt,nonTxt)=>{
+    const w=document.createElement('div'); w.className='yn';
+    [[1,ouiTxt||'Oui'],[0,nonTxt||'Non']].forEach(([v,txt])=>{
+      const lab=document.createElement('label'); if(valeur===v) lab.classList.add('sel');
+      const i=document.createElement('input'); i.type='radio'; i.name=nom; i.checked=(valeur===v);
+      i.addEventListener('change',()=>{ on(v); renderDeclarations(); maj(); });
+      lab.appendChild(i); lab.appendChild(document.createTextNode(' '+txt)); w.appendChild(lab);
+    });
+    d.appendChild(w); return w;
+  };
+
+  /* --- personne de confiance (obligation OCRI/31-103 : la proposer, et consigner le refus) --- */
+  const dpc=bloc(
+    "Souhaitez-vous désigner une personne de confiance?",
+    "Quelqu'un que nous pourrions joindre si nous avions des inquiétudes sur votre santé, sur votre capacité à prendre une décision financière, ou si nous soupçonnions qu'une personne tente de profiter de vous. Elle ne peut jamais donner d'instructions sur votre compte, ni consulter vos avoirs. Vous avez le droit de refuser : nous le consignons simplement au dossier.");
+  yn(dpc,'pc',R.pc.choix,v=>{ R.pc.choix=v; if(v===0){ R.pc.nom=R.pc.lien=R.pc.tel=R.pc.courriel=''; } },
+     "Oui, je désigne une personne","Non, je préfère ne pas en désigner");
+  if(R.pc.choix===1){
+    const sub=document.createElement('div'); sub.className='sub';
+    const g=document.createElement('div'); g.className='fields';
+    g.appendChild(champ('Nom de la personne',R.pc.nom,v=>R.pc.nom=v));
+    g.appendChild(champ('Lien avec vous',R.pc.lien,v=>R.pc.lien=v));
+    g.appendChild(champ('Téléphone',R.pc.tel,v=>R.pc.tel=v,'tel'));
+    g.appendChild(champ('Courriel',R.pc.courriel,v=>R.pc.courriel=v,'email'));
+    sub.appendChild(g);
+    const n=document.createElement('p'); n.className='aide'; n.style.marginTop='9px';
+    n.textContent="Cette personne doit être majeure et ne devrait pas être celle qui détient une procuration sur votre compte. Prévenez-la que vous l'avez désignée.";
+    sub.appendChild(n); dpc.appendChild(sub);
+  }
+
+  /* --- source des fonds --- */
+  const ds=bloc("D'où proviennent les sommes que vous placez?",
+    "Le courtier doit connaître l'origine des fonds déposés au compte.");
+  const fs=document.createElement('div'); fs.className='fields';
+  const f=document.createElement('div'); f.className='field';
+  const sl=document.createElement('select');
+  sl.innerHTML='<option value="">—</option>'+SOURCES.map(s=>`<option${s===R.src?' selected':''}>${esc(s)}</option>`).join('');
+  sl.addEventListener('change',e=>{ R.src=e.target.value; maj(); });
+  f.appendChild(sl); fs.appendChild(f); ds.appendChild(fs);
+
+  /* --- déclarations oui / non --- */
+  DECS.forEach(D=>{
+    const d=bloc(D.q,D.aide);
+    yn(d,D.id,R.d[D.id],v=>{ R.d[D.id]=v; if(v===0) delete R.dt[D.id]; });
+    if(R.d[D.id]===1){
+      const sub=document.createElement('div'); sub.className='sub';
+      const g=document.createElement('div'); g.className='fields';
+      g.appendChild(champ(D.sub,R.dt[D.id],v=>R.dt[D.id]=v));
+      sub.appendChild(g);
+      if(D.id==='levier'){
+        const w=document.createElement('div'); w.className='warn'; w.style.marginTop='10px';
+        w.textContent="Mise en garde — emprunter pour investir n'est pas approprié pour tout le monde. Vous devrez rembourser l'emprunt et payer les intérêts même si la valeur de vos placements diminue, et vous pourriez perdre plus que le montant investi. Nous en discuterons avant toute mise en place.";
+        sub.appendChild(w);
+      }
+      d.appendChild(sub);
+    }
+  });
+
+  const cs=document.getElementById('c-consent'); if(cs) cs.checked=!!R.consent;
+}
+
+/* liste des éléments manquants avant de pouvoir transmettre le dossier */
+function manques(){
+  const m=[], c=state.client, R=state.reg;
+  if(!c.nom.trim()) m.push('votre nom complet');
+  if(!c.courriel.trim()||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.courriel.trim())) m.push('un courriel valide');
+  if(!c.tel.trim()) m.push('votre téléphone');
+  if(!c.naiss) m.push('votre date de naissance');
+  if(!c.adresse.trim()) m.push('votre adresse');
+  if(!c.civil) m.push('votre état civil');
+  if(!c.prof.trim()) m.push('votre profession');
+  if(R.pc.choix===null||R.pc.choix===undefined) m.push('votre réponse sur la personne de confiance');
+  if(R.pc.choix===1 && (!R.pc.nom.trim()||!R.pc.tel.trim())) m.push('le nom et le téléphone de la personne de confiance');
+  if(!R.src) m.push("l'origine des sommes placées");
+  DECS.forEach(D=>{
+    if(R.d[D.id]===undefined) m.push('la déclaration « '+D.q.replace(/\?$/,'')+' »');
+    else if(R.d[D.id]===1 && !(R.dt[D.id]||'').trim()) m.push('la précision demandée à « '+D.q.replace(/\?$/,'')+' »');
+  });
+  const incomplets=state.accounts.filter(a=>!complet(a));
+  incomplets.forEach(a=>m.push('les questions du compte '+a.type+(a.but?' ('+a.but+')':'')));
+  if(!R.consent) m.push('votre consentement à la collecte des renseignements');
+  return m;
+}
+
+function renderQuestionnaire(){
+  const a=state.accounts[cur], root=document.getElementById('questionnaire'); root.innerHTML='';
+  const ts=document.getElementById('a-type'); ts.innerHTML=TYPES_COMPTE.map(t=>`<option${t===a.type?' selected':''}>${t}</option>`).join('');
+  document.getElementById('a-but').value=a.but; document.getElementById('a-titre').value=a.titulaire;
+  const notes=document.getElementById('a-notes'); if(notes) notes.value=a.notes||'';
+
+  const mt=document.createElement('section'); mt.className='sec';
+  mt.innerHTML=`<div class="sec-head"><span class="dim">1</span><h3>${SECTIONS[0].titre}</h3><span class="why">${SECTIONS[0].why}</span></div>
+  <div class="q"><p><span class="n">Q1</span>Combien désirez-vous investir dans ce compte?</p>
+    <p class="aide">Somme déjà économisée, puis versements périodiques s'il y en a.</p>
+    <div class="money">
+      <div class="field"><label>Somme investie maintenant ($)</label><input type="number" min="0" step="100" id="i-init" value="${a.mtInit}"></div>
+      <div class="field"><label>Versement périodique ($)</label><input type="number" min="0" step="10" id="i-per" value="${a.mtPer}"></div>
+      <div class="field"><label>Fréquence</label><select id="i-freq">${FREQ.map(f=>`<option value="${f[1]}"${+a.freqPer===f[1]?' selected':''}>${f[0]}</option>`).join('')}</select></div>
+    </div></div>
+  <div class="q"><p><span class="n">Q2</span>Quelles sommes prévoyez-vous retirer de ce compte dans les 5 prochaines années?</p>
+    <p class="aide">Sans compter les revenus de placement. Par exemple une mise de fonds, un voyage, des travaux.</p>
+    <div class="money">
+      <div class="field"><label>Retrait unique ($)</label><input type="number" min="0" step="100" id="r-init" value="${a.retInit}"></div>
+      <div class="field"><label>Retrait périodique ($)</label><input type="number" min="0" step="10" id="r-per" value="${a.retPer}"></div>
+      <div class="field"><label>Fréquence</label><select id="r-freq">${FREQ.map(f=>`<option value="${f[1]}"${+a.freqRet===f[1]?' selected':''}>${f[0]}</option>`).join('')}</select></div>
+    </div>
+    <div class="split" id="split"></div></div>`;
+  root.appendChild(mt);
+  ['i-init','i-per','r-init','r-per'].forEach(id=>mt.querySelector('#'+id).addEventListener('input',e=>{
+    a[{'i-init':'mtInit','i-per':'mtPer','r-init':'retInit','r-per':'retPer'}[id]]=e.target.value; refreshSplit(); refreshDyn(); renderResult(); renderTabs(); renderRecap();
+  }));
+  mt.querySelector('#i-freq').addEventListener('change',e=>{a.freqPer=+e.target.value;refreshSplit();refreshDyn();renderResult();renderTabs();renderRecap();});
+  mt.querySelector('#r-freq').addEventListener('change',e=>{a.freqRet=+e.target.value;refreshSplit();refreshDyn();renderResult();renderTabs();renderRecap();});
+
+  SECTIONS.forEach((S,si)=>{
+    const qs=QUESTIONS.filter(q=>q.sec===si); if(!qs.length) return;
+    const sec=document.createElement('section'); sec.className='sec';
+    if(si>0) sec.innerHTML=`<div class="sec-head"><span class="dim">${S.dim}</span><h3>${S.titre}</h3><span class="why">${S.why}</span></div>`;
+    qs.forEach(q=>{
+      if(q.onlyIf && !q.onlyIf(a.ans)) return;
+      const d=document.createElement('div'); d.className='q'; d.dataset.q=q.id;
+      d.innerHTML=`<p><span class="n">${q.id.toUpperCase()}</span><span class="qt">${dynTitre(q,a)}</span></p>`+(q.aide?`<p class="aide">${q.aide}</p>`:'');
+      if(q.portefeuilles){
+        const wrap=document.createElement('div'); wrap.className='pf';
+        PORTEFEUILLES.forEach((P,k)=>{
+          const c=document.createElement('div'); c.className='pfc'+(a.ans[q.id]===k?' sel':'');
+          c.innerHTML=`<h5>${P.nom}<span>10 000 $ → ${fmt(P.fin)}</span></h5>${chartPf(P)}
+            <div class="pfstat"><span>Pire année<b>${P.pire>0?'+':''}${String(P.pire).replace('.',',')} %</b></span><span>Recul maximal<b>${P.dd?P.dd+' %':'aucun'}</b></span><span>Retour au sommet<b>${P.rec?P.rec+' ans':'—'}</b></span></div><p>${P.d}</p>`;
+          c.onclick=()=>{ a.ans[q.id]=k; renderQuestionnaire(); renderResult(); renderTabs(); renderRecap(); d.scrollIntoView({block:'nearest'}); };
+          wrap.appendChild(c);
+        });
+        d.appendChild(wrap);
+        if(a.ans[q.id]===4){ const w=document.createElement('div'); w.className='warn stop';
+          w.textContent="Prenez garde — risque de fraude. Un placement qui offre des rendements élevés sans jamais subir de perte, ça n'existe pas. Si ça existait, tout le monde y investirait. Choisissez un autre portefeuille pour continuer."; d.appendChild(w); }
+      } else {
+        const opts=document.createElement('div'); opts.className='opts'+(q.multi&&q.o.length>6?' grid2':'');
+        q.o.forEach((o,k)=>{
+          const lab=document.createElement('label'); lab.className='opt';
+          const checked=q.multi?(a.ans[q.id]||[]).includes(k):a.ans[q.id]===k; if(checked) lab.classList.add('sel');
+          const dyn=dynOption(q,k,a);
+          lab.innerHTML=`<input type="${q.multi?'checkbox':'radio'}" name="${q.id}" value="${k}" ${checked?'checked':''}><span class="txt">${(o[2]||dyn)?`<b>${o[0]}</b><small>${[o[2],dyn].filter(Boolean).join(' · ')}</small>`:o[0]}</span>`;
+          lab.querySelector('input').addEventListener('change',e=>{
+            if(q.multi){ const set=new Set(a.ans[q.id]||[]); e.target.checked?set.add(k):set.delete(k); a.ans[q.id]=[...set].sort((x,y)=>x-y); } else a.ans[q.id]=k;
+            if(q.id==='K'||q.id==='EV') renderQuestionnaire(); else opts.querySelectorAll('.opt').forEach(l=>l.classList.toggle('sel',l.querySelector('input').checked));
+            renderResult(); renderTabs(); renderRecap();
+          });
+          opts.appendChild(lab);
+        });
+        d.appendChild(opts);
+        if(q.id==='EV'){ const cnt=document.createElement('p'); cnt.className='aide'; cnt.style.marginTop='8px';
+          cnt.textContent=(a.ans.EV?a.ans.EV.length:0)+' événement(s) coché(s)'+(Array.isArray(a.ans.EV)?'':' — cochez ce qui s\'applique, ou confirmez « aucun ».'); d.appendChild(cnt);
+          if(!Array.isArray(a.ans.EV)){ const b=document.createElement('button'); b.className='btn'; b.style.cssText='color:var(--nuit);border-color:var(--nuit);margin-top:6px';
+            b.textContent='Aucun de ces événements'; b.onclick=()=>{ a.ans.EV=[]; renderQuestionnaire(); renderResult(); renderTabs(); renderRecap(); }; d.appendChild(b); } }
+      }
+      sec.appendChild(d);
+    });
+    root.appendChild(sec);
+  });
+  refreshSplit();
+}
+function dynTitre(q,a){
+  const s=sommes(a), b=s.base;
+  if(q.dyn==='t11') return `La valeur d'un portefeuille fluctue à la hausse et à la baisse. En supposant que vous ayez placé ${fmt(b)}, quelle baisse pourriez-vous tolérer sur une période de 12 mois?`;
+  if(q.dyn==='t13') return `Voici la pire perte et le meilleur gain possibles sur un an pour quatre placements de ${fmt(b)}. Dans lequel auriez-vous tendance à placer votre argent?`;
+  if(q.dyn==='t14') return `De septembre à novembre 2008, les marchés boursiers nord-américains ont perdu plus de 30 %. Si vos ${fmt(b)} ne valaient plus que ${fmt(Math.round(b*0.7))} après trois mois, que feriez-vous?`;
+  return q.t;
+}
+function dynOption(q,k,a){
+  const b=sommes(a).base;
+  if(q.dyn==='t11'){ const p=q.pct[k]; return k===0?'':`pour vous : ${k===4?'plus de ':''}${fmt(Math.round(b*p/100))}${k<4?' (−'+p+' %)':' (plus de −20 %)'}`; }
+  if(q.dyn==='t13'){ const [p,g]=q.pl[k]; return `pour vous : perte de ${fmt(Math.round(b*p/100))} ou gain de ${fmt(Math.round(b*g/100))}`; }
+  return '';
+}
+function refreshDyn(){
+  const a=state.accounts[cur];
+  document.querySelectorAll('#questionnaire .q').forEach(d=>{ const q=Q(d.dataset.q); if(!q||!q.dyn) return;
+    d.querySelector('.qt').textContent=dynTitre(q,a);
+    d.querySelectorAll('.opt').forEach((l,k)=>{ const sm=l.querySelector('small'); const t=dynOption(q,k,a); if(sm) sm.textContent=t; });
+  });
+}
+function refreshSplit(){
+  const a=state.accounts[cur], s=sommes(a), el=document.getElementById('split'); if(!el) return;
+  if(!s.inv5){ el.innerHTML='Inscrivez le montant investi : les scénarios de perte plus bas seront exprimés dans vos dollars, et la part requise à court terme sera séparée du reste.'; return; }
+  if(s.risque<1){ el.innerHTML=`Sur <b>${fmt(s.inv5)}</b> investis d'ici 5 ans, <b>${fmt(s.secu)}</b> seront retirés dans la même période. <b>Aucune somme n'est disponible à plus long terme :</b> le profil de ce compte sera Très prudent — marché monétaire, CPG, épargne à intérêt élevé.`; return; }
+  el.innerHTML=`Sur <b>${fmt(s.inv5)}</b> investis d'ici 5 ans : <b>${fmt(s.secu)}</b> seront requis dans les 5 prochaines années → placements sécuritaires et liquides, peu importe le profil. Le profil s'applique aux <b>${fmt(s.risque)}</b> restants.`;
+}
+function chartPf(P){
+  const w=210,h=86,pad=4, vals=[10000]; P.r.forEach(x=>vals.push(vals[vals.length-1]*(1+x/100)));
+  const mx=31500, mn=9000, X=i=>pad+i*(w-2*pad)/(vals.length-1), Y=v=>h-pad-(v-mn)/(mx-mn)*(h-2*pad);
+  let d='',ddPath=''; vals.forEach((v,i)=>{ d+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' '; });
+  let pi=0,pv=vals[0],lo=0,loI=0; vals.forEach((v,i)=>{ if(v>=pv){pv=v;pi=i;} else if(v/pv-1<lo){lo=v/pv-1;loI=i;} });
+  if(lo<-0.02){ let end=loI; while(end<vals.length-1 && vals[end]<pv) end++; ddPath=`<rect x="${X(pi).toFixed(1)}" y="${pad}" width="${(X(end)-X(pi)).toFixed(1)}" height="${h-2*pad}" fill="#A8574E" opacity=".08"/>`; }
+  const col=P.id==='E'?'#8a6d3b':'#22333B';
+  return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-hidden="true"><line x1="${pad}" y1="${Y(10000).toFixed(1)}" x2="${w-pad}" y2="${Y(10000).toFixed(1)}" stroke="#D9CDBD" stroke-width="1" stroke-dasharray="3 3"/>${ddPath}<path d="${d}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/><circle cx="${X(vals.length-1).toFixed(1)}" cy="${Y(vals[vals.length-1]).toFixed(1)}" r="2.6" fill="${col}"/></svg>`;
+}
+
+function renderResult(){
+  const a=state.accounts[cur], r=compute(a), s=r.s;
+  document.getElementById('r-acct').textContent=a.type+(s.inv5?' · '+fmt(s.inv5):'')+(a.but?' · '+a.but:'');
+  document.getElementById('progress').textContent=nbRepondu(a)+' / '+NB_Q+' réponses';
+  const pr=document.getElementById('r-profil'), rk=document.getElementById('r-risk'), lad=document.getElementById('ladder'),
+        cal=document.getElementById('calc'), lim=document.getElementById('r-limit'), fl=document.getElementById('flags');
+  lad.innerHTML=''; fl.innerHTML=''; cal.innerHTML='';
+  const fin=()=>{ renderNote(a,r); majTransmission(); if(!document.getElementById('sendwrap').hidden) majPanneau(); };
+  if(!r.profil){
+    pr.className='profil empty'; pr.textContent=nbRepondu(a)?'Questionnaire incomplet':'En attente des réponses'; rk.innerHTML='&nbsp;';
+    for(let i=0;i<5;i++){ const d=document.createElement('div'); d.className='rung'; lad.appendChild(d); }
+    lim.textContent="Capacité et tolérance sont additionnées séparément; horizon, connaissances et objectif sont des limites. Le profil est le plus prudent des cinq.";
+    setAlloc(33,34,33,true); fin(); return;
+  }
+  const P=r.profil; pr.className='profil'; pr.textContent=P.nom;
+  rk.innerHTML=`Risque convenable : ${P.risque.toUpperCase()}<br>Actions ${P.eq}`+(r.secondaire?`<br>Profil secondaire : ${r.secondaire.nom}`:'');
+  for(let i=0;i<5;i++){ const d=document.createElement('div'); d.className='rung'+(i<=P.i?' on':(r.secondaire&&i===r.secondaire.i?' sec':''))+(i===P.i?' cur':''); lad.appendChild(d); }
+  const ligne=(t,html)=>{ const d=document.createElement('div'); d.innerHTML=`<span>${t}</span><em>${html}</em>`; cal.appendChild(d); };
+  const nomCol=c=>PROFILS[c].court;
+  ligne('Capacité', `<b>${r.capS} / 68</b> → ${nomCol(r.cols[3].c)}`);
+  ligne('Tolérance', `<b>${r.tolS} / 60</b> → ${nomCol(r.cols[4].c)}`);
+  ligne('Limites', `horizon ${nomCol(r.cols[0].c)} · connaissances ${nomCol(r.cols[1].c)} · objectif ${nomCol(r.cols[2].c)}`);
+  if(r.plafonds.length) ligne('JC Capital', r.plafonds.join(' ; '));
+  lim.textContent = r.toutSecu
+    ? "Toutes les sommes seront requises d'ici 5 ans : aucun montant n'est disponible à long terme. Le profil est Très prudent, peu importe la tolérance au risque."
+    : "Ce qui fixe le profil : "+r.limiteurs.map(c=>c.txt).join(' ; ')+(r.plafonds.length?" ; puis plafond JC Capital — "+r.plafonds.join(' ; '):'')+".";
+  setAlloc(P.l,P.rf,P.ac,false);
+  r.alertes.forEach(f=>{ const d=document.createElement('div'); d.className='flag'; d.textContent='Incohérence : '+f; fl.appendChild(d); });
+  r.notifs.forEach(f=>{ const d=document.createElement('div'); d.className='flag info'; d.textContent=f; fl.appendChild(d); });
+  fin();
+}
+function setAlloc(l,rf,ac,vide){
+  const s=document.querySelectorAll('#r-stack i'); s[0].style.width=l+'%'; s[1].style.width=rf+'%'; s[2].style.width=ac+'%';
+  document.getElementById('al-l').textContent=vide?'—':l+' %'; document.getElementById('al-rf').textContent=vide?'—':rf+' %'; document.getElementById('al-ac').textContent=vide?'—':ac+' %';
+}
+
+function renderNote(a,r){
+  const el=document.getElementById('note');
+  if(!r.profil){ el.textContent='Complète le questionnaire pour générer la note.'; return; }
+  const c=state.client, P=r.profil, s=r.s;
+  let t=`Profil d'investisseur — compte ${a.type}${a.but?' ('+a.but+')':''}${a.titulaire?' — '+a.titulaire:''} — ${c.date?fmtDate(c.date):'[date]'} — ${c.ctx}.\n`;
+  t+=`Questionnaire complété par ${c.nom||'[client]'} (représentant : ${c.cons}). Questionnaire de l'investisseur et grille de pointage de l'OCRI; compléments AMF (sommes requises d'ici 5 ans, événements, piège « sans perte ») et JC Capital (fonds d'urgence).\n`;
+  t+=`Sommes : ${fmt(s.inv5)} investis sur 5 ans, dont ${fmt(s.secu)} requis d'ici 5 ans (placements liquides et sécuritaires) et ${fmt(s.risque)} évalués selon le profil.\n`;
+  t+=`Pointage — capacité ${r.capS}/68 (${PROFILS[r.cols[3].c].nom}), tolérance ${r.tolS}/60 (${PROFILS[r.cols[4].c].nom}); limites — horizon ${PROFILS[r.cols[0].c].nom}, connaissances ${PROFILS[r.cols[1].c].nom}, objectif ${PROFILS[r.cols[2].c].nom}.\n`;
+  t+=`Résultat : ${P.nom.toUpperCase()}${r.secondaire?' (profil secondaire : '+r.secondaire.nom+')':''}. Élément qui fixe le profil : ${r.limiteurs.map(x=>x.txt).join(' ; ')}.`;
+  if(r.plafonds.length) t+=` Plafond JC Capital : ${r.plafonds.join(' ; ')}.`;
+  t+=` Le profil ne dépasse pas le moins élevé de la capacité et de la tolérance (31-103CP, 13.2).\n`;
+  t+=`Horizon : ${Q('H').o[a.ans.H][0].toLowerCase()}. Objectif : ${Q('O').o[a.ans.O][0].split(' — ')[0]}. Baisse tolérée sur 12 mois : ${Q('t11').o[a.ans.t11][0].toLowerCase()}. Réaction à −30 % : ${Q('t14').o[a.ans.t14][0].toLowerCase()}. Portefeuille choisi : ${PORTEFEUILLES[a.ans.t15].nom} (pire année ${String(PORTEFEUILLES[a.ans.t15].pire).replace('.',',')} %).\n`;
+  t+=`Répartition indicative : ${P.l} % liquidités / ${P.rf} % revenu fixe / ${P.ac} % actions (actions ${P.eq}). Niveau de risque de fonds convenable : ${P.risque.toLowerCase()}.`;
+  if(r.alertes.length) t+=`\nIncohérences relevées et discutées : ${r.alertes.map(x=>x.split('.')[0]).join(' ; ')}.`;
+  if(r.notifs.length) t+=`\nPoints signalés au client : ${r.notifs.map(x=>x.split('.')[0]).join(' ; ')}.`;
+  if(a.ans.K===0) t+=`\nConnaissances très limitées : le représentant a expliqué la relation risque-rendement et les caractéristiques des produits proposés; le client confirme avoir compris.`;
+  if(a.notes && a.notes.trim()) t+=`\nNotes de discussion : ${a.notes.trim()}`;
+  const R=state.reg;
+  t+=`\nPersonne de confiance : ${R.pc.choix===1?('désignée — '+R.pc.nom+(R.pc.lien?' ('+R.pc.lien+')':'')+(R.pc.tel?', '+R.pc.tel:'')):(R.pc.choix===0?'proposée au client, refusée — refus consigné':'[à proposer]')}.`;
+  t+=`\nOrigine des sommes : ${R.src||'[à documenter]'}.`;
+  const oui=DECS.filter(D=>R.d[D.id]===1);
+  t+=`\nDéclarations réglementaires : ${oui.length?oui.map(D=>D.id+' = oui'+(R.dt[D.id]?' ('+R.dt[D.id]+')':'')).join(' ; '):'aucune déclaration positive (initié, contrôle, PPE, tiers, lien avec un courtier, emprunt pour investir)'}.`;
+  if(R.d.levier===1) t+=` Mise en garde sur l'effet de levier remise et expliquée; le client confirme comprendre que l'emprunt reste dû même si les placements baissent.`;
+  t+=`\nConsentement Loi 25 : ${R.consent?'accordé par le client':'[non accordé]'}.`;
+  t+=`\nProchaine révision : ${c.date?fmtDate(plus36(c.date)):'[date + 36 mois]'} au plus tard, ou lors de tout changement important de situation.`;
+  el.textContent=t;
+}
+
+function renderRecap(){
+  const tb=document.getElementById('recap'); tb.innerHTML='';
+  state.accounts.forEach((a,i)=>{
+    const r=compute(a), s=r.s, tr=document.createElement('tr');
+    tr.innerHTML=`<td>${esc(a.type)}${a.but?'<br><small style="color:var(--muet)">'+esc(a.but)+'</small>':''}</td>
+      <td class="m">${s.inv5?fmt(s.inv5):'—'}${s.secu?'<br><small style="color:var(--muet)">dont '+fmt(s.secu)+' court terme</small>':''}</td>
+      <td>${a.ans.H!==undefined?Q('H').o[a.ans.H][0]:'—'}</td>
+      <td>${r.profil?'<b>'+r.profil.nom+'</b>':'<span style="color:var(--muet)">incomplet ('+nbRepondu(a)+'/'+NB_Q+')</span>'}</td>
+      <td>${r.profil?r.profil.risque:'—'}</td><td class="m">${r.profil?r.profil.eq:'—'}</td>`;
+    tr.style.cursor='pointer'; tr.onclick=()=>{cur=i;renderAll();window.scrollTo({top:0,behavior:'smooth'});}; tb.appendChild(tr);
+  });
+  document.getElementById('methode').innerHTML=`<b>Méthode.</b> Le questionnaire reprend les 15 questions et la grille de pointage du <b>Questionnaire de l'investisseur de l'OCRI</b>. La <b>capacité</b> à prendre des risques (revenu, stabilité, situation financière, valeur nette, part des avoirs, âge — 68 points) et la <b>tolérance</b> au risque (six questions de comportement — 60 points) sont additionnées séparément, puis converties en colonne de profil. L'horizon, les connaissances et l'objectif fixent chacun une limite. <b>Le profil retenu est la colonne la plus prudente des cinq</b> : il ne dépasse donc jamais le moins élevé de la capacité et de la tolérance, comme l'exige l'instruction complémentaire du Règlement 31-103. Aucune question de capacité ou de tolérance ne décide seule : ce sont des totaux. Compléments : sommes requises d'ici 5 ans retirées du calcul (AMF), événements pouvant forcer un retrait (AMF), portefeuille « sans perte » comme piège pédagogique (AMF), fonds d'urgence (JC Capital, plafond seulement). Un questionnaire repris uniquement pour obtenir un résultat différent n'est pas un profil.<br>Références : Règlement 31-103, art. 13.2-13.3 et instruction complémentaire · OCRI, Questionnaire de l'investisseur et Pointage du questionnaire (ocri.ca) · AMF, « Votre profil d'investisseur » (lautorite.qc.ca) · échelle de risque des Aperçus du fonds.`;
+}
+function renderAll(){
+  renderTabs(); renderDeclarations(); renderQuestionnaire(); renderResult(); renderRecap(); majTransmission();
+  const seul=state.accounts.length<2, d=document.getElementById('a-del');
+  if(d){ d.disabled=seul; document.getElementById('a-delnote').textContent=seul?'Le dossier ne contient qu\'un compte.':'Retire ce compte du dossier et de tous les documents.'; }
+}
+/* recopie l'état dans les champs d'identification (reprise de session, lien reçu) */
+function remplirChamps(){
+  const c=state.client, map={'c-nom':'nom','c-courriel':'courriel','c-tel':'tel','c-naiss':'naiss','c-adresse':'adresse',
+    'c-civil':'civil','c-dep':'dep','c-prof':'prof','c-empl':'empl','c-langue':'langue','c-date':'date','c-cons':'cons','c-ctx':'ctx'};
+  Object.entries(map).forEach(([id,k])=>{ const el=document.getElementById(id); if(el) el.value=c[k]||''; });
+  const cs=document.getElementById('c-consent'); if(cs) cs.checked=!!state.reg.consent;
+}
+
+/* ---------------- document client ---------------- */
+async function empreinte(){
+  const src=JSON.stringify({c:state.client.nom, d:state.client.date, a:stateForClient().accounts.map(x=>({t:x.type,b:x.but,m:[x.mtInit,x.mtPer,x.freqPer,x.retInit,x.retPer,x.freqRet],r:x.ans}))});
+  try{ const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(src)); return [...new Uint8Array(buf)].slice(0,6).map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase(); }
+  catch(e){ let h=0; for(let i=0;i<src.length;i++){ h=(h*31+src.charCodeAt(i))>>>0; } return h.toString(16).toUpperCase().padStart(8,'0'); }
+}
+function renderDoc(){
+  const c=state.client, doc=document.getElementById('doc'), done=state.accounts.filter(complet);
+  const ref='PI-'+(c.date||'').replace(/-/g,'')+'-'+(c.nom||'').replace(/[^A-Za-zÀ-ÿ]/g,'').slice(0,6).toUpperCase();
+  let h='';
+  /* le client vient de terminer ses réponses : on lui dit où il est rendu et ce qu'il lui reste à faire */
+  if(role!=='cons') h+=`<div class="banniere"><p><b>Étape 2 sur 2 — presque terminé.</b> Voici vos réponses et le profil qui en découle. Relisez, signez au bas de la page, puis appuyez sur le bouton d'envoi.</p><button class="btn" id="aller-signature">Aller à la signature ↓</button></div>`;
+  h+=`<div class="doc-head"><div><h2>Profil d'investisseur — <b>attestation</b></h2></div><div class="ref">Réf. ${ref}<br>${c.date?fmtDate(c.date):''}<br>${esc(c.ctx)}<br>Empreinte <span id="emp">…</span></div></div>`;
+  h+=`<p class="doc-intro">Voici le résultat du questionnaire de profil d'investisseur que vous avez complété${c.cons?' avec '+esc(c.cons):''}. Les questions et la méthode de pointage sont celles du Questionnaire de l'investisseur de l'OCRI, l'organisme qui réglemente les courtiers au Canada : votre capacité à prendre des risques et votre tolérance au risque sont évaluées séparément, et le profil retenu ne dépasse jamais la plus prudente des deux. Relisez chaque réponse; si l'une d'elles ne vous ressemble pas, dites-le-nous avant de signer.</p>`;
+  if(role!=='cons') h+=`<p class="doc-intro">Relisez chaque réponse. Si l'une d'elles ne vous ressemble pas, revenez en arrière et corrigez-la, ou écrivez à ${CONSEILLER_MAIL} avant de signer.</p>`;
+  const ch=(l,v)=>`<div><label>${l}</label><span>${esc(v)||'—'}</span></div>`;
+  h+=`<div class="idgrid">${ch('Client',c.nom)}${ch('Date de naissance',c.naiss?fmtDate(c.naiss):'')}${ch('Courriel',c.courriel)}${ch('Téléphone',c.tel)}${ch('Adresse',c.adresse)}${ch('État civil',c.civil)}${ch('Personnes à charge',c.dep)}${ch('Profession',c.prof)}${ch('Employeur',c.empl)}${ch('Langue',c.langue)}${ch('Représentant',c.cons)}${ch('Contexte',c.ctx)}${ch('Date du questionnaire',c.date?fmtDate(c.date):'')}${ch('Prochaine révision au plus tard',c.date?fmtDate(plus36(c.date)):'')}</div>`;
+  if(!done.length) h+=`<div class="empty">Aucun compte n'a encore de questionnaire complet.</div>`;
+  done.forEach(a=>{
+    const r=compute(a), P=r.profil, s=r.s;
+    h+=`<div class="acc"><div class="acc-top"><div><div class="t">Compte ${esc(a.type)}${a.titulaire?' · '+esc(a.titulaire):''}</div><div class="p">${P.nom}</div><div class="sub">${a.but?esc(a.but)+' · ':''}${Q('H').o[a.ans.H][0].toLowerCase()}</div></div>
+      <div class="sc">Capacité <b>${r.capS}/68</b><br>Tolérance <b>${r.tolS}/60</b><br>Actions <b>${P.eq}</b></div></div>
+      <div class="acc-alloc"><div><div class="stack"><i class="l" style="width:${P.l}%"></i><i class="rf" style="width:${P.rf}%"></i><i class="ac" style="width:${P.ac}%"></i></div>
+      <div class="legend"><span>Liquidités <b>${P.l} %</b></span><span>Revenu fixe <b>${P.rf} %</b></span><span>Actions <b>${P.ac} %</b></span></div></div>
+      <div class="rk">Niveau de risque des fonds convenables<br><b>${P.risque}</b>${r.secondaire?'<br>Profil secondaire : '+r.secondaire.nom:''}</div></div>`;
+    if(s.inv5) h+=`<div class="acc-split">Sommes prévues sur 5 ans : <b>${fmt(s.inv5)}</b>${s.secu?` — dont <b>${fmt(s.secu)}</b> que vous prévoyez retirer d'ici 5 ans, à conserver en placements liquides et sécuritaires. Le profil ci-dessus s'applique aux <b>${fmt(s.risque)}</b> restants.`:'.'}</div>`;
+    h+=`<div class="acc-desc">${P.desc} <b>Ce qui fixe votre profil :</b> ${r.limiteurs.map(x=>x.txt).join(' ; ')}${r.plafonds.length?' ; '+r.plafonds.join(' ; '):''}.</div><div class="qa">`;
+    SECTIONS.forEach((S,si)=>{
+      const qs=QUESTIONS.filter(q=>q.sec===si && (!q.onlyIf||q.onlyIf(a.ans))); if(!qs.length) return;
+      h+=`<h4>${S.titre}</h4>`;
+      if(si===0 && s.inv5) h+=`<div class="row"><dt><span class="n">Q1</span>Sommes investies</dt><dd>${fmt(n(a.mtInit))}${n(a.mtPer)?' + '+fmt(n(a.mtPer))+' '+FREQ.find(f=>f[1]===+a.freqPer)[0]:''}</dd></div>
+        <div class="row"><dt><span class="n">Q2</span>Retraits prévus d'ici 5 ans</dt><dd>${s.ret5?fmt(n(a.retInit))+(n(a.retPer)?' + '+fmt(n(a.retPer))+' '+FREQ.find(f=>f[1]===+a.freqRet)[0]:''):'Aucun'}</dd></div>`;
+      qs.forEach(q=>{
+        const v=a.ans[q.id]; let rep;
+        if(q.portefeuilles) rep=PORTEFEUILLES[v].nom+' — pire année '+String(PORTEFEUILLES[v].pire).replace('.',',')+' %, '+fmt(PORTEFEUILLES[v].fin)+' après 10 ans';
+        else if(q.multi) rep=(v||[]).length?(v||[]).map(k=>q.o[k][0]).join(' · '):'Aucun';
+        else rep=q.o[v][0];
+        h+=`<div class="row"><dt><span class="n">${q.id.toUpperCase()}</span>${dynTitre(q,a)}</dt><dd>${esc(rep)}</dd></div>`;
+      });
+    });
+    h+=`</div></div>`;
+  });
+  /* renseignements réglementaires — repris intégralement dans le document signé */
+  const R=state.reg;
+  h+=`<div class="acc"><div class="acc-top"><div><div class="t">Renseignements réglementaires</div><div class="p" style="font-size:19px">Déclarations du client</div></div></div><div class="qa">`;
+  h+=`<h4>Personne de confiance</h4>`;
+  if(R.pc.choix===1) h+=`<div class="row"><dt>Personne désignée</dt><dd>${esc(R.pc.nom)||'—'}${R.pc.lien?' · '+esc(R.pc.lien):''}${R.pc.tel?' · '+esc(R.pc.tel):''}${R.pc.courriel?' · '+esc(R.pc.courriel):''}</dd></div><div class="row"><dt>Portée</dt><dd>Peut être jointe en cas d'inquiétude sur la santé, la capacité de décider ou une exploitation possible. Ne peut pas donner d'instructions sur le compte.</dd></div>`;
+  else if(R.pc.choix===0) h+=`<div class="row"><dt>Personne désignée</dt><dd>Le client a été informé de la possibilité d'en désigner une et a choisi de ne pas le faire.</dd></div>`;
+  else h+=`<div class="row"><dt>Personne désignée</dt><dd>À compléter</dd></div>`;
+  h+=`<h4>Origine des sommes et déclarations</h4>`;
+  h+=`<div class="row"><dt>Origine des sommes placées</dt><dd>${esc(R.src)||'—'}</dd></div>`;
+  DECS.forEach(D=>{
+    const v=R.d[D.id];
+    h+=`<div class="row"><dt>${esc(D.q)}</dt><dd>${v===1?'Oui':(v===0?'Non':'—')}${v===1&&R.dt[D.id]?' — '+esc(R.dt[D.id]):''}</dd></div>`;
+  });
+  h+=`<div class="row"><dt>Consentement à la collecte des renseignements (Loi 25)</dt><dd>${R.consent?'Accordé':'Non accordé'}</dd></div>`;
+  h+=`</div></div>`;
+  if(R.d.levier===1) h+=`<div class="attest" style="border-color:var(--alerte)"><h3>Mise en garde — emprunter pour investir</h3><p>Le client a indiqué qu'il prévoit emprunter pour investir. Utiliser de l'argent emprunté pour financer l'achat de titres comporte un risque plus élevé que le recours à des ressources personnelles seulement. Si vous empruntez pour investir, <b>vous devez rembourser l'emprunt et payer les intérêts selon les modalités convenues, même si la valeur des titres achetés diminue</b>. Vous pourriez ainsi perdre davantage que le montant investi.</p></div>`;
+
+  h+=`<div class="attest"><h3>Attestation du client</h3>
+    <p>Je confirme que les réponses ci-dessus sont les miennes et qu'elles reflètent fidèlement ma situation financière, mes objectifs et ma tolérance au risque pour chaque compte indiqué, ainsi que l'exactitude des renseignements d'identification et des déclarations réglementaires que j'ai fournis. Je comprends que le profil obtenu sert à évaluer la convenance des placements qui me seront proposés, qu'il ne constitue pas une recommandation de placement, et qu'il sera révisé lors de la rencontre annuelle, au plus tard tous les 36 mois, ou dès que ma situation change de façon importante — auquel cas je m'engage à en informer mon représentant sans délai. Je consens à ce que ces renseignements soient recueillis, utilisés et conservés à mon dossier client à ces fins.</p>
+    <div class="sigs">
+      <div><div class="sigbox"><canvas id="pad-client" width="800" height="280"></canvas><div class="cap"><span>Signature du client</span><button type="button" data-clear="pad-client">Effacer</button></div></div>
+        <div class="sigmeta"><div><label>Nom en lettres moulées</label><input id="s-nom" value="${esc(c.nom)}"></div><div><label>Date</label><input value="${fmtDate(todayISO())}"></div></div></div>
+      <div><div class="sigbox"><canvas id="pad-cons" width="800" height="280"></canvas><div class="cap"><span>Signature du représentant</span><button type="button" data-clear="pad-cons">Effacer</button></div></div>
+        <div class="sigmeta"><div><label>Représentant</label><input value="${esc(c.cons)}" readonly></div><div><label>Date</label><input value="${fmtDate(todayISO())}"></div></div></div>
+    </div>
+    <p style="margin-top:14px;font-size:12.5px;color:var(--muet)"><b>Déclaration du représentant.</b> J'ai passé en revue ces réponses avec le client, expliqué le profil obtenu et ce qui le fixe, discuté des incohérences ou avertissements relevés, et consigné la discussion au dossier.</p></div>`;
+  h+=`<div class="doc-foot">${FOOT}</div>`;
+  doc.innerHTML=h;
+  empreinte().then(e=>{ const el=document.getElementById('emp'); if(el) el.textContent=e; });
+  ['pad-client','pad-cons'].forEach(initPad);
+  doc.querySelectorAll('[data-clear]').forEach(b=>b.onclick=()=>clearPad(b.dataset.clear));
+  const aller=document.getElementById('aller-signature');
+  if(aller) aller.onclick=()=>{ const s=doc.querySelector('.attest'); if(s) s.scrollIntoView({behavior:'smooth',block:'start'}); };
+  majTransmission();
+  if(role!=='cons'){ document.getElementById('client-msg').textContent='Relisez vos réponses, signez dans le cadre, puis cliquez « Transmettre et recevoir ma copie ».';
+    if(role==='fill') document.getElementById('back-cons').textContent='← Modifier mes réponses'; }
+}
+function initPad(id){
+  const cv=document.getElementById(id); if(!cv) return; const ctx=cv.getContext('2d');
+  ctx.lineWidth=3; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#1B1A17';
+  let drawing=false,last=null;
+  const pos=e=>{ const r=cv.getBoundingClientRect(); const p=e.touches?e.touches[0]:e; return {x:(p.clientX-r.left)*cv.width/r.width, y:(p.clientY-r.top)*cv.height/r.height}; };
+  const start=e=>{drawing=true;last=pos(e);e.preventDefault();};
+  const move=e=>{ if(!drawing)return; const p=pos(e); ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last=p; e.preventDefault(); };
+  const end=()=>{drawing=false;};
+  cv.addEventListener('mousedown',start); cv.addEventListener('mousemove',move); window.addEventListener('mouseup',end);
+  cv.addEventListener('touchstart',start,{passive:false}); cv.addEventListener('touchmove',move,{passive:false}); cv.addEventListener('touchend',end);
+  ctx.save(); ctx.strokeStyle='#D9CDBD'; ctx.lineWidth=1; ctx.setLineDash([6,6]); ctx.beginPath(); ctx.moveTo(40,215); ctx.lineTo(760,215); ctx.stroke(); ctx.restore();
+}
+function clearPad(id){ const cv=document.getElementById(id); cv.getContext('2d').clearRect(0,0,cv.width,cv.height); initPad(id); }
+
+/* =====================================================================
+   TRANSMISSION — un bouton, deux destinataires
+   Le client clique une fois : le dossier complet et signé part vers le
+   représentant, et le client garde une copie identique sur son appareil.
+   La page fonctionne sans aucune de ces capacités : si la remise
+   automatique n'est pas disponible, elle bascule sur le téléchargement
+   direct et le courriel prérempli, sans jamais bloquer le client.
+   ===================================================================== */
+/* ---------------------------------------------------------------------
+   POINT DE RÉCEPTION — à remplir pour que le bouton envoie vraiment.
+   Mettre ici l'adresse du point de réception approuvé par la conformité
+   (ex. 'https://jccapital.ca/api/profil'). Il doit accepter un POST
+   JSON et répondre 200. Tant que la valeur est vide, la page bascule
+   automatiquement sur : copie enregistrée + courriel prérempli.
+   Ne jamais pointer vers un service qui n'a pas été approuvé : le
+   contenu est constitué de renseignements personnels de clients.
+   --------------------------------------------------------------------- */
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwwqhasdKkriRZue6EED5gWL_I1jMoHMZlJvhS2TbuQplghx_0Bb-Ywb5bGWly5HHTCnw/exec';
+
+const CAP = { db:null, dl:null, pret:false };
+(async function capacites(){
+  const use = (window.claude && typeof claude.use==='function') ? claude.use.bind(claude) : null;
+  if(use){
+    try{ CAP.db = await use('db'); }catch(e){ CAP.db=null; }
+    try{ CAP.dl = await use('downloads'); }catch(e){ CAP.dl=null; }
+  }
+  CAP.pret=true; majTransmission();
+})();
+
+function renderDoc0(){ if(document.getElementById('doc') && (document.body.classList.contains('m-client')||document.body.classList.contains('showdoc'))) renderDoc(); }
+
+function padSigne(id){
+  const cv=document.getElementById(id); if(!cv) return false;
+  try{
+    const d=cv.getContext('2d').getImageData(0,0,cv.width,cv.height).data;
+    /* le trait guide est gris pâle : on ne compte que l'encre foncée */
+    for(let i=0;i<d.length;i+=4){ if(d[i+3]>40 && d[i]<120) return true; }
+    return false;
+  }catch(e){ return true; }
+}
+function padImage(id){ const cv=document.getElementById(id); try{ return cv?cv.toDataURL('image/png'):''; }catch(e){ return ''; } }
+
+function refDossier(){
+  const c=state.client;
+  return 'PI-'+(c.date||todayISO()).replace(/-/g,'')+'-'+(c.nom||'').replace(/[^A-Za-zÀ-ÿ]/g,'').slice(0,6).toUpperCase();
+}
+
+/* le dossier complet, en données — c'est ce que le représentant reçoit */
+function dossier(emp){
+  const c=state.client, R=state.reg;
+  return {
+    ref: refDossier(), empreinte: emp||'', recu: new Date().toISOString(),
+    version: 'profil-investisseur/2', contexte: c.ctx, representant: c.cons,
+    client: { nom:c.nom, courriel:c.courriel, telephone:c.tel, naissance:c.naiss, adresse:c.adresse,
+              etatCivil:c.civil, personnesACharge:c.dep, profession:c.prof, employeur:c.empl,
+              langue:c.langue, date:c.date },
+    reglementaire: {
+      personneDeConfiance: R.pc.choix===1 ? {nom:R.pc.nom,lien:R.pc.lien,telephone:R.pc.tel,courriel:R.pc.courriel} : null,
+      refusPersonneDeConfiance: R.pc.choix===0,
+      origineDesFonds: R.src,
+      declarations: DECS.map(D=>({ id:D.id, question:D.q, reponse:R.d[D.id]===1?'Oui':(R.d[D.id]===0?'Non':null), precision:R.dt[D.id]||'' })),
+      consentementLoi25: !!R.consent
+    },
+    comptes: state.accounts.filter(complet).map(a=>{
+      const r=compute(a), s=r.s;
+      return {
+        type:a.type, but:a.but, titulaire:a.titulaire,
+        sommes:{ investiSur5ans:s.inv5, requisDici5ans:s.secu, evalueSelonLeProfil:s.risque },
+        profil:r.profil.nom, profilSecondaire:r.secondaire?r.secondaire.nom:null,
+        niveauDeRisque:r.profil.risque, actions:r.profil.eq,
+        repartition:{ liquidites:r.profil.l, revenuFixe:r.profil.rf, actions:r.profil.ac },
+        pointage:{ capacite:r.capS, capaciteSur:68, tolerance:r.tolS, toleranceSur:60 },
+        cequifixeLeProfil: r.limiteurs.map(x=>x.txt),
+        plafonds: r.plafonds, incoherences: r.alertes, pointsSignales: r.notifs,
+        reponses: Object.fromEntries(QUESTIONS.filter(q=>!q.onlyIf||q.onlyIf(a.ans)).map(q=>{
+          const v=a.ans[q.id];
+          if(q.portefeuilles) return [q.id, PORTEFEUILLES[v] ? PORTEFEUILLES[v].nom : null];
+          if(q.multi) return [q.id, (v||[]).map(k=>q.o[k][0])];
+          return [q.id, q.o[v] ? q.o[v][0] : null];
+        }))
+      };
+    }),
+    signatures: { client: padImage('pad-client'), representant: padImage('pad-cons'),
+                  nomEnLettresMoulees: (document.getElementById('s-nom')||{}).value || c.nom },
+    /* le document mis en page, tel quel — c'est lui qui devient la pièce jointe */
+    documentHtml: documentFinal(),
+    nomFichier: nomFichier()
+  };
+}
+
+/* document autonome — la copie identique que le client garde */
+function documentFinal(){
+  const styles=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\n');
+  const doc=document.getElementById('doc').cloneNode(true);
+  /* les signatures sont des canvas : on les fige en images pour qu'elles survivent au fichier */
+  doc.querySelectorAll('canvas').forEach(cv=>{
+    const src=document.getElementById(cv.id); const img=document.createElement('img');
+    img.src = src ? padImage(cv.id) : ''; img.alt='Signature';
+    img.style.cssText='display:block;width:100%;height:140px;object-fit:contain;background:#fff';
+    cv.parentNode.replaceChild(img,cv);
+  });
+  doc.querySelectorAll('.cap button, input').forEach(n=>{
+    if(n.tagName==='BUTTON'){ n.remove(); return; }
+    const s=document.createElement('span'); s.textContent=n.value||''; s.style.cssText='font-size:14px;font-weight:500;display:block;padding:4px 2px;border-bottom:1px solid #1B1A17';
+    n.parentNode.replaceChild(s,n);
+  });
+  const c=state.client;
+  return `<!DOCTYPE html><html lang="fr-CA"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profil d'investisseur — ${esc(c.nom||'client')} — ${esc(c.date||todayISO())}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>${styles}
+body{background:var(--papier)}
+.doc{max-width:880px;margin:0 auto}
+</style></head><body class="m-client"><header class="band"><div class="wrap"><div>
+<div class="brand">JC CAPITAL<small>FINANCE • FISCALITÉ • ASSURANCE</small></div></div></div></header>
+<section id="view-client">${doc.outerHTML}</section></body></html>`;
+}
+
+function nomFichier(){
+  const c=state.client;
+  const n=(c.nom||'client').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z]+/g,'-').replace(/^-|-$/g,'');
+  return `${c.date||todayISO()}_${n}_Profil-investisseur.html`;
+}
+
+function etat(cls,html){
+  const e=document.getElementById('env-etat'); if(!e) return;
+  e.className='etat on '+cls; e.innerHTML=html;
+}
+
+/* avancement du remplissage — ce que le client voit dans la barre du bas */
+function avancement(){
+  const c=state.client, R=state.reg;
+  let fait=0, total=0;
+  const compte=(ok)=>{ total++; if(ok) fait++; };
+  ['nom','courriel','tel','naiss','adresse','civil','prof'].forEach(k=>compte(!!String(c[k]||'').trim()));
+  compte(R.pc.choix===0 || (R.pc.choix===1 && !!R.pc.nom.trim() && !!R.pc.tel.trim()));
+  compte(!!R.src);
+  DECS.forEach(D=>compte(R.d[D.id]===0 || (R.d[D.id]===1 && !!(R.dt[D.id]||'').trim())));
+  compte(!!R.consent);
+  state.accounts.forEach(a=>{ total+=NB_Q; fait+=nbRepondu(a); });
+  return { fait, total, pct: total?Math.round(fait/total*100):0 };
+}
+function majJauge(){
+  const b=document.getElementById('jauge-barre'), t=document.getElementById('jauge-txt'); if(!b) return;
+  const a=avancement(), pret=a.pct>=100;
+  b.style.width=a.pct+'%';
+  t.textContent = pret ? 'Toutes les réponses sont données' : a.pct+' % · '+(a.total-a.fait)+' réponse(s) à donner';
+  /* quand tout est répondu, la barre du bas change d'allure et dit clairement quoi faire */
+  const bar=document.getElementById('fillbar'), msg=document.getElementById('fill-msg'), bt=document.getElementById('fill-done');
+  if(bar){
+    bar.classList.toggle('pret',pret);
+    if(msg) msg.textContent = pret
+      ? "C'est complet. Il reste à relire vos réponses et à signer — c'est la dernière étape."
+      : "Répondez à chaque question. Il n'y a pas de bonne ou de mauvaise réponse : c'est votre situation qui compte.";
+    if(bt) bt.textContent = pret ? 'Passer à la relecture et à la signature →' : 'Voir mon profil et signer';
+  }
+  const e1=document.getElementById('etape1'), e2=document.getElementById('etape2');
+  if(e1&&e2){ const doc=document.body.classList.contains('showdoc');
+    e1.classList.toggle('on',!doc); e1.classList.toggle('fait',doc||pret);
+    e2.classList.toggle('on',doc); }
+}
+
+function majTransmission(){
+  majJauge();
+  const b=document.getElementById('env-go'), lead=document.getElementById('env-lead'); if(!b) return;
+  const m=manques();
+  b.disabled = m.length>0;
+  if(!lead) return;
+  if(m.length){
+    lead.innerHTML = 'Avant de transmettre, il manque : <b>'+esc(m.slice(0,4).join(', '))+(m.length>4?', et '+(m.length-4)+' autre(s)':'')+'</b>.';
+  } else if(ENDPOINT||CAP.db){
+    lead.textContent = "Un seul geste : votre profil part directement à "+CONSEILLER_MAIL+", et vous en gardez une copie identique sur votre appareil.";
+  } else {
+    lead.textContent = "Votre copie s'enregistre sur votre appareil et un message déjà adressé à "+CONSEILLER_MAIL+" s'ouvre avec vos résultats. Vous n'avez pas à chercher l'adresse : elle est déjà inscrite.";
+  }
+}
+
+/* Partage natif du système : la seule façon, sur un hébergement statique,
+   d'envoyer le document AVEC la pièce jointe en un seul geste. Le client
+   choisit Courriel (ou Messages) et le fichier est déjà attaché.
+   Très bien supporté sur téléphone; variable sur ordinateur → on retombe
+   alors sur le courriel prérempli. */
+function fichierPartageable(){
+  try{ return new File([documentFinal()], nomFichier(), {type:'text/html'}); }
+  catch(e){ return null; }
+}
+let _partage=null;
+function partageDisponible(){
+  if(_partage!==null) return _partage;
+  try{
+    const sonde=new File(['<!DOCTYPE html>'],'sonde.html',{type:'text/html'});
+    _partage = !!(navigator.share && navigator.canShare && navigator.canShare({files:[sonde]}));
+  }catch(e){ _partage=false; }
+  return _partage;
+}
+async function partager(d){
+  const f=fichierPartageable(); if(!f) return false;
+  const m=courrielRetour(d);
+  try{ await navigator.share({ files:[f], title:m.sujet, text:m.corps }); return true; }
+  catch(e){ return false; }
+}
+
+async function enregistrerCopie(){
+  const html=documentFinal(), nom=nomFichier();
+  if(CAP.dl){
+    try{ await CAP.dl.save({filename:nom, data:html}); return true; }
+    catch(e){ if(e && e.code==='cancelled') return false; }
+  }
+  try{
+    const url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
+    const a=document.createElement('a'); a.href=url; a.download=nom; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); },2000);
+    return true;
+  }catch(e){ return false; }
+}
+
+/* Le courriel est toujours adressé au représentant, et son corps contient
+   l'essentiel du dossier en texte lisible : même si la pièce jointe se
+   perd, le représentant a les résultats et peut relancer le client. */
+function courrielRetour(d){
+  const c=state.client, R=state.reg;
+  const lignes=d.comptes.map(x=>
+    `• ${x.type}${x.but?' — '+x.but:''}\n    Profil : ${x.profil}   (capacité ${x.pointage.capacite}/68, tolérance ${x.pointage.tolerance}/60)\n    Risque convenable : ${x.niveauDeRisque} · actions ${x.actions}\n    Fixé par : ${x.cequifixeLeProfil.join(' ; ')}`
+  ).join('\n');
+  const dec=DECS.filter(D=>R.d[D.id]===1).map(D=>`    - ${D.q} OUI${R.dt[D.id]?' ('+R.dt[D.id]+')':''}`).join('\n');
+  const sujet=`Profil d'investisseur signé — ${c.nom||'client'} — réf. ${d.ref}`;
+  const corps=
+`Bonjour,
+
+Voici mon questionnaire de profil d'investisseur, rempli et signé.
+
+RÉFÉRENCE : ${d.ref}
+EMPREINTE : ${d.empreinte}
+DATE : ${c.date?fmtDate(c.date):todayISO()}
+
+MES COORDONNÉES
+    ${c.nom||''}
+    ${c.courriel||''}
+    ${c.tel||''}
+    ${c.adresse||''}
+    Né(e) le ${c.naiss?fmtDate(c.naiss):'—'} · ${c.civil||'—'} · ${c.prof||'—'}
+
+RÉSULTATS
+${lignes}
+
+RÉGLEMENTAIRE
+    Personne de confiance : ${R.pc.choix===1?(R.pc.nom+(R.pc.lien?' ('+R.pc.lien+')':'')+(R.pc.tel?', '+R.pc.tel:'')):'refusée par le client'}
+    Origine des sommes : ${R.src||'—'}
+    Consentement Loi 25 : ${R.consent?'accordé':'non accordé'}
+${dec?'    Déclarations positives :\n'+dec:'    Aucune déclaration positive'}
+
+Le document signé complet est enregistré sur mon appareil sous le nom
+« ${nomFichier()} ». Je le joins à ce message.
+
+${c.nom||''}`;
+  return {sujet,corps,to:CONSEILLER_MAIL};
+}
+
+async function transmettre(){
+  const m=manques();
+  if(m.length){ etat('err','Il manque encore : '+esc(m.join(', '))+'.'); majTransmission(); return; }
+  if(!padSigne('pad-client')){ etat('err','Votre signature est vide. Signez dans le cadre « Signature du client » — au doigt sur un téléphone ou une tablette, à la souris sur un ordinateur.'); return; }
+
+  const b=document.getElementById('env-go'); b.disabled=true;
+  etat('att','Envoi en cours…');
+  const emp=await empreinte();
+  const d=dossier(emp);
+
+  /* Envoi direct : le client ne voit rien d'autre qu'une confirmation.
+     Aucun logiciel de courriel ne s'ouvre, aucun fichier à joindre. */
+  if(ENDPOINT){
+    try{
+      const rep=await fetch(ENDPOINT,{ method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(d) });
+      let ok=rep.ok;
+      try{ const j=await rep.json(); if(j && j.ok===false) ok=false; }catch(e){}
+      if(ok){
+        etat('ok',`<b>C'est envoyé.</b> Votre profil d'investisseur signé vient d'être transmis à votre représentant`
+          +(state.client.courriel?`, et une copie vous a été expédiée à ${esc(state.client.courriel)}`:'')+`.`
+          +`<div class="recu">Référence ${esc(d.ref)} · Empreinte ${esc(d.empreinte)} · ${esc(new Date().toLocaleString('fr-CA'))}</div>`
+          +`<p style="margin:9px 0 0">Vous n'avez plus rien à faire. Conservez cette référence.</p>`);
+        b.disabled=false; return;
+      }
+    }catch(e){ /* on bascule sur la voie de secours plus bas */ }
+  }
+
+  let remis=false, motif='';
+  /* voie de secours : base de l'artifact, quand la page est ouverte depuis claude.ai */
+  if(!remis && CAP.db){
+    try{ await CAP.db.doc('soumissions/'+d.ref+'-'+d.empreinte).set(d); remis=true; motif=''; }
+    catch(e){ motif=motif||((e&&e.message)||'transmission refusée'); }
+  }
+
+  const copie=await enregistrerCopie();
+
+  const recu=`<div class="recu">Référence ${esc(d.ref)} · Empreinte ${esc(d.empreinte)} · ${esc(new Date().toLocaleString('fr-CA'))}</div>`;
+  const garde=`<p style="margin:9px 0 0">Conservez cette référence : elle identifie précisément la version que vous avez signée.</p>`;
+
+  if(remis){
+    etat('ok',`<b>C'est fait.</b> Votre profil a été transmis à ${esc(CONSEILLER_MAIL)}.`
+      +(copie?` Votre copie a été enregistrée sur votre appareil sous « ${esc(nomFichier())} ».`:` Utilisez « Imprimer / PDF » pour garder votre copie.`)
+      +recu+garde);
+    b.disabled=false; return;
+  }
+
+  /* Sans point de réception, le courriel est la seule voie qui garantit le
+     destinataire. Il est toujours pré-adressé au représentant : le client
+     n'a ni à chercher l'adresse, ni à choisir à qui envoyer. */
+  const mail=courrielRetour(d);
+  ouvrirCourriel(mail);
+  etat('att',`<b>Votre message est prêt, déjà adressé à ${esc(CONSEILLER_MAIL)}.</b> Il contient vos résultats. `
+    +(copie?`Votre document signé est enregistré sous « ${esc(nomFichier())} » — joignez-le au message, puis envoyez.`:`Enregistrez d'abord votre copie avec le bouton ci-dessous, puis joignez-la au message.`)
+    +(partageDisponible()?` <b>Sur téléphone</b>, le bouton « Envoyer avec la pièce jointe » ci-dessous fait les deux d'un coup.`:'')
+    +recu+garde);
+  const zone=document.getElementById('env-etat');
+  const rangee=document.createElement('div'); rangee.className='row2'; rangee.style.marginTop='12px';
+  const bMail=document.createElement('button'); bMail.className='btn'; bMail.textContent='Rouvrir le courriel';
+  bMail.onclick=()=>ouvrirCourriel(mail);
+  rangee.appendChild(bMail);
+  if(partageDisponible()){
+    const bShare=document.createElement('button'); bShare.className='btn solid'; bShare.textContent='Envoyer avec la pièce jointe';
+    bShare.onclick=async()=>{ const ok=await partager(d);
+      if(ok) etat('ok',`<b>Envoyé.</b> Le document signé est parti en pièce jointe. Vérifiez que le destinataire était bien ${esc(CONSEILLER_MAIL)}.`+recu); };
+    rangee.appendChild(bShare);
+  }
+  zone.appendChild(rangee);
+  b.disabled=false;
+}
+
+/* ---------------- modes ---------------- */
+function setMode(m){
+  if(role==='fill'){ document.body.classList.toggle('showdoc',m==='client'); if(m==='client') renderDoc();
+    window.scrollTo({top:0,behavior:'instant'}); majJauge(); return; }
+  document.body.classList.toggle('m-client',m==='client'); document.body.classList.toggle('m-conseiller',m!=='client');
+  document.getElementById('m-cons').classList.toggle('on',m!=='client'); document.getElementById('m-client').classList.toggle('on',m==='client');
+  if(m==='client') renderDoc(); window.scrollTo({top:0});
+}
+function lignesProfils(){ return state.accounts.filter(complet).map(a=>{ const r=compute(a); return `• ${a.type}${a.but?' — '+a.but:''} : profil ${r.profil.nom}`; }).join('\n'); }
+/* Signature de courriel — mêmes titres que la divulgation du document.
+   Ne jamais y ajouter un titre absent du registre de l'AMF. */
+function signature(){ return `Joël Camiré\nReprésentant en assurance de personnes · Représentant de courtier en épargne collective\nJC Capital — nom commercial de Joël Camiré\nAssurance de personnes : ${CABINET_ASS}, partenaire de Desjardins\nÉpargne collective offerte par l'entremise de ${COURTIER}\nCertificat AMF n° ${CERT_AMF}\n${CONSEILLER_TEL} · ${CONSEILLER_MAIL} · jccapital.ca`; }
+function mailFill(){
+  const prenom=(state.client.nom||'').split(' ')[0];
+  return { sujet:"Votre questionnaire de profil d'investisseur",
+    corps:`Bonjour ${prenom||''},\n\nVoici le questionnaire de profil d'investisseur à compléter avant notre prochaine rencontre. Il prend une dizaine de minutes et se remplit aussi bien sur un téléphone que sur un ordinateur.\n\n${shareLink('fill')}\n\nRépondez selon votre situation réelle, sans chercher la « bonne » réponse : c'est ce qui me permet de vous recommander des placements qui vous conviennent vraiment. À la fin, vous verrez votre profil, vous pourrez signer directement à l'écran, enregistrer le document en PDF et me le retourner par courriel.\n\nVos réponses restent sur votre appareil : elles ne sont enregistrées sur aucun serveur. Si une question n'est pas claire, appelez-moi, on la fait ensemble.\n\n${signature()}` };
+}
+function mailSign(){
+  const prenom=(state.client.nom||'').split(' ')[0];
+  return { sujet:"Votre profil d'investisseur — à relire et signer",
+    corps:`Bonjour ${prenom||''},\n\nVoici le résultat du questionnaire de profil d'investisseur que nous avons complété ensemble :\n${lignesProfils()}\n\nLes questions et la méthode de pointage sont celles du Questionnaire de l'investisseur de l'OCRI, l'organisme qui réglemente les courtiers au Canada.\n\nPour valider le tout, ouvrez le lien ci-dessous, relisez vos réponses, signez dans le cadre prévu (au doigt sur votre téléphone ou tablette, ou à la souris), puis enregistrez le PDF signé et retournez-le-moi par courriel.\n\n${shareLink('sign')}\n\nLe lien ne contient que vos réponses; rien n'est enregistré sur un serveur. Si une réponse ne vous ressemble pas, écrivez-moi avant de signer — on l'ajuste ensemble.\n\n${signature()}` };
+}
+function ouvrirCourriel(m){
+  const to=encodeURIComponent(m.to||state.client.courriel||'');
+  const u=`mailto:${to}?subject=${encodeURIComponent(m.sujet)}&body=${encodeURIComponent(m.corps)}`;
+  /* Certains gestionnaires de courriel tronquent les très longues adresses mailto.
+     On ouvre alors quand même le message — pré-adressé — avec un corps court,
+     et le texte complet passe par le presse-papiers. */
+  if(u.length>7000){
+    const court=m.corps.split('\n').slice(0,12).join('\n')+'\n\n[Le détail complet a été copié dans votre presse-papiers : collez-le ici avec Ctrl+V.]';
+    copy(m.corps,'Détail copié — collez-le dans le message avec Ctrl+V');
+    window.location.href=`mailto:${to}?subject=${encodeURIComponent(m.sujet)}&body=${encodeURIComponent(court)}`;
+    return;
+  }
+  window.location.href=u;
+}
+
+/* ---------------- utilitaires ---------------- */
+function esc(s){ return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function fmt(v){ return new Intl.NumberFormat('fr-CA',{style:'currency',currency:'CAD',maximumFractionDigits:0}).format(+v||0); }
+function fmtDate(s){ const [y,m,d]=s.split('-'); return new Date(+y,m-1,+d).toLocaleDateString('fr-CA',{day:'numeric',month:'long',year:'numeric'}); }
+function plus36(s){ const [y,m,d]=s.split('-'); const dt=new Date(+y,m-1+36,+d); return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); }
+function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+async function copy(txt,msg){ try{ await navigator.clipboard.writeText(txt); toast(msg); }catch(e){ prompt('Copie manuelle :',txt); } }
+
+/* ---------------- événements ---------------- */
+const bindClient=(id,key,ev='input')=>{ const el=document.getElementById(id); if(!el) return;
+  el.addEventListener(ev,e=>{ state.client[key]=e.target.value; renderResult(); majTransmission(); renderDoc0(); }); };
+bindClient('c-nom','nom'); bindClient('c-courriel','courriel'); bindClient('c-date','date'); bindClient('c-cons','cons'); bindClient('c-ctx','ctx','change');
+bindClient('c-tel','tel'); bindClient('c-naiss','naiss','change'); bindClient('c-adresse','adresse');
+bindClient('c-civil','civil','change'); bindClient('c-dep','dep','change'); bindClient('c-prof','prof');
+bindClient('c-empl','empl'); bindClient('c-langue','langue','change');
+document.getElementById('c-consent').addEventListener('change',e=>{ state.reg.consent=e.target.checked; majTransmission(); renderDoc0(); });
+
+/* boutons de transmission */
+document.getElementById('env-go').onclick=()=>transmettre();
+document.getElementById('env-copie').onclick=async()=>{
+  if(!padSigne('pad-client')) etat('att','Note : votre signature est vide — la copie sera enregistrée sans signature.');
+  const ok=await enregistrerCopie();
+  if(ok) etat('ok','Copie enregistrée sur votre appareil sous « '+esc(nomFichier())+' ».');
+  else etat('err','L\'enregistrement a été annulé ou bloqué par le navigateur. Utilisez « Imprimer / PDF » à la place.');
+};
+document.getElementById('env-print').onclick=()=>window.print();
+document.getElementById('a-type').addEventListener('change',e=>{state.accounts[cur].type=e.target.value;renderTabs();renderResult();renderRecap();});
+document.getElementById('a-but').addEventListener('input',e=>{state.accounts[cur].but=e.target.value;renderTabs();renderResult();renderRecap();});
+document.getElementById('a-titre').addEventListener('input',e=>{state.accounts[cur].titulaire=e.target.value;});
+const notesEl=document.getElementById('a-notes'); if(notesEl) notesEl.addEventListener('input',e=>{state.accounts[cur].notes=e.target.value; renderResult();});
+document.getElementById('reset').onclick=()=>{ if(confirm('Effacer les réponses de ce compte?')){ state.accounts[cur].ans={}; renderAll(); } };
+document.getElementById('dup').onclick=()=>{ const c=JSON.parse(JSON.stringify(state.accounts[cur])); c.type=c.type==='CELI'?'REER':'CELI'; c.but=''; c.notes=''; state.accounts.push(c); cur=state.accounts.length-1; renderAll(); toast('Compte dupliqué — ajuste l\'horizon, l\'objectif et les montants'); };
+document.getElementById('copy-note').onclick=()=>copy(document.getElementById('note').textContent,'Note copiée');
+document.getElementById('m-cons').onclick=()=>setMode('cons');
+document.getElementById('m-client').onclick=()=>setMode('client');
+document.getElementById('back-cons').onclick=()=>{ if(role==='fill'){ document.body.classList.remove('showdoc'); window.scrollTo({top:0}); } else setMode('cons'); };
+document.getElementById('m-print').onclick=()=>{ if(!document.body.classList.contains('m-client')) setMode('client'); setTimeout(()=>window.print(),250); };
+document.getElementById('dl').onclick=()=>window.print();
+
+const sw=document.getElementById('sendwrap');
+document.getElementById('m-send').onclick=()=>{ sw.hidden=false; majPanneau(); };
+document.getElementById('send-close').onclick=()=>sw.hidden=true;
+sw.addEventListener('click',e=>{ if(e.target===sw) sw.hidden=true; });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') sw.hidden=true; });
+function majPanneau(){
+  const pret=state.accounts.some(complet);
+  ['s2-mail','s2-link','s2-txt'].forEach(id=>document.getElementById(id).disabled=!pret);
+  document.getElementById('s2-note').textContent = pret?'' : "Aucun compte n'est complet : termine au moins un questionnaire pour envoyer un document à signer.";
+}
+const avertirLocal=()=>{ if(location.protocol==='file:') toast("Rappel : héberge la page (ex. jccapital.ca/profil) pour que le lien fonctionne chez le client"); };
+document.getElementById('s1-mail').onclick=()=>{ avertirLocal(); ouvrirCourriel(mailFill()); };
+document.getElementById('s1-link').onclick=()=>{ avertirLocal(); copy(shareLink('fill'),'Lien « à remplir » copié'); };
+document.getElementById('s1-txt').onclick=()=>{ const m=mailFill(); copy(m.sujet+'\n\n'+m.corps,'Texte du courriel copié (objet sur la 1re ligne)'); };
+document.getElementById('s2-mail').onclick=()=>{ avertirLocal(); ouvrirCourriel(mailSign()); };
+document.getElementById('s2-link').onclick=()=>{ avertirLocal(); copy(shareLink('sign'),'Lien « à signer » copié'); };
+document.getElementById('s2-txt').onclick=()=>{ const m=mailSign(); copy(m.sujet+'\n\n'+m.corps,'Texte du courriel copié (objet sur la 1re ligne)'); };
+
+/* reprendre une session : lien (client ou conseiller) ou code de sauvegarde */
+document.getElementById('m-load').onclick=()=>{
+  const v=prompt("Colle ici un lien ou un code de sauvegarde. Toutes les réponses seront rechargées et resteront modifiables.\n\n(Pour obtenir un code de sauvegarde de la session en cours : bouton « Copier le code de sauvegarde » dans le panneau Envoyer au client.)");
+  if(!v) return;
+  const m=v.match(/[#&]?d=([^&\s]+)/) || [null, v.trim()];
+  try{ const st=decodeState(m[1]);
+    if(!st || !Array.isArray(st.accounts) || !st.accounts.length) throw new Error('vide');
+    state=normaliser(st); cur=0; readonly=false; role='cons';
+    remplirChamps();
+    renderAll(); toast('Session reprise — '+state.accounts.length+' compte(s) chargé(s)');
+  }catch(e){ alert("Lien ou code illisible. Copie le lien complet à partir de l'autre page, incluant tout ce qui suit le #."); }
+};
+document.getElementById('a-del').onclick=()=>{
+  if(state.accounts.length<2){ toast('Impossible de supprimer le seul compte du dossier'); return; }
+  const a=state.accounts[cur];
+  if(!confirm('Supprimer définitivement le compte '+a.type+(a.but?' ('+a.but+')':'')+' et toutes ses réponses?')) return;
+  state.accounts.splice(cur,1); cur=Math.min(cur,state.accounts.length-1); renderAll(); toast('Compte supprimé');
+};
+document.getElementById('fill-done').onclick=()=>{
+  const reste=state.accounts.filter(a=>!complet(a));
+  if(reste.length){ toast('Il reste des questions sans réponse'); const i=state.accounts.indexOf(reste[0]); if(i!==cur){ cur=i; renderAll(); }
+    const manquante=[...document.querySelectorAll('#questionnaire .q')].find(d=>!d.querySelector('input:checked') && !d.querySelector('.pfc.sel') && d.dataset.q && !(d.dataset.q==='EV' && Array.isArray(state.accounts[cur].ans.EV)));
+    if(manquante) manquante.scrollIntoView({block:'center'}); return; }
+  /* identification et déclarations réglementaires : on montre précisément ce qui manque */
+  const m=manques();
+  if(m.length){
+    toast('Il manque : '+m[0]);
+    document.querySelectorAll('.manque').forEach(e=>e.classList.remove('manque'));
+    const c=state.client, premier=
+      (!c.nom.trim()&&'c-nom')||(!c.courriel.trim()&&'c-courriel')||(!c.tel.trim()&&'c-tel')||(!c.naiss&&'c-naiss')||
+      (!c.adresse.trim()&&'c-adresse')||(!c.civil&&'c-civil')||(!c.prof.trim()&&'c-prof')||(!state.reg.consent&&'c-consent');
+    const cible=premier?document.getElementById(premier):document.getElementById('declarations');
+    if(cible){ cible.classList.add('manque'); cible.scrollIntoView({block:'center'}); if(cible.focus) cible.focus(); }
+    return;
+  }
+  setMode('client');
+};
+/* code de sauvegarde (avec notes internes) */
+(function(){ const box=document.querySelector('.sendbox'); if(!box) return;
+  const d=document.createElement('div'); d.className='sendopt';
+  d.innerHTML=`<h4>3 · Sauvegarder la session (pour toi)</h4><p>Copie un code qui contient tout le dossier, notes internes comprises, pour le reprendre plus tard ou sur un autre appareil avec « Reprendre une session ». Rien n'est enregistré ailleurs.</p><div class="sendbtns"><button class="btn" id="s3-code">Copier le code de sauvegarde</button></div>`;
+  const notes=box.querySelectorAll(':scope > .sendnote'); const last=notes[notes.length-1]; if(last) box.insertBefore(d,last); else box.appendChild(d);
+  document.getElementById('s3-code').onclick=()=>copy(backupCode(),'Code de sauvegarde copié — garde-le dans le dossier client');
+})();
+
+/* ---------------- démarrage ---------------- */
+if(role==='sign'){
+  document.body.classList.add('readonly');
+  state.client.date=state.client.date||todayISO();
+  remplirChamps(); setMode('client'); majTransmission();
+}
+else if(role==='fill'){
+  document.body.classList.add('m-fill'); document.body.classList.remove('m-conseiller');
+  state.client.date=todayISO();
+  remplirChamps();
+  document.getElementById('lead-id').textContent="Vérifiez que vos coordonnées sont exactes et complétez-les, puis répondez aux questions qui suivent. Il n'y a pas de bonne ni de mauvaise réponse : c'est votre situation réelle qui compte.";
+  renderAll();
+}
+else { state.client.date=state.client.date||todayISO(); remplirChamps(); renderAll(); }
+
+</script>
+</body>
+</html>
