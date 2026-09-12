@@ -1,5 +1,5 @@
 # Posts sociaux — Septembre 2026
-**JC Capital | Joël Camiré, représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
+**JC Capital | Joël Camiré, conseiller en sécurité financière et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
 
 ---
 
@@ -271,7 +271,7 @@ Cet automne, je réserve des plages de consultations pour les entrepreneurs et t
 
 C'est 60 minutes, sans frais, et sans engagement.
 
-Je suis Joël Camiré, représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.
+Je suis Joël Camiré, conseiller en sécurité financière et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.
 
 Les places de septembre et octobre se remplissent rapidement. Lien Calendly dans ma bio.
 
@@ -417,7 +417,7 @@ Dites-moi dans les commentaires. Aucune mauvaise réponse — juste curieux de v
 
 ---
 
-*Joël Camiré, représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.*
+*Joël Camiré, conseiller en sécurité financière et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.*
 
 #Sondage #PlanificationFinancière #EntrepreneursQuébec #JCCapital
 
@@ -444,7 +444,7 @@ Lien Calendly dans la bio — places limitées en octobre.
 
 ---
 
-*Joël Camiré, représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine. À titre informatif. Ne constitue pas un conseil personnalisé. Consultez un professionnel inscrit auprès de l'AMF.*
+*Joël Camiré, conseiller en sécurité financière et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine. À titre informatif. Ne constitue pas un conseil personnalisé. Consultez un professionnel inscrit auprès de l'AMF.*
 
 #JCCapital #SFLPatrimoine #PlanificationFinancière #Québec #RentréeFinancière
 

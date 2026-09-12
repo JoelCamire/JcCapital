@@ -1,5 +1,5 @@
 # Idées vidéos — Septembre 2026
-**JC Capital | Joël Camiré, représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
+**JC Capital | Joël Camiré, conseiller en sécurité financière et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
 
 ---
 
@@ -60,7 +60,7 @@
 #EntrepreneurIncorporé #FiscalitéQuébec #FinDannéeFiscale #CELI2026 #JCCapital #QuébecFinances
 
 ### Description (mention de conformité)
-À titre informatif et éducatif seulement. Ne constitue pas un conseil financier, fiscal ou de placement personnalisé. Évaluez votre situation avec un conseiller inscrit auprès de l'AMF. Joël Camiré est représentant en assurance de personnes et représentant de courtier en épargne collective inscrit auprès de l'AMF, rattaché à SFL Gestion de patrimoine. JC Capital est sa marque commerciale.
+À titre informatif et éducatif seulement. Ne constitue pas un conseil financier, fiscal ou de placement personnalisé. Évaluez votre situation avec un conseiller inscrit auprès de l'AMF. Joël Camiré est conseiller en sécurité financière et représentant de courtier en épargne collective inscrit auprès de l'AMF, rattaché à SFL Gestion de patrimoine. JC Capital est sa marque commerciale.
 
 ---
 
@@ -84,7 +84,7 @@
 ### Script complet (plan détaillé)
 
 **[0–2 min — Introduction]**
-- Se présenter : Joël Camiré, représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.
+- Se présenter : Joël Camiré, conseiller en sécurité financière et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.
 - Contexte : pourquoi septembre est le meilleur moment de l'année pour planifier — pas décembre.
 - Ce qu'on va couvrir : 7 actions concrètes.
 - Disclaimer rapide : contenu éducatif, à valider avec votre équipe (CPA, conseiller).
@@ -141,7 +141,7 @@
 #RentréeFinancière #EntrepreneurIncorporéQuébec #PlanificationFiscale2026 #CELI #REER #FiscalitéQuébec #JCCapital
 
 ### Description (mention de conformité)
-À titre informatif et éducatif seulement. Ne constitue pas un conseil financier, fiscal, comptable, juridique ou de placement personnalisé. Les stratégies fiscales mentionnées doivent être validées avec votre comptable CPA et votre conseiller financier. Joël Camiré est représentant en assurance de personnes et représentant de courtier en épargne collective inscrit auprès de l'AMF, rattaché à SFL Gestion de patrimoine. JC Capital est sa marque commerciale.
+À titre informatif et éducatif seulement. Ne constitue pas un conseil financier, fiscal, comptable, juridique ou de placement personnalisé. Les stratégies fiscales mentionnées doivent être validées avec votre comptable CPA et votre conseiller financier. Joël Camiré est conseiller en sécurité financière et représentant de courtier en épargne collective inscrit auprès de l'AMF, rattaché à SFL Gestion de patrimoine. JC Capital est sa marque commerciale.
 
 Réservez une consultation : https://calendly.com/joelcamire-jccapital/consultation
 
@@ -206,4 +206,4 @@ Réservez une consultation : https://calendly.com/joelcamire-jccapital/consultat
 #AssuranceVie #BénéficiaireDésigné #PlanificationSuccessorale #JCCapital #Québec #TipFinancier
 
 ### Description (mention de conformité)
-À titre informatif et éducatif seulement. Ne constitue pas un conseil personnalisé. Consultez un professionnel inscrit auprès de l'AMF. Joël Camiré est représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.
+À titre informatif et éducatif seulement. Ne constitue pas un conseil personnalisé. Consultez un professionnel inscrit auprès de l'AMF. Joël Camiré est conseiller en sécurité financière et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine.

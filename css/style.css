@@ -2751,7 +2751,7 @@ a[style*="border-radius"] { border-radius: 9px !important; }
     filter: brightness(1.06);
     box-shadow: 0 6px 24px rgba(210, 168, 87, 0.42) !important;
 }
-a[style*="var(--c-gold)"] {
+a[style*="background"][style*="var(--c-gold)"] {
     background: linear-gradient(135deg, var(--c-gold-bright), var(--c-gold)) !important;
     box-shadow: 0 4px 14px rgba(210, 168, 87, 0.25);
 }
@@ -2972,7 +2972,7 @@ a[style*="var(--c-gold)"] {
     background: linear-gradient(135deg, #22DD90 0%, #12AC6A 55%, #0A8150 100%) !important;
     color: #04140c !important;
 }
-a[style*="var(--c-gold)"] { background: linear-gradient(135deg, #22DD90, #12AC6A) !important; color: #04140c !important; }
+a[style*="background"][style*="var(--c-gold)"] { background: linear-gradient(135deg, #22DD90, #12AC6A) !important; color: #04140c !important; }
 
 /* Halo pulse vert (redefinition) */
 @keyframes ctaPulse {
@@ -3025,7 +3025,7 @@ a[style*="var(--c-gold)"] { background: linear-gradient(135deg, #22DD90, #12AC6A
     background: linear-gradient(135deg, #E7D3B6 0%, #C6AC8F 55%, #AC9376 100%) !important;
     color: #1c2830 !important;
 }
-a[style*="var(--c-gold)"] { background: linear-gradient(135deg, #E7D3B6, #C6AC8F) !important; color: #1c2830 !important; }
+a[style*="background"][style*="var(--c-gold)"] { background: linear-gradient(135deg, #E7D3B6, #C6AC8F) !important; color: #1c2830 !important; }
 
 /* Halo pulse champagne (redefinition) */
 @keyframes ctaPulse {

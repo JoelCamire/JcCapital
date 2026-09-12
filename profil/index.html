@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
 <title>Profil d'investisseur JC Capital</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -605,9 +606,10 @@ const COURTIER='Worldsource Financial Management inc.';
 const CABINET_ASS='SFL Gestion de patrimoine';
 
 /* Divulgation obligatoire. Ne doivent figurer ici QUE les titres inscrits au registre
-   de l'AMF au nom de Joël Camiré. Tout titre non inscrit — « conseiller en sécurité
-   financière » tant qu'il n'est pas au registre — constitue une infraction à la LDPSF. */
-const IDENTITE = `<b>Joël Camiré</b> — représentant en assurance de personnes rattaché à ${CABINET_ASS} (partenaire de Desjardins), et représentant de courtier en épargne collective pour ${COURTIER}. Certificat AMF n° ${CERT_AMF}. <b>JC Capital</b> est le nom commercial de Joël Camiré (NEQ ${NEQ}) : ce n'est ni un cabinet inscrit, ni une société incorporée. <b>Les produits et services d'épargne collective sont offerts par l'entremise de ${COURTIER}</b>, seul responsable de ces activités. ${CONSEILLER_TEL} · ${CONSEILLER_MAIL}`;
+   de l'AMF au nom de Joël Camiré. « Conseiller en sécurité financière » est le titre de la
+   discipline assurance de personnes, valide depuis le 2026-09-11. Tout titre absent du
+   registre constitue une infraction à la LDPSF. */
+const IDENTITE = `<b>Joël Camiré</b> — conseiller en sécurité financière rattaché à ${CABINET_ASS} (partenaire de Desjardins), et représentant de courtier en épargne collective pour ${COURTIER}. Certificat AMF n° ${CERT_AMF}. <b>JC Capital</b> est le nom commercial de Joël Camiré (NEQ ${NEQ}) : ce n'est ni un cabinet inscrit, ni une société incorporée. <b>Les produits et services d'épargne collective sont offerts par l'entremise de ${COURTIER}</b>, seul responsable de ces activités. ${CONSEILLER_TEL} · ${CONSEILLER_MAIL}`;
 
 const FOOT = `<span class="sfl">SFL</span>${IDENTITE}<br><br><b>Portée du document.</b> Ce questionnaire soutient l'obligation de connaissance du client et d'évaluation de la convenance (Règlement 31-103, art. 13.2 et 13.3 et instruction complémentaire; Loi sur la distribution de produits et services financiers). Il reprend le Questionnaire de l'investisseur et la grille de pointage de l'Organisme canadien de réglementation des investissements (OCRI), complétés par des éléments du questionnaire « Votre profil d'investisseur » de l'Autorité des marchés financiers. Le profil résultant est un <b>outil d'aide à la décision, et non une recommandation de placement</b> : la recommandation finale est établie par le représentant après discussion complète et documentée. Le profil est revu à chaque rencontre annuelle, au plus tard tous les 36 mois, et dès qu'un changement important de votre situation est porté à notre connaissance.<br><br><b>Renseignements personnels (Loi 25).</b> Les renseignements recueillis ici servent uniquement à établir votre profil d'investisseur et la convenance des placements qui vous seront proposés, et sont versés à votre dossier client tenu par ${COURTIER}. Ils sont conservés pendant la durée exigée par la réglementation et ne sont communiqués qu'aux personnes qui doivent y avoir accès : votre représentant, le courtier, et sur demande légale l'Autorité des marchés financiers ou l'OCRI. Vous pouvez en tout temps consulter ces renseignements, les faire rectifier ou retirer votre consentement, en écrivant à ${CONSEILLER_MAIL}. Responsable de la protection des renseignements personnels : Joël Camiré, ${CONSEILLER_TEL}.`;
 
@@ -1533,7 +1535,7 @@ function setMode(m){
 function lignesProfils(){ return state.accounts.filter(complet).map(a=>{ const r=compute(a); return `• ${a.type}${a.but?' — '+a.but:''} : profil ${r.profil.nom}`; }).join('\n'); }
 /* Signature de courriel — mêmes titres que la divulgation du document.
    Ne jamais y ajouter un titre absent du registre de l'AMF. */
-function signature(){ return `Joël Camiré\nReprésentant en assurance de personnes · Représentant de courtier en épargne collective\nJC Capital — nom commercial de Joël Camiré\nAssurance de personnes : ${CABINET_ASS}, partenaire de Desjardins\nÉpargne collective offerte par l'entremise de ${COURTIER}\nCertificat AMF n° ${CERT_AMF}\n${CONSEILLER_TEL} · ${CONSEILLER_MAIL} · jccapital.ca`; }
+function signature(){ return `Joël Camiré\nConseiller en sécurité financière · Représentant de courtier en épargne collective\nJC Capital — nom commercial de Joël Camiré\nAssurance de personnes : ${CABINET_ASS}, partenaire de Desjardins\nÉpargne collective offerte par l'entremise de ${COURTIER}\nCertificat AMF n° ${CERT_AMF}\n${CONSEILLER_TEL} · ${CONSEILLER_MAIL} · jccapital.ca`; }
 function mailFill(){
   const prenom=(state.client.nom||'').split(' ')[0];
   return { sujet:"Votre questionnaire de profil d'investisseur",

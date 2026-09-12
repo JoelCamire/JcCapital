@@ -1,5 +1,5 @@
 # Rapport mensuel — Septembre 2026
-**JC Capital | Joël Camiré, représentant en assurance de personnes et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
+**JC Capital | Joël Camiré, conseiller en sécurité financière et représentant de courtier en épargne collective, JC Capital, en partenariat avec SFL Gestion de patrimoine**
 
 *Généré le 1er septembre 2026*
 
@@ -121,4 +121,4 @@ La révision d'assurances annuelle est une raison naturelle de reprendre contact
 
 ---
 
-*Rapport généré automatiquement par l'agent de contenu JC Capital. Contenu éducatif — ne constitue pas un conseil financier personnalisé. Joël Camiré est représentant en assurance de personnes et représentant de courtier en épargne collective inscrit auprès de l'AMF, rattaché à SFL Gestion de patrimoine. JC Capital est sa marque commerciale.*
+*Rapport généré automatiquement par l'agent de contenu JC Capital. Contenu éducatif — ne constitue pas un conseil financier personnalisé. Joël Camiré est conseiller en sécurité financière et représentant de courtier en épargne collective inscrit auprès de l'AMF, rattaché à SFL Gestion de patrimoine. JC Capital est sa marque commerciale.*
