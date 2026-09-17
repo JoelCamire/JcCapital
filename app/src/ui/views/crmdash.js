@@ -7,16 +7,18 @@ import { kpi, card } from '../widgets.js';
 import { donutChart } from '../charts.js';
 import {
   pipelineSummary, taskBuckets, reminders, revenueSummary, activityFeed,
-  lifecycleCounts, LIFECYCLE_META, STAGE_META, ACTIVITY_META, daysUntil, revenueReport,
+  lifecycleCounts, LIFECYCLE_META, ACTIVITY_META, revenueReport,
 } from '../../engine/crm.js';
+import { clientFacts } from '../../engine/facts.js';
 
+/** Progress label is uncapped (120 % stays 120 %); only the bar width is capped at 100 %. */
 function goalBar(label, actual, target) {
-  const pct = target > 0 ? Math.min(1, actual / target) : 0;
+  const pct = target > 0 ? actual / target : 0;
   return h('div', {},
     h('div', { class: 'flex between', style: { marginBottom: '4px' } },
       h('span', { class: 'tiny', style: { fontWeight: '600' } }, label),
-      h('span', { class: 'tiny muted mono' }, `${money(actual, { compact: true })}${target > 0 ? ' / ' + money(target, { compact: true }) : ''}`)),
-    h('div', { class: 'bar' }, h('span', { style: { width: `${Math.round(pct * 100)}%`, background: pct >= 1 ? 'var(--pos)' : 'var(--c-gold)' } })));
+      h('span', { class: 'tiny muted mono' }, `${money(actual, { compact: true })}${target > 0 ? ' / ' + money(target, { compact: true }) + ' · ' + Math.round(pct * 100) + ' %' : ''}`)),
+    h('div', { class: 'bar' }, h('span', { style: { width: `${Math.round(Math.min(1, pct) * 100)}%`, background: pct >= 1 ? 'var(--pos)' : 'var(--c-gold)' } })));
 }
 
 function relLabel(d) {
@@ -44,17 +46,20 @@ export function render({ store, navigate }) {
   const life = lifecycleCounts(clients);
 
   const dueNow = [...tasks.overdue, ...tasks.today, ...tasks.soon];
+  // Book-wide balance sheet from the facts layer (net worth already includes linked product AUM)
+  let bookNetWorth = 0, bookInvestable = 0;
+  for (const c of clients) { try { const F = clientFacts(c); bookNetWorth += F.netWorth.netWorth || 0; bookInvestable += F.investable || 0; } catch (e) { /* a malformed file must not blank the dashboard */ } }
 
   // ---- KPIs ----
   const kpis = h('div', { class: 'grid cols-4' },
-    kpi({ label: t('Pipeline pondéré', 'Weighted pipeline'), value: money(pipe.weightedPremium, { compact: true }),
-      sub: t(`${pipe.openCount} opportunité(s) · ${money(pipe.openAum, { compact: true })} AUM`, `${pipe.openCount} open · ${money(pipe.openAum, { compact: true })} AUM`),
+    kpi({ label: t('Pipeline pondéré (primes)', 'Weighted pipeline (premium)'), value: money(pipe.weightedPremium, { compact: true }) + '/' + t('an', 'yr'),
+      sub: t(`${pipe.openCount} ouverte(s) · AUM pondéré ${money(pipe.weightedAum, { compact: true })} sur ${money(pipe.openAum, { compact: true })}`, `${pipe.openCount} open · weighted AUM ${money(pipe.weightedAum, { compact: true })} of ${money(pipe.openAum, { compact: true })}`),
       iconName: 'funnel', accent: 'var(--c-gold)' }),
     kpi({ label: t('Tâches à traiter', 'Tasks to handle'), value: num(dueNow.length),
       sub: t(`${tasks.overdue.length} en retard · ${tasks.today.length} aujourd’hui`, `${tasks.overdue.length} overdue · ${tasks.today.length} today`),
       iconName: 'check', accent: tasks.overdue.length ? 'var(--neg)' : 'var(--text)' }),
     kpi({ label: t('Actifs sous gestion', 'Assets under management'), value: money(rev.aum, { compact: true }),
-      sub: t(`${rev.policies} produit(s) · prime ${money(rev.annualPremium, { compact: true })}/an`, `${rev.policies} product(s) · ${money(rev.annualPremium, { compact: true })}/yr premium`),
+      sub: t(`${rev.policies} produit(s) · prime ${money(rev.annualPremium, { compact: true })}/an · valeur nette du book ${money(bookNetWorth, { compact: true })} (investissable ${money(bookInvestable, { compact: true })})`, `${rev.policies} product(s) · ${money(rev.annualPremium, { compact: true })}/yr premium · book net worth ${money(bookNetWorth, { compact: true })} (investable ${money(bookInvestable, { compact: true })})`),
       iconName: 'bank' }),
     kpi({ label: t('Commissions récurrentes', 'Recurring commissions'), value: money(rev.recurringCommission, { compact: true }),
       sub: t(`Potentiel 1re année ${money(rev.firstYearPotential, { compact: true })}`, `1st-yr potential ${money(rev.firstYearPotential, { compact: true })}`),
@@ -69,12 +74,15 @@ export function render({ store, navigate }) {
       ...pipe.stages.map(s => h('div', { style: { margin: '10px 0' } },
         h('div', { class: 'flex between', style: { marginBottom: '4px' } },
           h('span', { class: 'tiny', style: { fontWeight: '600' } }, s.label),
-          h('span', { class: 'tiny muted' }, `${s.count} · ${money(s.premium + s.aum, { compact: true })}`)),
+          h('span', { class: 'tiny muted' }, `${s.count} · ${money(s.premium, { compact: true })}/${t('an', 'yr')} · ${money(s.aum, { compact: true })} AUM`)),
         h('div', { class: 'bar' }, h('span', { style: { width: `${Math.round(s.count / maxCount * 100)}%`, background: s.color } })),
       )),
       h('div', { class: 'flex between', style: { marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--border)' } },
-        h('span', { class: 'tiny muted' }, t('Taux de conversion (gagné / décidé)', 'Conversion (won / decided)')),
-        h('b', { class: 'mono', style: { color: 'var(--pos)' } }, pipe.conversion ? Math.round(pipe.conversion * 100) + ' %' : '—')),
+        h('span', { class: 'tiny muted' }, t('Conversion 12 mois (gagné / décidé)', 'Conversion, 12 months (won / decided)')),
+        h('b', { class: 'mono', style: { color: 'var(--pos)' } }, pipe.decided12m ? Math.round(pipe.conversion * 100) + ' %' : '—')),
+      h('div', { class: 'flex between', style: { marginTop: '4px' } },
+        h('span', { class: 'tiny muted' }, t('Conversion — tout temps', 'Conversion — all-time')),
+        h('span', { class: 'mono tiny muted' }, pipe.decidedAllTime ? `${Math.round(pipe.conversionAllTime * 100) } % (${pipe.wonCount}/${pipe.decidedAllTime})` : '—')),
     ));
 
   const lifeSegs = ['prospect', 'client', 'lead', 'inactive']
@@ -101,7 +109,7 @@ export function render({ store, navigate }) {
         h('span', { style: { color: 'var(--c-gold)' }, html: icon(REMINDER_META[r.type].icon, 16) }),
         h('div', {}, h('div', { style: { fontWeight: '600', fontSize: '13px' } }, `${REMINDER_META[r.type].label()} — ${r.who}`),
           h('div', { class: 'tiny muted' }, r.clientName))),
-      h('span', { class: 'chip ' + (r.days <= 3 ? 'warn' : ''), style: { whiteSpace: 'nowrap' } }, relLabel(r.days)),
+      h('span', { class: 'chip ' + (r.overdue ? 'neg' : r.days <= 3 ? 'warn' : ''), style: { whiteSpace: 'nowrap' } }, relLabel(r.days)),
     )) ) : h('div', { class: 'empty tiny' }, t('Aucun rappel à l’horizon', 'No reminders on the horizon')));
 
   // ---- Activity feed ----
@@ -119,9 +127,10 @@ export function render({ store, navigate }) {
 
   // ---- Sales goals progress ----
   const g = store.state.crmGoals || {};
-  const rr = revenueReport(clients);
+  const goalYear = Number.isFinite(+g.year) && +g.year > 0 ? +g.year : new Date().getFullYear();
+  const rr = revenueReport(clients, goalYear);   // first-year commissions keyed to the goal's year; recurring / AUM are the book as it stands
   const goalsStrip = (g.firstYear || g.recurring || g.aum)
-    ? card(t('Objectifs de ventes', 'Sales goals'), { sub: `${g.year || ''}`, right: h('a', { class: 'btn sm ghost', href: '#revenue' }, t('Détails', 'Details')) },
+    ? card(t('Objectifs de ventes', 'Sales goals'), { sub: `${goalYear}`, right: h('a', { class: 'btn sm ghost', href: '#revenue' }, t('Détails', 'Details')) },
         h('div', { class: 'grid cols-3' },
           goalBar(t('Commissions 1re année', 'First-year commissions'), rr.firstYearYTD, g.firstYear || 0),
           goalBar(t('Récurrent', 'Recurring'), rr.recurring, g.recurring || 0),

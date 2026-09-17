@@ -2,23 +2,42 @@ import { h, money, pct, num, icon, t } from '../dom.js';
 import { kpi, card, slider, statList, legend } from '../widgets.js';
 import { barChart, lineChart, PALETTE } from '../charts.js';
 import { holdcoAnalysis, estateFreezeLCGE, rcaAnalysis, prescribedRateLoan } from '../../engine/advstructures.js';
-import { businessValuation } from '../../engine/corporate.js';
+import { marginalRateFor } from '../../engine/tax.js';
+import { clientFacts, whatIf, saveWhatIf } from '../../engine/facts.js';
+import { store as appStore } from '../../state/store.js';
 
-export function render({ client, jur, navigate }) {
+export function render({ store, client, jur, navigate }) {
+  store = store || appStore;
   const cur = jur.currency;
   const isCA = jur.country === 'CA';
-  const bizVal = client.business ? (businessValuation(client.business.valuation).estimate || 1500000) : 1500000;
+  const F = clientFacts(client, jur);
+  const FB = F.business;
+  const owner = (FB && FB.owner) || F.primary || { marginal: { ordinary: 0.5 } };
+  const bizVal = FB ? (FB.value || 0) : 0;
+
+  // Two members' marginal rates for the prescribed-rate loan (lender = highest, borrower = lowest / a low-income rate)
+  const byRate = [...F.members].sort((a, b) => b.marginal.ordinary - a.marginal.ordinary);
+  const lenderRate = byRate[0] ? byRate[0].marginal.ordinary : marginalRateFor(jur, 150000);
+  const borrowerRate = byRate.length > 1 ? byRate[byRate.length - 1].marginal.ordinary : marginalRateFor(jur, 30000);
+
+  const P = whatIf(client, 'advstructures', {
+    prLoan: Math.round(F.buckets.taxable) || 1000000, prRet: F.assumptions.preReturn, prRate: jur.prescribedRate ?? 0.03,
+    prHigh: Math.round(lenderRate * 100) / 100, prLow: Math.round(borrowerRate * 100) / 100, prYears: 15,
+    fzCur: Math.round(bizVal), fzFut: Math.round(bizVal * 3), fzBen: FB ? Math.max(1, FB.owners) : 1, fzMarg: Math.round(owner.marginal.ordinary * 100) / 100,
+    hcActive: Math.round(bizVal), hcPassive: FB ? Math.round(FB.corpInvestments || 0) : 0,
+    rcaContrib: 100000, rcaYears: 10, rcaReturn: F.assumptions.preReturn,
+  });
+  const setP = (k, v) => { P[k] = v; saveWhatIf(store, 'advstructures', { [k]: v }); };
 
   // ---------- Prescribed-rate loan (works conceptually everywhere) ----------
-  let prLoan = 1000000, prRet = 0.06, prRate = 0.04, prHigh = 0.50, prLow = 0.25, prYears = 15;
   const prBox = h('div', {});
   function drawPR() {
-    const r = prescribedRateLoan({ loan: prLoan, returnRate: prRet, prescribedRate: prRate, highMarg: prHigh, lowMarg: prLow, years: prYears });
+    const r = prescribedRateLoan({ loan: P.prLoan, returnRate: P.prRet, prescribedRate: P.prRate, highMarg: P.prHigh, lowMarg: P.prLow, years: P.prYears }, jur);
     prBox.replaceChildren(
       h('div', { class: 'grid cols-3', style: { marginBottom: '10px' } },
         kpi({ label: t('Revenu déplacé / an', 'Income shifted / yr'), value: money(r.splitIncome, { currency: cur, compact: true }) }),
         kpi({ label: t('Économie d’impôt annuelle', 'Annual tax saving'), value: money(r.annualSaving, { currency: cur, compact: true }), accent: 'var(--pos)' }),
-        kpi({ label: t(`Économie cumulée (${prYears} ans)`, `Cumulative saving (${prYears} yrs)`), value: money(r.cumulative, { currency: cur, compact: true }), accent: 'var(--pos)' }),
+        kpi({ label: t(`Économie cumulée (${P.prYears} ans)`, `Cumulative saving (${P.prYears} yrs)`), value: money(r.cumulative, { currency: cur, compact: true }), accent: 'var(--pos)' }),
       ),
       h('div', { html: lineChart({ series: [{ color: PALETTE[1], values: r.series.map(s => Math.round(s.cumulative)) }], xLabels: r.series.map(s => s.year), area: true }) }),
       h('p', { class: 'tiny muted', style: { marginTop: '8px' } },
@@ -28,14 +47,14 @@ export function render({ client, jur, navigate }) {
   }
   drawPR();
   const prCard = card(t('Prêt au taux prescrit (fractionnement)', 'Prescribed-rate loan (income splitting)'), { class: 'span-full',
-    sub: t('Déplacer le revenu de placement vers un conjoint/enfant à faible taux', 'Shift investment income to a lower-rate spouse/child') },
+    sub: t(`Déplacer le revenu de placement vers un conjoint/enfant à faible taux — taux prescrit ${pct(jur.prescribedRate ?? 0, 1)} (${jur.taxYear}), taux marginaux des membres du dossier`, `Shift investment income to a lower-rate spouse/child — prescribed rate ${pct(jur.prescribedRate ?? 0, 1)} (${jur.taxYear}), members' marginal rates from the file`) },
     h('div', { class: 'grid cols-3' },
-      slider({ label: t('Montant du prêt', 'Loan amount'), value: prLoan, min: 100000, max: 5000000, step: 100000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { prLoan = v; drawPR(); } }),
-      slider({ label: t('Rendement du portefeuille', 'Portfolio return'), value: prRet, min: 0.03, max: 0.12, step: 0.005, format: v => pct(v), onInput: v => { prRet = v; drawPR(); } }),
-      slider({ label: t('Taux prescrit ARC', 'CRA prescribed rate'), value: prRate, min: 0.01, max: 0.07, step: 0.005, format: v => pct(v), onInput: v => { prRate = v; drawPR(); } }),
-      slider({ label: t('Taux marginal — prêteur', 'Marginal rate — lender'), value: prHigh, min: 0.3, max: 0.55, step: 0.01, format: v => pct(v, 0), onInput: v => { prHigh = v; drawPR(); } }),
-      slider({ label: t('Taux marginal — emprunteur', 'Marginal rate — borrower'), value: prLow, min: 0, max: 0.4, step: 0.01, format: v => pct(v, 0), onInput: v => { prLow = v; drawPR(); } }),
-      slider({ label: t('Horizon (ans)', 'Horizon (yrs)'), value: prYears, min: 1, max: 30, step: 1, format: v => `${v}`, onInput: v => { prYears = v; drawPR(); } }),
+      slider({ label: t('Montant du prêt (placements imposables du dossier)', 'Loan amount (taxable investments on file)'), value: P.prLoan, min: 100000, max: 5000000, step: 100000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('prLoan', v); drawPR(); } }),
+      slider({ label: t('Rendement du portefeuille', 'Portfolio return'), value: P.prRet, min: 0.03, max: 0.12, step: 0.005, format: v => pct(v), onInput: v => { setP('prRet', v); drawPR(); } }),
+      slider({ label: t('Taux prescrit ARC', 'CRA prescribed rate'), value: P.prRate, min: 0.01, max: 0.07, step: 0.005, format: v => pct(v), onInput: v => { setP('prRate', v); drawPR(); } }),
+      slider({ label: t('Taux marginal — prêteur', 'Marginal rate — lender'), value: P.prHigh, min: 0.2, max: 0.55, step: 0.01, format: v => pct(v, 0), onInput: v => { setP('prHigh', v); drawPR(); } }),
+      slider({ label: t('Taux marginal — emprunteur', 'Marginal rate — borrower'), value: P.prLow, min: 0, max: 0.45, step: 0.01, format: v => pct(v, 0), onInput: v => { setP('prLow', v); drawPR(); } }),
+      slider({ label: t('Horizon (ans)', 'Horizon (yrs)'), value: P.prYears, min: 1, max: 30, step: 1, format: v => `${v}`, onInput: v => { setP('prYears', v); drawPR(); } }),
     ),
     prBox);
 
@@ -44,10 +63,9 @@ export function render({ client, jur, navigate }) {
   }
 
   // ---------- Estate freeze + family trust (LCGE multiplication) ----------
-  let fzCur = Math.round(bizVal), fzFut = Math.round(bizVal * 3), fzBen = 3, fzMarg = 0.26;
   const fzBox = h('div', {});
   function drawFreeze() {
-    const r = estateFreezeLCGE({ currentValue: fzCur, futureValue: fzFut, beneficiaries: fzBen, marginalRate: fzMarg });
+    const r = estateFreezeLCGE({ currentValue: P.fzCur, futureValue: P.fzFut, beneficiaries: P.fzBen, marginalRate: P.fzMarg }, jur);
     fzBox.replaceChildren(
       h('div', { class: 'grid cols-3', style: { marginBottom: '10px' } },
         kpi({ label: t('Croissance future (gelée)', 'Future growth (frozen out)'), value: money(r.growth, { currency: cur, compact: true }) }),
@@ -55,15 +73,17 @@ export function render({ client, jur, navigate }) {
         kpi({ label: t('Impôt épargné (multiplication)', 'Tax saved (multiplication)'), value: money(r.taxSaved, { currency: cur, compact: true }), accent: 'var(--pos)' }),
       ),
       h('div', { html: barChart({
-        xLabels: [t('1 seule EGC', 'Single LCGE'), t(`${fzBen} bénéficiaires`, `${fzBen} beneficiaries`)],
+        xLabels: [t('1 seule EGC', 'Single LCGE'), t(`${P.fzBen} bénéficiaires`, `${P.fzBen} beneficiaries`)],
         series: [{ color: PALETTE[2], values: [Math.round(r.exemptSingle), Math.round(r.exemptWithFreeze)] }],
       }) }),
       statList([
-        [t('Valeur gelée (actions privilégiées du fondateur)', 'Frozen value (founder preferred shares)'), money(fzCur, { currency: cur })],
+        [t('Valeur gelée (actions privilégiées du fondateur)', 'Frozen value (founder preferred shares)'), money(P.fzCur, { currency: cur })],
         [t('Croissance attribuée à la fiducie', 'Growth attributed to the trust'), money(r.growth, { currency: cur })],
+        [t(`EGC par personne (${jur.taxYear})`, `LCGE per person (${jur.taxYear})`), money(r.lcge, { currency: cur })],
         [t('Exonération si 1 seul détenteur', 'Exemption with a single holder'), money(r.exemptSingle, { currency: cur })],
         [t('Exonération multipliée', 'Multiplied exemption'), money(r.exemptWithFreeze, { currency: cur }), 'pos'],
         [t('Gain imposable résiduel', 'Residual taxable gain'), money(r.taxableGrowth, { currency: cur })],
+        [t(`Taux effectif sur le gain (inclusion ${pct(r.inclusion, 0)} × ${pct(P.fzMarg, 0)})`, `Effective rate on the gain (inclusion ${pct(r.inclusion, 0)} × ${pct(P.fzMarg, 0)})`), pct(r.inclusion * P.fzMarg, 1)],
       ]),
       h('p', { class: 'tiny muted', style: { marginTop: '8px' } },
         t('Le gel cristallise la valeur actuelle en actions privilégiées à valeur fixe; les nouvelles actions ordinaires (croissance) sont émises à une fiducie familiale dont chaque bénéficiaire peut réclamer sa propre EGC à la vente. Attention à la règle de disposition réputée des 21 ans et aux règles IRF/TOSI.',
@@ -72,20 +92,19 @@ export function render({ client, jur, navigate }) {
   }
   drawFreeze();
   const fzCard = card(t('Gel successoral + fiducie familiale', 'Estate freeze + family trust'), { class: 'span-full',
-    sub: t('Multiplier l’exonération cumulative des gains en capital entre les bénéficiaires', 'Multiply the lifetime capital gains exemption across beneficiaries') },
+    sub: t(`Multiplier l’exonération cumulative des gains en capital entre les bénéficiaires — valeur d’entreprise du dossier ${money(bizVal, { currency: cur, compact: true })}`, `Multiply the lifetime capital gains exemption across beneficiaries — business value on file ${money(bizVal, { currency: cur, compact: true })}`) },
     h('div', { class: 'grid cols-4' },
-      slider({ label: t('Valeur actuelle (gel)', 'Current value (freeze)'), value: fzCur, min: 0, max: 10000000, step: 100000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { fzCur = v; drawFreeze(); } }),
-      slider({ label: t('Valeur future (vente)', 'Future value (sale)'), value: fzFut, min: 0, max: 20000000, step: 100000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { fzFut = v; drawFreeze(); } }),
-      slider({ label: t('Nombre de bénéficiaires', 'Number of beneficiaries'), value: fzBen, min: 1, max: 6, step: 1, format: v => `${v}`, onInput: v => { fzBen = v; drawFreeze(); } }),
-      slider({ label: t('Taux marginal (gain)', 'Marginal rate (gain)'), value: fzMarg, min: 0.2, max: 0.27, step: 0.005, format: v => pct(v, 0), onInput: v => { fzMarg = v; drawFreeze(); } }),
+      slider({ label: t('Valeur actuelle (gel)', 'Current value (freeze)'), value: P.fzCur, min: 0, max: 10000000, step: 100000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('fzCur', v); drawFreeze(); } }),
+      slider({ label: t('Valeur future (vente)', 'Future value (sale)'), value: P.fzFut, min: 0, max: 20000000, step: 100000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('fzFut', v); drawFreeze(); } }),
+      slider({ label: t('Nombre de bénéficiaires (détenteurs au dossier)', 'Number of beneficiaries (owners on file)'), value: P.fzBen, min: 1, max: 6, step: 1, format: v => `${v}`, onInput: v => { setP('fzBen', v); drawFreeze(); } }),
+      slider({ label: t('Taux marginal ordinaire (dérivé)', 'Ordinary marginal rate (derived)'), value: P.fzMarg, min: 0.2, max: 0.55, step: 0.01, format: v => pct(v, 0), onInput: v => { setP('fzMarg', v); drawFreeze(); } }),
     ),
     fzBox);
 
   // ---------- Holdco two-tier ----------
-  let hcActive = Math.round(bizVal), hcPassive = client.business ? (client.business.corpInvestments || 500000) : 500000;
   const hcBox = h('div', {});
   function drawHC() {
-    const r = holdcoAnalysis({ activeAssets: hcActive, passiveAssets: hcPassive });
+    const r = holdcoAnalysis({ activeAssets: P.hcActive, passiveAssets: P.hcPassive });
     hcBox.replaceChildren(
       h('div', { class: 'grid cols-3', style: { marginBottom: '10px' } },
         kpi({ label: t('Actifs actifs (ratio)', 'Active assets (ratio)'), value: pct(r.activeRatio, 0), accent: r.qsbcEligible ? 'var(--pos)' : 'var(--warn)',
@@ -104,25 +123,25 @@ export function render({ client, jur, navigate }) {
   }
   drawHC();
   const hcCard = card(t('Société de gestion (Holdco) — structure à deux paliers', 'Holding company (Holdco) — two-tier structure'), { class: 'span-full',
-    sub: t('Protection d’actifs, report et purification pour l’EGC', 'Asset protection, deferral and purification for the LCGE') },
+    sub: t('Protection d’actifs, report et purification pour l’EGC — placements corporatifs du dossier', 'Asset protection, deferral and purification for the LCGE — corporate investments from the file') },
     h('div', { class: 'grid cols-2' },
-      slider({ label: t('Actifs d’entreprise actifs', 'Active business assets'), value: hcActive, min: 0, max: 10000000, step: 100000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { hcActive = v; drawHC(); } }),
-      slider({ label: t('Actifs passifs (placements/encaisse)', 'Passive assets (investments/cash)'), value: hcPassive, min: 0, max: 5000000, step: 50000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { hcPassive = v; drawHC(); } }),
+      slider({ label: t('Actifs d’entreprise actifs', 'Active business assets'), value: P.hcActive, min: 0, max: 10000000, step: 100000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('hcActive', v); drawHC(); } }),
+      slider({ label: t('Actifs passifs (placements/encaisse)', 'Passive assets (investments/cash)'), value: P.hcPassive, min: 0, max: 5000000, step: 50000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('hcPassive', v); drawHC(); } }),
     ),
     hcBox);
 
   // ---------- RCA ----------
-  let rcaContrib = 100000, rcaYears = 10;
   const rcaBox = h('div', {});
+  const corpRate = FB && FB.sbRate != null ? FB.sbRate : undefined;   // undefined → engine derives it from jur
   function drawRCA() {
-    const r = rcaAnalysis({ contribution: rcaContrib, corpRate: 0.122, years: rcaYears, returnRate: 0.05 });
+    const r = rcaAnalysis({ contribution: P.rcaContrib, corpRate, years: P.rcaYears, returnRate: P.rcaReturn }, jur);
     rcaBox.replaceChildren(
       statList([
         [t('Cotisation annuelle', 'Annual contribution'), money(r.contribution, { currency: cur })],
         [t('Part investie (50 %)', 'Invested portion (50%)'), money(r.toInvest, { currency: cur })],
         [t('Part au compte d’impôt remboursable (50 %)', 'To refundable tax account (50%)'), money(r.toRTA, { currency: cur })],
-        [t('Économie d’impôt corporatif / an', 'Corporate tax saving / yr'), money(r.corpDeductionSaving, { currency: cur }), 'pos'],
-        [t(`Capital total après ${rcaYears} ans`, `Total fund after ${rcaYears} yrs`), money(r.fundAfterYears, { currency: cur }), 'pos'],
+        [t(`Économie d’impôt corporatif / an (taux PME ${pct(FB && FB.sbRate != null ? FB.sbRate : (jur.corporate.fedSB + (jur.regionData?.provSB ?? 0)), 1)})`, `Corporate tax saving / yr (small-business rate ${pct(FB && FB.sbRate != null ? FB.sbRate : (jur.corporate.fedSB + (jur.regionData?.provSB ?? 0)), 1)})`), money(r.corpDeductionSaving, { currency: cur }), 'pos'],
+        [t(`Capital total après ${P.rcaYears} ans`, `Total fund after ${P.rcaYears} yrs`), money(r.fundAfterYears, { currency: cur }), 'pos'],
       ]),
       h('p', { class: 'tiny muted', style: { marginTop: '8px' } }, r.note),
     );
@@ -130,9 +149,10 @@ export function render({ client, jur, navigate }) {
   drawRCA();
   const rcaCard = card(t('Convention de retraite (RCA)', 'Retirement Compensation Arrangement (RCA)'), { class: 'span-full',
     sub: t('Épargne-retraite déductible au-delà des plafonds REER/RRI', 'Deductible retirement savings beyond RRSP/IPP limits') },
-    h('div', { class: 'grid cols-2' },
-      slider({ label: t('Cotisation annuelle', 'Annual contribution'), value: rcaContrib, min: 20000, max: 500000, step: 10000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { rcaContrib = v; drawRCA(); } }),
-      slider({ label: t('Années', 'Years'), value: rcaYears, min: 3, max: 25, step: 1, format: v => `${v}`, onInput: v => { rcaYears = v; drawRCA(); } }),
+    h('div', { class: 'grid cols-3' },
+      slider({ label: t('Cotisation annuelle', 'Annual contribution'), value: P.rcaContrib, min: 20000, max: 500000, step: 10000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('rcaContrib', v); drawRCA(); } }),
+      slider({ label: t('Années', 'Years'), value: P.rcaYears, min: 3, max: 25, step: 1, format: v => `${v}`, onInput: v => { setP('rcaYears', v); drawRCA(); } }),
+      slider({ label: t('Rendement (hypothèse du dossier)', 'Return (file assumption)'), value: P.rcaReturn, min: 0.02, max: 0.1, step: 0.005, format: v => pct(v), onInput: v => { setP('rcaReturn', v); drawRCA(); } }),
     ),
     rcaBox);
 

@@ -2,21 +2,22 @@ import { h, money, pct, icon, t } from '../dom.js';
 import { kpi, card, slider, statList, badgeScore, legend } from '../widgets.js';
 import { fanChart, gauge, PALETTE } from '../charts.js';
 import { runMonteCarlo } from '../../engine/montecarlo.js';
+import { clientFacts } from '../../engine/facts.js';
 
-export function render({ client, jur }) {
+export function render({ store, client, jur }) {
   const cur = jur.currency;
-  let trials = 1000;
+  const F = clientFacts(client, jur);
   const out = h('div', { class: 'grid', style: { gridColumn: '1 / -1' } });
 
   function run() {
-    const mc = runMonteCarlo(client, { trials });
+    const mc = runMonteCarlo(client);              // ONE app-wide run: same probability as the dashboard, health check and report
     const det = mc.det;
 
     out.replaceChildren(
       h('div', { class: 'grid cols-4 span-full' },
         kpi({ label: t('Probabilité de succès', 'Probability of success'), value: pct(mc.successRate, 0), iconName: 'monte',
           accent: mc.successRate >= 0.85 ? 'var(--pos)' : mc.successRate >= 0.6 ? 'var(--warn)' : 'var(--neg)',
-          sub: t(`${trials} trajectoires`, `${trials} paths`) }),
+          sub: t(`${mc.trials} trajectoires`, `${mc.trials} paths`) }),
         kpi({ label: t('Capital médian (P50)', 'Median capital (P50)'), value: money(mc.medianFinal, { currency: cur, compact: true }), iconName: 'networth' }),
         kpi({ label: t('Pessimiste (P10)', 'Pessimistic (P10)'), value: money(mc.p10Final, { currency: cur, compact: true }), accent: mc.p10Final <= 0 ? 'var(--neg)' : '' }),
         kpi({ label: t('Optimiste (P90)', 'Optimistic (P90)'), value: money(mc.p90Final, { currency: cur, compact: true }), accent: 'var(--pos)' }),
@@ -38,14 +39,17 @@ export function render({ client, jur }) {
     );
   }
 
-  const ctrl = card(t('Paramètres de simulation', 'Simulation parameters'), { sub: t('Méthode de Monte Carlo à rendements stochastiques (loi normale)', 'Monte Carlo with stochastic returns (normal distribution)'),
+  const A = F.assumptions;
+  const ctrl = card(t('Paramètres de simulation', 'Simulation parameters'), { sub: t('Méthode de Monte Carlo à rendements stochastiques (loi normale) — un seul réglage pour toute l’application', 'Monte Carlo with stochastic returns (normal distribution) — one setting for the whole app'),
     right: h('button', { class: 'btn primary sm', html: icon('monte', 14) + ' ' + t('Relancer', 'Re-run'), onClick: run }) },
-    h('div', { class: 'grid cols-3' },
-      slider({ label: t('Nombre de trajectoires', 'Number of paths'), value: trials, min: 200, max: 3000, step: 100, format: v => `${v}`, onInput: v => trials = v }),
-      h('div', { class: 'field' }, h('label', {}, t('Rendement moyen (accum.)', 'Mean return (accum.)')), h('input', { value: pct(client.assumptions.preReturn), disabled: true })),
-      h('div', { class: 'field' }, h('label', {}, t('Volatilité', 'Volatility')), h('input', { value: pct(client.assumptions.returnStdev), disabled: true })),
+    h('div', { class: 'grid cols-4' },
+      slider({ label: t('Nombre de trajectoires (dossier)', 'Number of paths (file)'), value: A.mcTrials, min: 200, max: 5000, step: 100, format: v => `${v}`,
+        onInput: v => { const n = Math.round(v); store.quietUpdate(c => { c.assumptions = { ...c.assumptions, mcTrials: n }; }); if (client.assumptions) client.assumptions.mcTrials = n; client._rev = (client._rev || 0) + 1; run(); } }),
+      h('div', { class: 'field' }, h('label', {}, t('Rendement moyen (accum.)', 'Mean return (accum.)')), h('input', { value: pct(A.preReturn), disabled: true })),
+      h('div', { class: 'field' }, h('label', {}, t('Rendement (retraite)', 'Return (retirement)')), h('input', { value: pct(A.postReturn), disabled: true })),
+      h('div', { class: 'field' }, h('label', {}, t('Volatilité', 'Volatility')), h('input', { value: `${pct(A.returnStdev)} · ×${A.retiredVolFactor} ${t('à la retraite', 'in retirement')}`, disabled: true })),
     ),
-    h('p', { class: 'tiny muted mb-0' }, t('Astuce : ajustez les rendements et la volatilité dans l’onglet Retraite ou Paramètres.', 'Tip: adjust returns and volatility in the Retirement or Settings tab.')));
+    h('p', { class: 'tiny muted mb-0' }, t('Astuce : ajustez les rendements et la volatilité dans l’onglet Retraite ou Paramètres. Le nombre de trajectoires est enregistré dans le dossier (assumptions.mcTrials) et partagé par tous les écrans.', 'Tip: adjust returns and volatility in the Retirement or Settings tab. The number of paths is saved in the file (assumptions.mcTrials) and shared by every screen.')));
 
   run();
   return h('div', { class: 'grid' }, h('div', { class: 'span-full' }, ctrl), out);

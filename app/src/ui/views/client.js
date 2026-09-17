@@ -1,12 +1,15 @@
-import { h, money, pct, num, icon, toast, t } from '../dom.js';
+import { h, money, pct, num, icon, toast, ageFromDob, t } from '../dom.js';
 import { card, dataTable } from '../widgets.js';
 import { formModal } from '../editor.js';
 import { store } from '../../state/store.js';
 import { newMember, newIncome, newExpense } from '../../state/models.js';
+import { clientFacts } from '../../engine/facts.js';
 
 export function render({ client, jur }) {
   const memberOpts = client.members.map(m => ({ value: m.id, label: m.name }));
   const cur = jur.currency;
+  const F = clientFacts(client, jur);
+  const hh = client.household || {};
 
   const incomeTypeOpts = [
     { value: 'employment', label: t('Emploi', 'Employment') }, { value: 'self', label: t('Travail autonome', 'Self-employment') },
@@ -19,10 +22,16 @@ export function render({ client, jur }) {
     { value: 'transport', label: 'Transport' }, { value: 'housing', label: t('Logement', 'Housing') },
     { value: 'health', label: t('Santé', 'Health') }, { value: 'other', label: t('Autre', 'Other') },
   ];
+  const maritalOpts = [
+    { value: 'single', label: t('Célibataire', 'Single') }, { value: 'married', label: t('Marié(e)', 'Married') },
+    { value: 'commonlaw', label: t('Conjoint de fait', 'Common-law') }, { value: 'divorced', label: t('Divorcé(e)', 'Divorced') },
+    { value: 'widowed', label: t('Veuf/Veuve', 'Widowed') },
+  ];
 
   const nameOf = (id) => client.members.find(m => m.id === id)?.name || '—';
   const incTypeLbl = v => (incomeTypeOpts.find(o => o.value === v) || {}).label || v;
   const expCatLbl = v => (expenseCatOpts.find(o => o.value === v) || {}).label || v;
+  const activeOf = (inc) => { const m = F.byMember[inc.memberId] || F.primary; const it = m && m.incomes.find(i => i.id === inc.id); return it ? it.active : true; };
 
   const memberCard = card(t('Membres du ménage', 'Household members'), {
     sub: `${jur.flag} ${jur.name} — ${jur.regionName}`,
@@ -34,36 +43,39 @@ export function render({ client, jur }) {
       cols: [
         { key: 'name', label: t('Nom', 'Name') },
         { key: 'role', label: t('Rôle', 'Role'), fmt: v => v === 'primary' ? t('Titulaire', 'Primary') : t('Conjoint(e)', 'Spouse') },
-        { key: 'currentAge', label: t('Âge', 'Age'), num: true },
+        { key: 'currentAge', label: t('Âge', 'Age'), num: true, fmt: (v, r) => r.dob ? h('span', { title: t('Dérivé de la date de naissance', 'Derived from date of birth') }, `${v} ↺`) : v },
         { key: 'retirementAge', label: t('Retraite', 'Retire'), num: true },
         { key: 'lifeExpectancy', label: t('Espérance', 'Life exp.'), num: true },
+        { key: 'id', label: t('Revenu brut', 'Gross income'), num: true, fmt: v => money(F.byMember[v]?.grossIncome || 0, { currency: cur }) },
+        { key: 'id', label: t('Taux marginal', 'Marginal'), num: true, fmt: v => pct(F.byMember[v]?.marginalRate || 0, 0) },
       ],
       onEdit: (r) => editMember(r, false),
       onDelete: client.members.length > 1 ? (r) => { store.update(c => c.members = c.members.filter(m => m.id !== r.id)); toast(t('Membre supprimé', 'Member removed')); } : null,
     }));
 
   const incomeCard = card(t('Revenus', 'Income'), {
-    sub: t('Salaires, rentes et prestations publiques', 'Salaries, pensions and public benefits'),
+    sub: t(`${money(F.household.grossIncome, { currency: cur })} / an actifs aujourd’hui · ${money(F.household.netIncome, { currency: cur })} net`,
+      `${money(F.household.grossIncome, { currency: cur })} / yr active today · ${money(F.household.netIncome, { currency: cur })} net`),
     right: h('button', { class: 'btn primary sm', html: icon('plus', 14) + ' ' + t('Revenu', 'Income'),
       onClick: () => editIncome(newIncome({ memberId: client.members[0].id }), true) }),
   },
     dataTable({
       rows: client.incomes,
       cols: [
-        { key: 'label', label: t('Source', 'Source') },
+        { key: 'label', label: t('Source', 'Source'), fmt: (v, r) => activeOf(r) ? v : h('span', { class: 'muted', title: t('Inactif aujourd’hui (âge de début/fin)', 'Inactive today (start/end age)') }, `${v} ·`) },
         { key: 'memberId', label: t('Membre', 'Member'), fmt: nameOf },
         { key: 'type', label: 'Type', fmt: incTypeLbl },
         { key: 'amount', label: t('Montant/an', 'Amount/yr'), num: true, fmt: v => money(v, { currency: cur }) },
         { key: 'growth', label: t('Croissance', 'Growth'), num: true, fmt: v => pct(v) },
-        { key: 'startAge', label: t('Début', 'Start'), num: true, fmt: v => v ?? '—' },
+        { key: 'startAge', label: t('Début–fin', 'Start–end'), num: true, fmt: (v, r) => `${v ?? '—'} – ${r.endAge ?? '—'}` },
+        { key: 'taxable', label: t('Imposable', 'Taxable'), fmt: v => v === false ? h('span', { class: 'chip info' }, t('Non', 'No')) : t('Oui', 'Yes') },
       ],
       onEdit: (r) => editIncome(r, false),
       onDelete: (r) => { store.update(c => c.incomes = c.incomes.filter(i => i.id !== r.id)); toast(t('Revenu supprimé', 'Income removed')); },
     }));
 
-  const totalExp = client.expenses.reduce((s, e) => s + e.amount, 0);
   const expenseCard = card(t('Dépenses', 'Expenses'), {
-    sub: t(`${money(totalExp, { currency: cur })} / an au total`, `${money(totalExp, { currency: cur })} / yr total`),
+    sub: t(`${money(F.household.expenses, { currency: cur })} / an au total`, `${money(F.household.expenses, { currency: cur })} / yr total`),
     right: h('button', { class: 'btn primary sm', html: icon('plus', 14) + ' ' + t('Dépense', 'Expense'),
       onClick: () => editExpense(newExpense(), true) }),
   },
@@ -79,14 +91,15 @@ export function render({ client, jur }) {
       onDelete: (r) => { store.update(c => c.expenses = c.expenses.filter(e => e.id !== r.id)); toast(t('Dépense supprimée', 'Expense removed')); },
     }));
 
+  const filingLabel = client.filingStatus === 'married' ? t('Couple', 'Couple') : t('Célibataire / individuel', 'Single / individual');
   const settingsCard = card(t('Paramètres du dossier', 'File settings'), {},
     h('div', { class: 'grid cols-2' },
       h('div', { class: 'field' }, h('label', {}, t('Nom du dossier', 'File name')),
         h('input', { value: client.name, onInput: e => store.quietUpdate(c => c.name = e.target.value), onChange: e => store.update(c => c.name = e.target.value) })),
-      h('div', { class: 'field' }, h('label', {}, t('Statut fiscal', 'Filing status')),
-        h('select', { onChange: e => store.update(c => c.filingStatus = e.target.value) },
-          h('option', { value: 'single', selected: client.filingStatus === 'single' }, t('Célibataire / individuel', 'Single / individual')),
-          h('option', { value: 'married', selected: client.filingStatus === 'married' }, t('Couple', 'Couple')))),
+      h('div', { class: 'field' }, h('label', {}, t('État civil', 'Marital status')),
+        h('select', { onChange: e => store.update(c => { c.household = c.household || {}; c.household.maritalStatus = e.target.value; }) },
+          ...maritalOpts.map(o => h('option', { value: o.value, selected: (hh.maritalStatus || 'single') === o.value }, o.label))),
+        h('div', { class: 'hint' }, t(`Statut fiscal dérivé : ${filingLabel}`, `Derived filing status: ${filingLabel}`))),
     ));
 
   return h('div', { class: 'grid' },
@@ -96,29 +109,36 @@ export function render({ client, jur }) {
   );
 
   function editMember(item, isNew) {
+    const derivedAge = item.dob ? ageFromDob(item.dob) : null;
     formModal({ title: isNew ? t('Nouveau membre', 'New member') : t('Modifier le membre', 'Edit member'), item,
       fields: [
         { key: 'name', label: t('Nom', 'Name') },
         { key: 'role', label: t('Rôle', 'Role'), type: 'select', opts: [{ value: 'primary', label: t('Titulaire', 'Primary') }, { value: 'spouse', label: t('Conjoint(e)', 'Spouse') }] },
-        { key: 'currentAge', label: t('Âge actuel', 'Current age'), type: 'number' },
+        { key: 'dob', label: t('Date de naissance', 'Date of birth'), type: 'date',
+          hint: derivedAge != null ? t(`Âge dérivé : ${derivedAge} ans (mis à jour automatiquement)`, `Derived age: ${derivedAge} yrs (kept current automatically)`) : t('Renseignée, elle remplace l’âge saisi', 'When set, it overrides the typed age') },
+        ...(derivedAge == null ? [{ key: 'currentAge', label: t('Âge actuel', 'Current age'), type: 'number' }] : []),
         { key: 'retirementAge', label: t('Âge de retraite', 'Retirement age'), type: 'number' },
         { key: 'lifeExpectancy', label: t('Espérance de vie', 'Life expectancy'), type: 'number' },
       ],
-      onSave: (d) => store.update(c => { if (isNew) c.members.push(d); else Object.assign(c.members.find(m => m.id === d.id), d); }),
+      onSave: (d) => store.update(c => { if (isNew) c.members.push(d); else Object.assign(c.members.find(m => m.id === d.id), d); }),   // age derived from dob by the store
     });
   }
   function editIncome(item, isNew) {
-    formModal({ title: isNew ? t('Nouveau revenu', 'New income') : t('Modifier le revenu', 'Edit income'), item,
+    formModal({ title: isNew ? t('Nouveau revenu', 'New income') : t('Modifier le revenu', 'Edit income'), item: { ...item, taxable: item.taxable !== false },
       fields: [
         { key: 'label', label: t('Description', 'Description') },
         { key: 'memberId', label: t('Membre', 'Member'), type: 'select', opts: memberOpts },
         { key: 'type', label: 'Type', type: 'select', opts: incomeTypeOpts },
         { key: 'amount', label: t(`Montant annuel (${cur})`, `Annual amount (${cur})`), type: 'number' },
         { key: 'growth', label: t('Croissance annuelle', 'Annual growth'), type: 'pct', hint: t('Indexation / progression', 'Indexation / progression') },
-        { key: 'startAge', label: t('Âge de début', 'Start age'), type: 'number', hint: t('Vide = dès maintenant', 'Empty = from now') },
-        { key: 'endAge', label: t('Âge de fin', 'End age'), type: 'number', hint: t('Vide = à vie', 'Empty = lifelong') },
+        { key: 'startAge', label: t('Âge de début', 'Start age'), type: 'number', hint: t('Vide ou 0 = dès maintenant', 'Empty or 0 = from now') },
+        { key: 'endAge', label: t('Âge de fin', 'End age'), type: 'number', hint: t('Vide ou 0 = à vie', 'Empty or 0 = lifelong') },
+        { key: 'taxable', label: t('Imposable', 'Taxable'), type: 'checkbox', onLabel: t('Revenu imposable (décochez pour un revenu non imposable, ex. : prestation exonérée)', 'Taxable income (untick for non-taxable income, e.g. exempt benefit)') },
       ],
-      onSave: (d) => store.update(c => { if (isNew) c.incomes.push(d); else Object.assign(c.incomes.find(i => i.id === d.id), d); }),
+      onSave: (d) => store.update(c => {
+        if (!(d.startAge > 0)) d.startAge = null; if (!(d.endAge > 0)) d.endAge = null;   // 0 / empty = no gate
+        if (isNew) c.incomes.push(d); else Object.assign(c.incomes.find(i => i.id === d.id), d);
+      }),
     });
   }
   function editExpense(item, isNew) {

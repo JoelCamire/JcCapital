@@ -1,9 +1,22 @@
 // ============================================================
 // CRM engine — pure aggregation across the whole client book.
 // No DOM. Feeds the CRM dashboard, pipeline, tasks & reminders.
+//
+// Conventions (kept consistent everywhere in this file):
+//   • products[] is the single ledger; AUM is read via aumOf() so the
+//     CRM's AUM equals the net-worth balances by construction.
+//   • "active" product = isActiveProduct(p) (pending | inforce | paid);
+//     lapsed / cancelled products never count toward totals.
+//   • Premium and AUM are NEVER summed into one number: every summary
+//     returns them side by side (…Premium / …Aum).
+//   • Unknown / legacy opportunity stages map to 'new' (normalizeStage).
+//   • All ISO dates built from local Date objects go through localISO()
+//     (never toISOString(), which shifts the day near midnight in UTC±).
 // ============================================================
 import { t } from '../i18n.js';
 import { fin } from './util.js';
+import { annualPremium, isActiveProduct, INVESTMENT_KINDS } from '../state/models.js';
+import { aumOf } from './policies.js';
 
 // ---------- Meta (labels resolve to current language at call time) ----------
 export const STAGE_META = {
@@ -16,6 +29,8 @@ export const STAGE_META = {
 };
 export const STAGE_ORDER = ['new', 'contacted', 'meeting', 'proposal', 'won', 'lost'];
 export const OPEN_STAGES = ['new', 'contacted', 'meeting', 'proposal'];
+/** Default close probability per stage — applied whenever an opportunity changes stage. */
+export const STAGE_PROBABILITY = { new: 20, contacted: 35, meeting: 50, proposal: 70, won: 100, lost: 0 };
 
 export const LIFECYCLE_META = {
   lead:     { label: () => t('Piste', 'Lead'),         color: '#8E8475' },
@@ -43,17 +58,40 @@ export const TASK_CAT_META = {
   prospecting: { label: () => t('Prospection', 'Prospecting') },
 };
 
+/** measure: what the product's "amount" column means — face (coverage), aum (assets) or premium only. */
 export const PRODUCT_KIND_META = {
-  life:       { label: () => t('Assurance vie', 'Life'),            measure: 'face' },
-  disability: { label: () => t('Invalidité', 'Disability'),         measure: 'face' },
-  ci:         { label: () => t('Maladies graves', 'Critical illness'), measure: 'face' },
-  health:     { label: () => t('Santé', 'Health'),                  measure: 'premium' },
-  investment: { label: () => t('Placement', 'Investment'),          measure: 'aum' },
-  segfund:    { label: () => t('Fonds distinct', 'Seg fund'),       measure: 'aum' },
-  annuity:    { label: () => t('Rente', 'Annuity'),                 measure: 'aum' },
-  mortgage:   { label: () => t('Hypothèque', 'Mortgage'),           measure: 'face' },
-  group:      { label: () => t('Régime collectif', 'Group'),        measure: 'premium' },
+  life:       { label: () => t('Assurance vie', 'Life'),                measure: 'face' },
+  disability: { label: () => t('Invalidité', 'Disability'),             measure: 'face' },
+  ci:         { label: () => t('Maladies graves', 'Critical illness'),  measure: 'face' },
+  ltc:        { label: () => t('Soins de longue durée', 'Long-term care'), measure: 'face' },
+  health:     { label: () => t('Santé', 'Health'),                      measure: 'premium' },
+  investment: { label: () => t('Placement', 'Investment'),              measure: 'aum' },
+  segfund:    { label: () => t('Fonds distinct', 'Seg fund'),           measure: 'aum' },
+  annuity:    { label: () => t('Rente', 'Annuity'),                     measure: 'aum' },
+  mortgage:   { label: () => t('Hypothèque', 'Mortgage'),               measure: 'face' },
+  group:      { label: () => t('Régime collectif', 'Group'),            measure: 'premium' },
 };
+export const PRODUCT_STATUS_META = {
+  pending:   { label: () => t('En attente', 'Pending') },
+  inforce:   { label: () => t('En vigueur', 'In force') },
+  paid:      { label: () => t('Libérée', 'Paid-up') },
+  lapsed:    { label: () => t('Déchue', 'Lapsed') },
+  cancelled: { label: () => t('Annulée', 'Cancelled') },
+};
+
+/** Opportunity types; when one is won, a type that is also a product kind seeds the new product's kind. */
+export const OPP_TYPE_OPTIONS = [
+  ['investment', () => t('Placement', 'Investment')], ['life', () => t('Assurance vie', 'Life')],
+  ['disability', () => t('Invalidité', 'Disability')], ['ci', () => t('Maladies graves', 'Critical illness')],
+  ['ltc', () => t('Soins de longue durée', 'Long-term care')], ['segfund', () => t('Fonds distinct', 'Seg fund')],
+  ['mortgage', () => t('Hypothèque', 'Mortgage')], ['group', () => t('Collectif', 'Group')],
+  ['planning', () => t('Planification', 'Planning')], ['other', () => t('Autre', 'Other')],
+];
+/** Product kind to seed from a won opportunity (type when it is a kind, else by the value's nature). */
+export function kindForOpportunity(o) {
+  if (o && PRODUCT_KIND_META[o.type]) return o.type;
+  return o && o.valueKind === 'premium' ? 'life' : 'investment';
+}
 
 export const SOURCE_OPTIONS = [
   ['referral', () => t('Référence', 'Referral')],
@@ -65,16 +103,33 @@ export const SOURCE_OPTIONS = [
   ['other',    () => t('Autre', 'Other')],
 ];
 
+/** Past-due window (days) for reviews / next actions in reminders and the calendar. */
+export const PAST_DUE_DAYS = 90;
+
 // ---------- Date helpers (local, day-grained) ----------
+const pad2 = (n) => (n < 10 ? '0' + n : '' + n);
+/** y-m-d from a LOCAL date (never toISOString, which shifts the day in UTC± zones). */
+export function localISO(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+export function todayLocalISO() { return localISO(new Date()); }
 function parseDate(iso) { if (!iso) return null; const d = new Date(iso + 'T00:00:00'); return isNaN(d.getTime()) ? null : d; }
+/** Timestamp (ms) or ISO string → local y-m-d, '' when unusable. */
+function tsToISO(v) { if (!v) return ''; if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) return v; const d = new Date(v); return isNaN(d.getTime()) ? '' : localISO(d); }
+function tsOf(v) { if (!v) return null; const n = typeof v === 'number' ? v : new Date(v).getTime(); return Number.isFinite(n) ? n : null; }
 function startOfToday() { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
 export function daysUntil(iso) { const d = parseDate(iso); if (!d) return null; return Math.round((d - startOfToday()) / 86400000); }
 function daysToDate(date) { return Math.round((date - startOfToday()) / 86400000); }
+const isLeap = (y) => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+/** The anniversary of `d` in `year`; Feb-29 clamps to Feb-28 in non-leap years. */
+function anniversaryIn(year, d) {
+  let day = d.getDate(); const m = d.getMonth();
+  if (m === 1 && day === 29 && !isLeap(year)) day = 28;
+  return new Date(year, m, day);
+}
 function nextAnniversary(iso) {
   const d = parseDate(iso); if (!d) return null;
   const today = startOfToday();
-  let a = new Date(today.getFullYear(), d.getMonth(), d.getDate());
-  if (a < today) a = new Date(today.getFullYear() + 1, d.getMonth(), d.getDate());
+  let a = anniversaryIn(today.getFullYear(), d);
+  if (a < today) a = anniversaryIn(today.getFullYear() + 1, d);
   return a;
 }
 
@@ -90,31 +145,79 @@ export function lifecycleCounts(clients) {
   return out;
 }
 
+// ---------- Products: per-client, status-filtered helpers ----------
+export const annualizePremium = annualPremium; // legacy alias — the single implementation lives in models.js
+export function activeProducts(c) { return (c?.products || []).filter(isActiveProduct); }
+/** AUM of active investment products, read through the linked asset (= net-worth balances). */
+export function clientAum(c) { return activeProducts(c).filter(p => INVESTMENT_KINDS.includes(p.kind)).reduce((s, p) => s + aumOf(c, p), 0); }
+/** Annualised premium of active products (single-pay = 0, not recurring). */
+export function clientAnnualPremium(c) { return activeProducts(c).reduce((s, p) => s + annualPremium(p), 0); }
+/** Recurring (renewal / trailer) commission of active products, per year. */
+export function clientRecurring(c) { return activeProducts(c).reduce((s, p) => s + fin(p.renewalCommission, 0), 0); }
+/** First-year commission of active products issued in `year`. */
+export function clientFirstYearYTD(c, year = new Date().getFullYear()) {
+  return activeProducts(c).reduce((s, p) => { const d = parseDate(p.issueDate); return s + (d && d.getFullYear() === year ? fin(p.firstYearCommission, 0) : 0); }, 0);
+}
+/** Coverage (face amount) of active products, all kinds. */
+export function clientFaceAmount(c) { return activeProducts(c).reduce((s, p) => s + fin(p.faceAmount, 0), 0); }
+/**
+ * ONE definition of "what a client is worth to the practice", per year:
+ * recurring commissions, plus (optionally) an imputed trailer on investment AUM
+ * that has NO recorded renewal commission (trailerBps = 100 → 1 % of AUM).
+ * Used by the revenue ranking and the referral network alike.
+ */
+export function clientValue(c, { trailerBps = 0 } = {}) {
+  let v = clientRecurring(c);
+  if (trailerBps > 0) for (const p of activeProducts(c)) if (INVESTMENT_KINDS.includes(p.kind) && !(fin(p.renewalCommission, 0) > 0)) v += aumOf(c, p) * trailerBps / 10000;
+  return v;
+}
+
 // ---------- Pipeline ----------
-export function pipelineSummary(clients) {
-  const stages = {}; STAGE_ORDER.forEach(s => stages[s] = { key: s, count: 0, premium: 0, aum: 0, weightedPremium: 0 });
-  let openCount = 0, wonCount = 0, lostCount = 0, openPremium = 0, openAum = 0, weightedPremium = 0, wonPremium = 0, wonAum = 0;
+export function normalizeStage(s) { return STAGE_META[s] ? s : 'new'; }
+/** Move an opportunity to a stage: sets closedAt and the stage's default probability. Mutates + returns it. */
+export function applyStage(o, stage) {
+  const s = normalizeStage(stage);
+  o.stage = s;
+  o.closedAt = (s === 'won' || s === 'lost') ? Date.now() : null;
+  o.probability = STAGE_PROBABILITY[s];
+  return o;
+}
+/**
+ * Book-wide pipeline totals. Premium and AUM opportunities are kept apart at every level;
+ * `conversion` is won / (won + lost) over the trailing 12 months (by closedAt),
+ * `conversionAllTime` over every decided opportunity.
+ */
+export function pipelineSummary(clients, now = Date.now()) {
+  const stages = {}; STAGE_ORDER.forEach(s => stages[s] = { key: s, count: 0, premium: 0, aum: 0, weightedPremium: 0, weightedAum: 0 });
+  let openCount = 0, wonCount = 0, lostCount = 0, openPremium = 0, openAum = 0, weightedPremium = 0, weightedAum = 0, wonPremium = 0, wonAum = 0;
+  let won12m = 0, lost12m = 0;
+  const cutoff = now - 365 * 86400000;
   for (const c of clients || []) {
     for (const o of (c.opportunities || [])) {
-      const st = stages[o.stage] || stages.new;
+      const s = normalizeStage(o.stage);
+      const st = stages[s];
       const val = fin(o.value, 0);
       const prob = Math.max(0, Math.min(100, fin(o.probability, 0))) / 100;
       const isPrem = o.valueKind === 'premium';
       st.count++;
-      if (isPrem) st.premium += val; else st.aum += val;
-      if (isPrem) st.weightedPremium += val * prob;
-      if (OPEN_STAGES.includes(o.stage)) {
+      if (isPrem) { st.premium += val; st.weightedPremium += val * prob; } else { st.aum += val; st.weightedAum += val * prob; }
+      if (OPEN_STAGES.includes(s)) {
         openCount++;
-        if (isPrem) { openPremium += val; weightedPremium += val * prob; } else openAum += val;
-      } else if (o.stage === 'won') { wonCount++; if (isPrem) wonPremium += val; else wonAum += val; }
-      else if (o.stage === 'lost') lostCount++;
+        if (isPrem) { openPremium += val; weightedPremium += val * prob; } else { openAum += val; weightedAum += val * prob; }
+      } else {
+        const closed = tsOf(o.closedAt);
+        const recent = closed != null && closed >= cutoff && closed <= now;
+        if (s === 'won') { wonCount++; if (recent) won12m++; if (isPrem) wonPremium += val; else wonAum += val; }
+        else { lostCount++; if (recent) lost12m++; }
+      }
     }
   }
-  const decided = wonCount + lostCount;
-  const conversion = decided > 0 ? wonCount / decided : 0;
+  const decidedAllTime = wonCount + lostCount, decided12m = won12m + lost12m;
   return {
     stages: STAGE_ORDER.map(s => ({ ...stages[s], label: STAGE_META[s].label(), color: STAGE_META[s].color })),
-    openCount, wonCount, lostCount, openPremium, openAum, weightedPremium, wonPremium, wonAum, conversion,
+    openCount, wonCount, lostCount, openPremium, openAum, weightedPremium, weightedAum, wonPremium, wonAum,
+    conversion: decided12m > 0 ? won12m / decided12m : 0, won12m, lost12m, decided12m,
+    conversionAllTime: decidedAllTime > 0 ? wonCount / decidedAllTime : 0, decidedAllTime,
   };
 }
 
@@ -123,7 +226,7 @@ export function allOpportunities(clients) {
   const out = [];
   for (const c of clients || [])
     for (const o of (c.opportunities || []))
-      out.push({ ...o, clientId: c.id, clientName: c.name, contact: contactName(c) });
+      out.push({ ...o, stage: normalizeStage(o.stage), clientId: c.id, clientName: c.name, contact: contactName(c) });
   return out;
 }
 
@@ -154,20 +257,25 @@ export function taskBuckets(clients) {
 }
 
 // ---------- Reminders (birthdays, reviews, renewals, next actions) ----------
-export function reminders(clients, horizon = 45) {
+/**
+ * Upcoming items within `horizon` days. Reviews and next actions also surface when past due
+ * (down to −PAST_DUE_DAYS) and carry `overdue: true`; birthdays are always ahead (next anniversary);
+ * renewals are only listed while still ahead.
+ */
+export function reminders(clients, horizon = 45, pastDue = PAST_DUE_DAYS) {
   const out = [];
   for (const c of clients || []) {
     for (const m of (c.members || [])) {
       const b = nextAnniversary(m.dob);
-      if (b) { const d = daysToDate(b); if (d <= horizon) out.push({ type: 'birthday', clientId: c.id, clientName: c.name, who: m.name, date: b.toISOString().slice(0, 10), days: d }); }
+      if (b) { const d = daysToDate(b); if (d <= horizon) out.push({ type: 'birthday', clientId: c.id, clientName: c.name, who: m.name, date: localISO(b), days: d, overdue: false }); }
     }
     const rv = daysUntil(c.household && c.household.reviewDate);
-    if (rv != null && rv <= horizon) out.push({ type: 'review', clientId: c.id, clientName: c.name, who: contactName(c), date: c.household.reviewDate, days: rv });
+    if (rv != null && rv >= -pastDue && rv <= horizon) out.push({ type: 'review', clientId: c.id, clientName: c.name, who: contactName(c), date: c.household.reviewDate, days: rv, overdue: rv < 0 });
     const na = daysUntil(c.crm && c.crm.nextActionDate);
-    if (na != null && na <= horizon) out.push({ type: 'nextaction', clientId: c.id, clientName: c.name, who: contactName(c), date: c.crm.nextActionDate, days: na });
-    for (const p of (c.products || [])) {
+    if (na != null && na >= -pastDue && na <= horizon) out.push({ type: 'nextaction', clientId: c.id, clientName: c.name, who: contactName(c), date: c.crm.nextActionDate, days: na, overdue: na < 0 });
+    for (const p of activeProducts(c)) {
       const rn = daysUntil(p.renewalDate);
-      if (rn != null && rn >= 0 && rn <= horizon) out.push({ type: 'renewal', clientId: c.id, clientName: c.name, who: p.carrier || p.policyNumber || '', date: p.renewalDate, days: rn });
+      if (rn != null && rn >= 0 && rn <= horizon) out.push({ type: 'renewal', clientId: c.id, clientName: c.name, who: p.carrier || p.policyNumber || '', date: p.renewalDate, days: rn, overdue: false });
     }
   }
   return out.sort((a, b) => a.days - b.days);
@@ -175,31 +283,21 @@ export function reminders(clients, horizon = 45) {
 
 // ---------- Revenue / book of business ----------
 export function revenueSummary(clients) {
-  let aum = 0, annualPremium = 0, recurringCommission = 0, firstYearPotential = 0, policies = 0, insuranceFace = 0;
+  let aum = 0, premiumTotal = 0, recurringCommission = 0, firstYearPotential = 0, policies = 0, insuranceFace = 0;
   for (const c of clients || []) {
-    for (const p of (c.products || [])) {
-      if (p.status === 'lapsed' || p.status === 'cancelled') continue;
-      aum += fin(p.aum, 0);
-      const prem = annualizePremium(p);
-      annualPremium += prem;
-      recurringCommission += fin(p.renewalCommission, 0);
-      insuranceFace += fin(p.faceAmount, 0);
-      if (p.aum > 0 || p.faceAmount > 0) policies++;
-    }
+    aum += clientAum(c);
+    premiumTotal += clientAnnualPremium(c);
+    recurringCommission += clientRecurring(c);
+    insuranceFace += clientFaceAmount(c);
+    policies += activeProducts(c).length;                    // every active product counts, premium-only kinds included
     for (const o of (c.opportunities || [])) {
-      if (o.valueKind === 'premium' && OPEN_STAGES.includes(o.stage)) {
+      if (o.valueKind === 'premium' && OPEN_STAGES.includes(normalizeStage(o.stage))) {
         const prob = Math.max(0, Math.min(100, fin(o.probability, 0))) / 100;
         firstYearPotential += fin(o.value, 0) * prob;
       }
     }
   }
-  return { aum, annualPremium, recurringCommission, firstYearPotential, policies, insuranceFace };
-}
-export function annualizePremium(p) {
-  const v = fin(p.premium, 0);
-  if (p.frequency === 'monthly') return v * 12;
-  if (p.frequency === 'single') return 0; // single-pay: not recurring
-  return v; // annual
+  return { aum, annualPremium: premiumTotal, recurringCommission, firstYearPotential, policies, insuranceFace };
 }
 
 // ---------- Activity feed ----------
@@ -216,7 +314,7 @@ export function activityFeed(clients, limit = 25) {
   return limit ? out.slice(0, limit) : out;
 }
 
-/** Most recent activity date for a client (used to flag stale relationships). */
+/** Most recent activity date for a client (derived — crm.lastContactAt is not stored). */
 export function lastTouch(c) {
   let best = null;
   for (const a of (c.activities || [])) if (!best || (a.date || '') > best) best = a.date || '';
@@ -224,54 +322,66 @@ export function lastTouch(c) {
 }
 
 // ---------- Revenue report ----------
-export function revenueReport(clients) {
+/**
+ * Book economics for `year` (default: current). `recurring`, `aum`, `annualPremium` describe the
+ * book as it stands; `firstYearYTD` / `won*YTD` are keyed to `year`.
+ * byMonth: renewal commissions on products whose renewal falls IN `year` sit on that month; every other
+ * active product's commission (no renewal date, or a renewal in another year — trailers, anniversaries
+ * not yet rolled) is spread evenly over the 12 months, so Σ byMonth === recurring (`reconciles`).
+ */
+export function revenueReport(clients, year = new Date().getFullYear()) {
   const byKind = {}, byCarrier = {};
-  const byMonth = Array.from({ length: 12 }, (_, i) => ({ month: i + 1, recurring: 0 }));
-  let recurring = 0, annualPremium = 0, aum = 0, faceTotal = 0, firstYearYTD = 0;
+  const byMonth = Array.from({ length: 12 }, (_, i) => ({ month: i + 1, recurring: 0, dated: 0, spread: 0 }));
+  let recurring = 0, premiumTotal = 0, aum = 0, faceTotal = 0, firstYearYTD = 0, spreadRec = 0;
   let wonPremiumYTD = 0, wonAumYTD = 0, wonCountYTD = 0;
   const perClient = [];
   const upcomingRenewals = [];
-  const yr = new Date().getFullYear();
   for (const c of clients || []) {
-    let cRec = 0, cAum = 0;
-    for (const p of (c.products || [])) {
-      if (p.status === 'lapsed' || p.status === 'cancelled') continue;
+    for (const p of activeProducts(c)) {
       const k = p.kind || 'other';
+      const pAum = INVESTMENT_KINDS.includes(k) ? aumOf(c, p) : 0;
+      const prem = annualPremium(p), rec = fin(p.renewalCommission, 0), face = fin(p.faceAmount, 0);
       byKind[k] = byKind[k] || { kind: k, label: (PRODUCT_KIND_META[k] || { label: () => k }).label(), aum: 0, annualPremium: 0, recurring: 0, faceTotal: 0, count: 0 };
-      const prem = annualizePremium(p), rec = fin(p.renewalCommission, 0);
-      byKind[k].aum += fin(p.aum, 0); byKind[k].annualPremium += prem; byKind[k].recurring += rec; byKind[k].faceTotal += fin(p.faceAmount, 0); byKind[k].count++;
+      byKind[k].aum += pAum; byKind[k].annualPremium += prem; byKind[k].recurring += rec; byKind[k].faceTotal += face; byKind[k].count++;
       const carr = p.carrier || t('Autre', 'Other');
       byCarrier[carr] = byCarrier[carr] || { carrier: carr, recurring: 0, annualPremium: 0, aum: 0, count: 0 };
-      byCarrier[carr].recurring += rec; byCarrier[carr].annualPremium += prem; byCarrier[carr].aum += fin(p.aum, 0); byCarrier[carr].count++;
-      recurring += rec; annualPremium += prem; aum += fin(p.aum, 0); faceTotal += fin(p.faceAmount, 0);
-      cRec += rec; cAum += fin(p.aum, 0);
-      const issued = parseDate(p.issueDate); if (issued && issued.getFullYear() === yr) firstYearYTD += fin(p.firstYearCommission, 0);
-      const rd = parseDate(p.renewalDate); if (rd) byMonth[rd.getMonth()].recurring += rec;
+      byCarrier[carr].recurring += rec; byCarrier[carr].annualPremium += prem; byCarrier[carr].aum += pAum; byCarrier[carr].count++;
+      recurring += rec; premiumTotal += prem; aum += pAum; faceTotal += face;
+      const rd = parseDate(p.renewalDate);
+      if (rd && rd.getFullYear() === year) { byMonth[rd.getMonth()].dated += rec; byMonth[rd.getMonth()].recurring += rec; } else spreadRec += rec;
       const rdays = daysUntil(p.renewalDate);
       if (rdays != null && rdays >= 0 && rdays <= 90) upcomingRenewals.push({ clientId: c.id, clientName: c.name, carrier: carr, kind: k, date: p.renewalDate, days: rdays, recurring: rec });
     }
-    if (cRec > 0 || cAum > 0) perClient.push({ id: c.id, name: c.name, contact: contactName(c), recurring: cRec, aum: cAum });
-  }
-  for (const c of clients || []) for (const o of (c.opportunities || [])) {
-    if (o.stage === 'won' && o.closedAt) {
-      const d = new Date(o.closedAt);
-      if (d.getFullYear() === yr) { wonCountYTD++; if (o.valueKind === 'premium') wonPremiumYTD += fin(o.value, 0); else wonAumYTD += fin(o.value, 0); }
+    firstYearYTD += clientFirstYearYTD(c, year);
+    const row = { id: c.id, name: c.name, contact: contactName(c), recurring: clientRecurring(c), aum: clientAum(c), annualPremium: clientAnnualPremium(c), firstYear: clientFirstYearYTD(c, year), value: clientValue(c) };
+    if (row.recurring > 0 || row.aum > 0 || row.annualPremium > 0) perClient.push(row);
+    for (const o of (c.opportunities || [])) {
+      if (normalizeStage(o.stage) !== 'won') continue;
+      const closed = tsOf(o.closedAt); if (closed == null) continue;
+      if (new Date(closed).getFullYear() === year) { wonCountYTD++; if (o.valueKind === 'premium') wonPremiumYTD += fin(o.value, 0); else wonAumYTD += fin(o.value, 0); }
     }
   }
+  for (const m of byMonth) { m.spread = spreadRec / 12; m.recurring += m.spread; }
+  const monthSum = byMonth.reduce((s, m) => s + m.recurring, 0);
+  const reconciles = Math.abs(monthSum - recurring) <= 0.005 + 1e-9 * Math.abs(recurring);
   return {
+    year,
     byKind: Object.values(byKind).sort((a, b) => b.recurring - a.recurring),
     byCarrier: Object.values(byCarrier).sort((a, b) => b.recurring - a.recurring),
-    byMonth, recurring, annualPremium, aum, faceTotal, firstYearYTD, wonPremiumYTD, wonAumYTD, wonCountYTD,
-    perClient: perClient.sort((a, b) => (b.recurring + b.aum * 0.001) - (a.recurring + a.aum * 0.001)),
+    byMonth, monthSum, reconciles, recurring, annualPremium: premiumTotal, aum, faceTotal, firstYearYTD, wonPremiumYTD, wonAumYTD, wonCountYTD,
+    perClient: perClient.sort((a, b) => (b.value - a.value) || (b.aum - a.aum) || (b.annualPremium - a.annualPremium)),
     upcomingRenewals: upcomingRenewals.sort((a, b) => a.days - b.days),
   };
 }
 
 // ---------- Referral network ----------
-function clientValue(c) {
-  let v = 0;
-  for (const p of (c.products || [])) if (p.status !== 'lapsed' && p.status !== 'cancelled') v += fin(p.renewalCommission, 0);
-  return v;
+const nameKey = (s) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+/** Resolve a free-text "referred by" against file names AND member names ("Marc Tremblay" → Famille Tremblay). */
+export function resolveReferrer(clients, ref, excludeId = null) {
+  const k = nameKey(ref); if (!k) return null;
+  for (const c of clients || []) if (c.id !== excludeId && nameKey(c.name) === k) return { client: c, via: 'file' };
+  for (const c of clients || []) if (c.id !== excludeId) for (const m of (c.members || [])) if (nameKey(m.name) === k) return { client: c, via: 'member', member: m };
+  return null;
 }
 export function referralNetwork(clients) {
   const byRef = {}, bySource = {};
@@ -279,9 +389,12 @@ export function referralNetwork(clients) {
     const ref = ((c.crm && c.crm.referredBy) || '').trim();
     const val = clientValue(c);
     if (ref) {
-      byRef[ref] = byRef[ref] || { name: ref, referred: [], count: 0, value: 0 };
-      byRef[ref].referred.push({ id: c.id, name: c.name, value: val });
-      byRef[ref].count++; byRef[ref].value += val;
+      const res = resolveReferrer(clients, ref, c.id);
+      const key = res ? 'id:' + res.client.id : 'name:' + nameKey(ref);
+      byRef[key] = byRef[key] || { key, name: res ? res.client.name : ref, contact: res ? contactName(res.client) : '', clientId: res ? res.client.id : null, aliases: [], referred: [], count: 0, value: 0 };
+      if (!byRef[key].aliases.includes(ref)) byRef[key].aliases.push(ref);
+      byRef[key].referred.push({ id: c.id, name: c.name, value: val });
+      byRef[key].count++; byRef[key].value += val;
     }
     const src = (c.crm && c.crm.source) || '';
     if (src) {
@@ -297,17 +410,18 @@ export function referralNetwork(clients) {
 }
 
 // ---------- Dynamic segments ----------
+/** Every member's e-mail (primary + spouse …), de-duplicated by the caller. */
+export function emailsOf(c) { return (c.members || []).map(m => (m.email || '').trim()).filter(Boolean); }
 export function buildSegments(clients) {
   const month = new Date().getMonth();
   const hasWill = (c) => (c.documents || []).some(d => d.type === 'will' && d.status === 'done');
-  const emailOf = (c) => { const m = primaryMember(c); return m.email ? [m.email] : []; };
   const defs = [
     { key: 'reviewdue', label: () => t('Revue à planifier', 'Review due'), desc: () => t('Revue dans 90 j ou en retard', 'Review within 90d or overdue'),
       pred: c => { const d = daysUntil(c.household && c.household.reviewDate); return d != null && d <= 90; } },
     { key: 'prospects', label: () => t('Prospects à convertir', 'Prospects to convert'), desc: () => t('Cycle de vie prospect ou piste', 'Lifecycle prospect or lead'),
       pred: c => ['prospect', 'lead'].includes(lifecycleOf(c)) },
     { key: 'proposal', label: () => t('Proposition en cours', 'Open proposal'), desc: () => t('Opportunité à l’étape proposition', 'Opportunity at proposal stage'),
-      pred: c => (c.opportunities || []).some(o => o.stage === 'proposal') },
+      pred: c => (c.opportunities || []).some(o => normalizeStage(o.stage) === 'proposal') },
     { key: 'birthday', label: () => t('Anniversaire ce mois', 'Birthday this month'), desc: () => t('Un membre fête son anniversaire', 'A member has a birthday'),
       pred: c => (c.members || []).some(m => { const d = parseDate(m.dob); return d && d.getMonth() === month; }) },
     { key: 'nowill', label: () => t('Sans testament', 'No will'), desc: () => t('Aucun testament signé au dossier', 'No signed will on file'),
@@ -317,7 +431,7 @@ export function buildSegments(clients) {
     { key: 'lapsed', label: () => t('Polices déchues', 'Lapsed policies'), desc: () => t('Produit déchu ou annulé', 'Lapsed or cancelled product'),
       pred: c => (c.products || []).some(p => p.status === 'lapsed' || p.status === 'cancelled') },
   ];
-  return defs.map(d => { const list = (clients || []).filter(d.pred); return { key: d.key, label: d.label(), desc: d.desc(), clients: list, emails: [...new Set(list.flatMap(emailOf))] }; });
+  return defs.map(d => { const list = (clients || []).filter(d.pred); return { key: d.key, label: d.label(), desc: d.desc(), clients: list, emails: [...new Set(list.flatMap(emailsOf))] }; });
 }
 
 // ---------- Compliance / KYC ----------
@@ -330,13 +444,22 @@ export const KYC_ITEMS = [
   { key: 'disclosure',  label: () => t('Information sur la relation (divulgation)', 'Relationship disclosure') },
   { key: 'agreement',   label: () => t('Convention de service signée', 'Signed service agreement') },
 ];
+/** Items whose completion is derived from the file itself (shown as locked in the UI). */
+const KYC_DERIVED = {
+  beneficiary: (c) => (c.beneficiaries || []).length > 0,
+  riskprofile: (c) => !!(c.riskProfile),
+};
 export function complianceStatus(c) {
   const store = c.compliance || {};
-  const items = KYC_ITEMS.map(it => { const s = store[it.key] || {}; return { key: it.key, label: it.label(), status: s.status || 'todo', date: s.date || '' }; });
+  const items = KYC_ITEMS.map(it => {
+    const s = store[it.key] || {};
+    const derived = !!(KYC_DERIVED[it.key] && KYC_DERIVED[it.key](c));
+    return { key: it.key, label: it.label(), status: derived ? 'done' : (s.status || 'todo'), date: s.date || '', derived };
+  });
   const applicable = items.filter(i => i.status !== 'na');
   const done = applicable.filter(i => i.status === 'done').length;
-  const total = applicable.length || 1;
-  return { items, done, total, pct: done / total, missing: items.filter(i => i.status === 'todo') };
+  const total = applicable.length;
+  return { items, done, total, pct: total > 0 ? done / total : 1, missing: items.filter(i => i.status === 'todo') };
 }
 export function complianceOverview(clients) {
   const byItem = {}; KYC_ITEMS.forEach(it => byItem[it.key] = { key: it.key, label: it.label(), missing: 0 });
@@ -354,10 +477,10 @@ export function complianceOverview(clients) {
 
 // ---------- Follow-up cadences (sequences) ----------
 function isoAddDays(iso, n) {
-  const base = iso ? new Date(iso + 'T00:00:00') : startOfToday();
-  if (isNaN(base.getTime())) return '';
+  const base = iso ? parseDate(iso) : startOfToday();
+  if (!base) return '';
   base.setDate(base.getDate() + n);
-  return base.toISOString().slice(0, 10);
+  return localISO(base);
 }
 export const CADENCES = [
   { key: 'prospect', label: () => t('Relance prospect', 'Prospect nurture'), desc: () => t('3 touches sur 10 jours', '3 touches over 10 days'),
@@ -379,27 +502,40 @@ export function cadenceTasks(cadenceKey, fromISO) {
 }
 
 // ---------- Monthly calendar events ----------
-const pad2 = (n) => (n < 10 ? '0' + n : '' + n);
+/**
+ * Events for one month, keyed 'YYYY-MM-DD'. Placement rules (one rule, applied the same way
+ * in reminders()):
+ *   • tasks and renewals sit on their own date (history stays where it happened);
+ *   • birthdays recur every year (Feb-29 → Feb-28 in non-leap years);
+ *   • reviews and next actions sit on their own date while ahead; once past due (up to
+ *     PAST_DUE_DAYS) they are pinned to TODAY's cell with `overdue: true` so they keep
+ *     surfacing in the current month instead of vanishing into a past one.
+ */
 export function monthEvents(clients, year, month) {
-  // month: 0-11. Returns { 'YYYY-MM-DD': [ {type,label,clientId,clientName} ] }
   const byDay = {};
+  const today = startOfToday();
   const push = (y, m, d, ev) => { if (m !== month || y !== year) return; const key = `${y}-${pad2(m + 1)}-${pad2(d)}`; (byDay[key] = byDay[key] || []).push(ev); };
+  const placeDated = (iso, ev) => {
+    const d = parseDate(iso); if (!d) return;
+    const days = daysToDate(d);
+    if (days < 0 && days >= -PAST_DUE_DAYS) push(today.getFullYear(), today.getMonth(), today.getDate(), { ...ev, date: iso, overdue: true, days });
+    else push(d.getFullYear(), d.getMonth(), d.getDate(), { ...ev, date: iso, overdue: false, days });
+  };
   for (const c of clients || []) {
     for (const tk of (c.tasks || [])) {
       if (tk.done || !tk.due) continue; const d = parseDate(tk.due); if (!d) continue;
-      push(d.getFullYear(), d.getMonth(), d.getDate(), { type: 'task', label: tk.title, clientId: c.id, clientName: c.name });
+      push(d.getFullYear(), d.getMonth(), d.getDate(), { type: 'task', label: tk.title, clientId: c.id, clientName: c.name, date: tk.due, overdue: daysToDate(d) < 0 });
     }
     for (const m of (c.members || [])) {
       const d = parseDate(m.dob); if (!d) continue;
-      push(year, d.getMonth(), d.getDate(), { type: 'birthday', label: t(`Anniversaire — ${m.name}`, `Birthday — ${m.name}`), clientId: c.id, clientName: c.name });
+      const a = anniversaryIn(year, d);
+      push(year, a.getMonth(), a.getDate(), { type: 'birthday', label: t(`Anniversaire — ${m.name}`, `Birthday — ${m.name}`), clientId: c.id, clientName: c.name, date: localISO(a), overdue: false });
     }
-    const rv = parseDate(c.household && c.household.reviewDate);
-    if (rv) push(rv.getFullYear(), rv.getMonth(), rv.getDate(), { type: 'review', label: t('Revue annuelle', 'Annual review'), clientId: c.id, clientName: c.name });
-    const na = parseDate(c.crm && c.crm.nextActionDate);
-    if (na) push(na.getFullYear(), na.getMonth(), na.getDate(), { type: 'nextaction', label: t('Prochaine action', 'Next action'), clientId: c.id, clientName: c.name });
-    for (const p of (c.products || [])) {
+    placeDated(c.household && c.household.reviewDate, { type: 'review', label: t('Revue annuelle', 'Annual review'), clientId: c.id, clientName: c.name });
+    placeDated(c.crm && c.crm.nextActionDate, { type: 'nextaction', label: t('Prochaine action', 'Next action'), clientId: c.id, clientName: c.name });
+    for (const p of activeProducts(c)) {
       const rn = parseDate(p.renewalDate); if (!rn) continue;
-      push(rn.getFullYear(), rn.getMonth(), rn.getDate(), { type: 'renewal', label: t(`Renouvellement — ${p.carrier || ''}`, `Renewal — ${p.carrier || ''}`), clientId: c.id, clientName: c.name });
+      push(rn.getFullYear(), rn.getMonth(), rn.getDate(), { type: 'renewal', label: t(`Renouvellement — ${p.carrier || ''}`, `Renewal — ${p.carrier || ''}`), clientId: c.id, clientName: c.name, date: p.renewalDate, overdue: false });
     }
   }
   return byDay;
@@ -410,12 +546,12 @@ export const EVENT_COLOR = { task: '#C2922F', birthday: '#C6AC8F', review: '#6E8
 export function clientTimeline(c) {
   const ev = [];
   for (const a of (c.activities || [])) ev.push({ date: a.date, kind: 'activity', sub: a.type, title: a.subject || (ACTIVITY_META[a.type] || ACTIVITY_META.note).label(), detail: a.body || '' });
-  for (const tk of (c.tasks || [])) ev.push({ date: tk.due || (tk.createdAt ? new Date(tk.createdAt).toISOString().slice(0, 10) : ''), kind: 'task', sub: tk.done ? 'done' : 'open', title: tk.title, detail: tk.done ? t('Terminée', 'Completed') : t('À faire', 'To do') });
+  for (const tk of (c.tasks || [])) ev.push({ date: tk.due || tsToISO(tk.createdAt), kind: 'task', sub: tk.done ? 'done' : 'open', title: tk.title, detail: tk.done ? t('Terminée', 'Completed') : t('À faire', 'To do') });
   for (const o of (c.opportunities || [])) {
-    const od = o.openedAt ? new Date(o.openedAt).toISOString().slice(0, 10) : (o.expectedClose || '');
-    ev.push({ date: od, kind: 'opportunity', sub: o.stage, title: o.title, detail: (STAGE_META[o.stage] || {}).label?.() || o.stage });
+    const s = normalizeStage(o.stage);
+    const od = o.expectedClose || tsToISO(o.closedAt) || tsToISO(o.openedAt);   // when it matters: expected close, else the decision, else the opening
+    ev.push({ date: od, kind: 'opportunity', sub: s, title: o.title, detail: STAGE_META[s].label() });
   }
-  for (const p of (c.products || [])) if (p.issueDate) ev.push({ date: p.issueDate, kind: 'product', sub: p.kind, title: `${(PRODUCT_KIND_META[p.kind] || { label: () => p.kind }).label()} — ${p.carrier || ''}`, detail: p.policyNumber || '' });
+  for (const p of (c.products || [])) if (p.issueDate) ev.push({ date: p.issueDate, kind: 'product', sub: p.kind, title: `${(PRODUCT_KIND_META[p.kind] || { label: () => p.kind }).label()} — ${p.carrier || ''}`, detail: [p.policyNumber, (PRODUCT_STATUS_META[p.status] || {}).label?.()].filter(Boolean).join(' · ') });
   return ev.filter(e => e.date).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 }
-

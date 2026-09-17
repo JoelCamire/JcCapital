@@ -1,18 +1,67 @@
 // ============================================================
 // Succession planning view — exit route comparator, deal
 // mechanics, readiness checklist, and disclaimer.
+// Every default comes from the client file (business facts, owner
+// income, return assumption); the MBO route is a real vendor-
+// take-back model (capital-gains reserve, interest taxed at the
+// owner's marginal rate, discounted at the file's return).
 // ============================================================
 import { h, money, pct, icon, t } from '../dom.js';
 import { kpi, card, slider, statList, legend } from '../widgets.js';
 import { barChart, PALETTE } from '../charts.js';
-import { businessValuation, lcgeSale } from '../../engine/corporate.js';
+import { lcgeSale } from '../../engine/corporate.js';
+import { computeTax } from '../../engine/tax.js';
+import { clientFacts, whatIf, saveWhatIf } from '../../engine/facts.js';
+import { store as appStore } from '../../state/store.js';
 
-export function render({ client, jur }) {
+/**
+ * Vendor take-back (MBO) route: `cashPct` of the price is paid at closing, the rest
+ * is a note repaid in `years` equal principal instalments plus interest at `rate`.
+ * The capital-gains reserve lets the seller recognise the gain as proceeds are
+ * received (at least 20 %/yr cumulative, max 5 years); the LCGE shelters the first
+ * dollars of gain. Interest is ordinary income. Cash flows are discounted at `disc`.
+ */
+function vendorTakeBack(jur, { price, acb, owners, otherIncome, age, cashPct, years, rate, disc }) {
+  const n = Math.max(1, Math.round(years));
+  const gain = Math.max(0, price - acb);
+  const lcge = (jur.corporate?.lcge || 0) * Math.max(1, owners);
+  const exempt = Math.min(gain, lcge);
+  const taxableGain = gain - exempt;
+  const cash0 = price * cashPct;
+  const note = price - cash0;
+  let balance = note, cumRecognised = 0, pv = 0, totalTax = 0, totalInterest = 0, totalCash = 0;
+  const rows = [];
+  for (let y = 0; y <= n; y++) {
+    const principal = y === 0 ? cash0 : note / n;
+    const interest = y === 0 ? 0 : balance * rate;
+    if (y > 0) balance -= principal;
+    const cumProceeds = (y === 0 ? cash0 : cash0 + (note / n) * y) / Math.max(1, price);
+    const minCum = Math.min(1, 0.2 * (y + 1));                 // reserve: ≥ 20 % per year, gone after 5 years
+    const cumTarget = y >= n ? 1 : Math.max(cumProceeds, minCum);
+    const gainThisYear = Math.max(0, taxableGain * cumTarget - cumRecognised);
+    cumRecognised += gainThisYear;
+    // tax on this year's recognised gain + interest, stacked on the owner's other income (per owner)
+    const k = Math.max(1, owners);
+    const t0 = computeTax(jur, { ordinary: otherIncome, withPayroll: false, employment: false, age });
+    const t1 = computeTax(jur, { ordinary: otherIncome + interest / k, capGains: gainThisYear / k, withPayroll: false, employment: false, age });
+    const tax = Math.max(0, t1.total - t0.total) * k;
+    const net = principal + interest - tax;
+    totalTax += tax; totalInterest += interest; totalCash += principal + interest;
+    pv += net / Math.pow(1 + disc, y);
+    rows.push({ year: y, principal, interest, gainRecognised: gainThisYear, tax, net });
+  }
+  return { gain, exempt, taxableGain, cash0, note, rows, totalTax, totalInterest, totalCash, netUndiscounted: totalCash - totalTax, netPV: pv };
+}
+
+export function render({ store, client, jur }) {
+  store = store || appStore;
   const cur = jur.currency;
+  const F = clientFacts(client, jur);
+  const FB = F.business;
   const B = client.business;
 
   // ---------- Guard: no business data ----------
-  if (!B) {
+  if (!B || !FB) {
     return h('div', { class: 'grid' },
       h('div', { class: 'card span-full' },
         h('div', { class: 'empty' },
@@ -26,53 +75,76 @@ export function render({ client, jur }) {
     );
   }
 
-  // ---------- Section 1: Exit route comparator ----------
-  const val = businessValuation(B.valuation || {});
-  const defaultValue = val.estimate > 0 ? Math.round(val.estimate) : 2000000;
-  const defaultAcb = (B.sale && B.sale.acb) ? B.sale.acb : 0;
+  const owner = FB.owner || F.primary || { age: 55, ordinary: 0 };
+  const otherIncome = FB.ownerOtherIncome;
+  const val = FB.valuation;
+  const isCA = jur.country === 'CA';
 
-  let exitValue = defaultValue;
-  let exitAcb = defaultAcb;
-  let exitSuccessors = 1;
+  // ---------- Section 1: Exit route comparator ----------
+  // Value / ACB / successors live in business.sale (shared with the Business tab); deal terms are what-ifs.
+  const st = {
+    exitValue: B.sale?.proceeds || FB.value || 0,
+    exitAcb: B.sale?.acb || 0,
+    exitSuccessors: Math.max(1, B.sale?.owners || 1),
+  };
+  const P = whatIf(client, 'succession', { mboCashPct: 0.30, mboYears: 5, mboRate: (jur.prescribedRate ?? 0.03) + 0.03, disc: F.assumptions.preReturn });
+  const setP = (k, v) => { P[k] = v; saveWhatIf(store, 'succession', { [k]: v }); };
+  function saveSale(patch) {
+    Object.assign(st, patch);
+    const sale = { proceeds: st.exitValue, acb: st.exitAcb, owners: st.exitSuccessors };
+    store.quietUpdate(c => { if (c.business) c.business.sale = { ...(c.business.sale || {}), ...sale }; });
+  }
 
   const exitBox = h('div', {});
+  const kpiBox = h('div', { class: 'grid cols-3 span-full' });
 
   function drawExit() {
-    const thirdParty = lcgeSale(jur, exitValue, exitAcb, 1);
-    const familyTransfer = lcgeSale(jur, exitValue, exitAcb, exitSuccessors);
-    // MBO: assume 30% vendor take-back financed portion has deferred proceeds
-    const mboFinanced = exitValue * 0.30;
-    const mboImmediate = exitValue * 0.70;
-    const mboLcge = lcgeSale(jur, exitValue, exitAcb, 1);
-    // Net proceeds for MBO: full tax on full gain but partial upfront receipt
-    // Show net assuming all proceeds eventually received (same tax as third-party)
-    const mboNet = mboLcge.netProceeds;
+    const thirdParty = lcgeSale(jur, st.exitValue, st.exitAcb, 1, otherIncome, { age: owner.age });
+    const familyTransfer = lcgeSale(jur, st.exitValue, st.exitAcb, st.exitSuccessors, otherIncome, { age: owner.age });
+    const mbo = vendorTakeBack(jur, { price: st.exitValue, acb: st.exitAcb, owners: 1, otherIncome, age: owner.age,
+      cashPct: P.mboCashPct, years: P.mboYears, rate: P.mboRate, disc: P.disc });
 
-    const nets = [thirdParty.netProceeds, familyTransfer.netProceeds, mboNet];
+    const nets = [thirdParty.netProceeds, familyTransfer.netProceeds, mbo.netPV];
     const bestIdx = nets.indexOf(Math.max(...nets));
     const routeLabels = [
       t('Vente tiers', 'Third-party'),
       t('Transfert familial', 'Family transfer'),
       t('Rachat direction (MBO)', 'MBO'),
     ];
-    const chips = routeLabels.map((lbl, i) =>
-      i === bestIdx
-        ? h('span', { class: 'chip pos', html: icon('check', 12) + ' ' + t('Recommandé', 'Recommended') + ': ' + lbl })
-        : null
+
+    kpiBox.replaceChildren(
+      kpi({
+        label: t('Valeur de l’entreprise', 'Business value'),
+        value: money(st.exitValue, { currency: cur, compact: true }),
+        iconName: 'briefcase',
+        sub: val.estimate > 0 ? t('Selon les multiples du profil', 'Based on the profile multiples') : t('Saisie dans le profil (vente)', 'Entered in the profile (sale)'),
+      }),
+      kpi({
+        label: t('Gain en capital (vente tiers)', 'Capital gain (third-party sale)'),
+        value: money(thirdParty.gain, { currency: cur, compact: true }),
+        sub: t('PBR : ' + money(st.exitAcb, { currency: cur, compact: true }), 'ACB: ' + money(st.exitAcb, { currency: cur, compact: true })),
+      }),
+      kpi({
+        label: t('Économie EGC maximale', 'Maximum LCGE saving'),
+        value: money(familyTransfer.taxSaved, { currency: cur, compact: true }),
+        accent: 'var(--pos)',
+        sub: t(`Pour ${st.exitSuccessors} détenteur(s) · autre revenu ${money(otherIncome, { currency: cur, compact: true })}`, `For ${st.exitSuccessors} owner(s) · other income ${money(otherIncome, { currency: cur, compact: true })}`),
+      }),
     );
 
     exitBox.replaceChildren(
       h('div', { class: 'flex between center', style: { marginBottom: '12px', flexWrap: 'wrap', gap: '8px' } },
-        ...chips.filter(Boolean)
+        h('span', { class: 'chip pos', html: icon('check', 12) + ' ' + t('Recommandé', 'Recommended') + ': ' + routeLabels[bestIdx] }),
+        h('span', { class: 'tiny muted' }, t('MBO comparé en valeur actualisée', 'MBO compared at present value')),
       ),
       h('div', { html: barChart({
         xLabels: routeLabels,
         series: [
-          { color: PALETTE[0], values: [Math.round(thirdParty.netProceeds), Math.round(familyTransfer.netProceeds), Math.round(mboNet)] },
+          { color: PALETTE[0], values: [Math.round(thirdParty.netProceeds), Math.round(familyTransfer.netProceeds), Math.round(mbo.netPV)] },
         ],
       }) }),
       legend([
-        { color: PALETTE[0], label: t('Produit net après impôt', 'Net after-tax proceeds') },
+        { color: PALETTE[0], label: t('Produit net après impôt (MBO : valeur actualisée)', 'Net after-tax proceeds (MBO: present value)') },
       ]),
       h('div', { class: 'sep' }),
       h('div', { class: 'grid cols-3', style: { marginTop: '12px' } },
@@ -83,7 +155,7 @@ export function render({ client, jur }) {
             [t('Gain en capital', 'Capital gain'), money(thirdParty.gain, { currency: cur })],
             [t('Portion exonérée (EGC)', 'Exempt portion (LCGE)'), money(thirdParty.exempt, { currency: cur }), 'pos'],
             [t('Gain imposable', 'Taxable gain'), money(thirdParty.taxableGain, { currency: cur })],
-            [t('Impôt estimé', 'Estimated tax'), money(thirdParty.taxWithLcge, { currency: cur }), 'neg'],
+            [t('Impôt (empilé sur le revenu du propriétaire)', 'Tax (stacked on the owner’s income)'), money(thirdParty.taxWithLcge, { currency: cur }), 'neg'],
             [t('Produit net', 'Net proceeds'), money(thirdParty.netProceeds, { currency: cur }), 'pos'],
           ]),
         ),
@@ -92,7 +164,7 @@ export function render({ client, jur }) {
           h('div', { class: 'chip info', style: { marginBottom: '8px' } }, t('Transfert familial', 'Family transfer')),
           statList([
             [t('Gain en capital', 'Capital gain'), money(familyTransfer.gain, { currency: cur })],
-            [t('Exonération totale (' + exitSuccessors + ' pers.)', 'Total exemption (' + exitSuccessors + ' pers.)'), money(familyTransfer.exemptionTotal, { currency: cur }), 'pos'],
+            [t('Exonération totale (' + st.exitSuccessors + ' pers.)', 'Total exemption (' + st.exitSuccessors + ' pers.)'), money(familyTransfer.exemptionTotal, { currency: cur }), 'pos'],
             [t('Portion exonérée', 'Exempt portion'), money(familyTransfer.exempt, { currency: cur }), 'pos'],
             [t('Impôt estimé', 'Estimated tax'), money(familyTransfer.taxWithLcge, { currency: cur }), 'neg'],
             [t('Produit net', 'Net proceeds'), money(familyTransfer.netProceeds, { currency: cur }), 'pos'],
@@ -102,19 +174,20 @@ export function render({ client, jur }) {
               'Bill C-208/C-59: genuine transfer of control required. Strict eligibility conditions to validate.')
           ),
         ),
-        // Column 3 — MBO
+        // Column 3 — MBO (vendor take-back)
         h('div', {},
           h('div', { class: 'chip info', style: { marginBottom: '8px' } }, t('Rachat par la direction (MBO)', 'Management buyout (MBO)')),
           statList([
-            [t('Valeur de l’entreprise', 'Business value'), money(exitValue, { currency: cur })],
-            [t('Portion immédiate (70 %)', 'Immediate portion (70%)'), money(mboImmediate, { currency: cur })],
-            [t('Balance vendeur (30 %)', 'Vendor take-back (30%)'), money(mboFinanced, { currency: cur })],
-            [t('Impôt estimé (gain total)', 'Estimated tax (full gain)'), money(mboLcge.taxWithLcge, { currency: cur }), 'neg'],
-            [t('Produit net total', 'Total net proceeds'), money(mboNet, { currency: cur }), 'pos'],
+            [t(`Comptant à la clôture (${pct(P.mboCashPct, 0)})`, `Cash at closing (${pct(P.mboCashPct, 0)})`), money(mbo.cash0, { currency: cur })],
+            [t(`Balance vendeur sur ${P.mboYears} ans à ${pct(P.mboRate, 1)}`, `Vendor take-back over ${P.mboYears} yrs at ${pct(P.mboRate, 1)}`), money(mbo.note, { currency: cur })],
+            [t('Intérêts reçus (imposables)', 'Interest received (taxable)'), money(mbo.totalInterest, { currency: cur }), 'pos'],
+            [t('Impôt total (réserve pour gain + intérêts)', 'Total tax (gains reserve + interest)'), money(mbo.totalTax, { currency: cur }), 'neg'],
+            [t('Produit net non actualisé', 'Undiscounted net proceeds'), money(mbo.netUndiscounted, { currency: cur })],
+            [t(`Valeur actualisée (${pct(P.disc, 1)})`, `Present value (${pct(P.disc, 1)})`), money(mbo.netPV, { currency: cur }), 'pos'],
           ]),
           h('p', { class: 'tiny muted', style: { marginTop: '8px' } },
-            t('Le financement vendeur (balance de prix de vente) diffère l’encaissement mais peut faciliter la transaction.',
-              'Vendor financing (take-back) defers cash receipt but can facilitate the deal.')
+            t('Le gain est reconnu au rythme des encaissements (réserve : au moins 20 %/an, max 5 ans); les intérêts de la balance sont du revenu ordinaire. Risque de crédit sur l’acquéreur.',
+              'The gain is recognised as proceeds are received (reserve: at least 20 %/yr, max 5 years); note interest is ordinary income. Credit risk on the buyer.')
           ),
         ),
       ),
@@ -125,26 +198,32 @@ export function render({ client, jur }) {
 
   const exitCard = card(
     t('Comparateur de voies de sortie', 'Exit route comparison'),
-    { class: 'span-full', sub: t('Produit net après impôt selon la voie choisie', 'Net after-tax proceeds by exit route') },
+    { class: 'span-full', sub: t('Produit net après impôt selon la voie choisie — valeur, PBR et détenteurs partagés avec l’onglet Entreprise', 'Net after-tax proceeds by exit route — value, ACB and owners shared with the Business tab') },
     h('div', { class: 'grid cols-3' },
       slider({
         label: t('Valeur de l’entreprise', 'Business value'),
-        value: exitValue, min: 0, max: 20000000, step: 50000,
+        value: st.exitValue, min: 0, max: 20000000, step: 50000,
         format: v => money(v, { currency: cur, compact: true }),
-        onInput: v => { exitValue = v; drawExit(); },
+        onInput: v => { saveSale({ exitValue: v }); drawExit(); },
       }),
       slider({
         label: t('Prix de base rajusté (PBR)', 'Adjusted cost base (ACB)'),
-        value: exitAcb, min: 0, max: 5000000, step: 25000,
+        value: st.exitAcb, min: 0, max: 5000000, step: 25000,
         format: v => money(v, { currency: cur, compact: true }),
-        onInput: v => { exitAcb = v; drawExit(); },
+        onInput: v => { saveSale({ exitAcb: v }); drawExit(); },
       }),
       slider({
         label: t('Successeurs familiaux (multiplication EGC)', 'Family successors (LCGE multiplication)'),
-        value: exitSuccessors, min: 1, max: 4, step: 1,
+        value: st.exitSuccessors, min: 1, max: 4, step: 1,
         format: v => `${v}`,
-        onInput: v => { exitSuccessors = v; drawExit(); },
+        onInput: v => { saveSale({ exitSuccessors: v }); drawExit(); },
       }),
+    ),
+    h('div', { class: 'grid cols-4', style: { marginTop: '6px' } },
+      slider({ label: t('MBO — comptant à la clôture', 'MBO — cash at closing'), value: P.mboCashPct, min: 0.1, max: 1, step: 0.05, format: v => pct(v, 0), onInput: v => { setP('mboCashPct', v); drawExit(); } }),
+      slider({ label: t('MBO — durée de la balance (ans)', 'MBO — take-back term (yrs)'), value: P.mboYears, min: 1, max: 10, step: 1, format: v => `${v}`, onInput: v => { setP('mboYears', v); drawExit(); } }),
+      slider({ label: t('MBO — taux d’intérêt de la balance', 'MBO — take-back interest rate'), value: P.mboRate, min: 0, max: 0.12, step: 0.005, format: v => pct(v, 1), onInput: v => { setP('mboRate', v); drawExit(); } }),
+      slider({ label: t('Taux d’actualisation (rendement du dossier)', 'Discount rate (file return)'), value: P.disc, min: 0, max: 0.12, step: 0.005, format: v => pct(v, 1), onInput: v => { setP('disc', v); drawExit(); } }),
     ),
     exitBox,
   );
@@ -216,7 +295,7 @@ export function render({ client, jur }) {
     {
       title: t('Testament et mandats à jour', 'Up-to-date will and mandates'),
       text: t(
-        'Testament, mandat de protection (incapacité) et procu-rations révisés par un notaire à jour avec la structure actuelle.',
+        'Testament, mandat de protection (incapacité) et procurations révisés par un notaire à jour avec la structure actuelle.',
         'Will, protective mandate (incapacity) and powers of attorney reviewed by a notary and aligned with the current structure.'
       ),
     },
@@ -282,7 +361,7 @@ export function render({ client, jur }) {
     t('Liste de préparation à la relève', 'Succession readiness checklist'),
     { class: 'span-full', sub: t('Points à vérifier avec le conseiller avant toute négociation', 'Items to verify with the advisor before any negotiation') },
     h('div', { class: 'grid cols-2' },
-      ...checklist.map((item, idx) =>
+      ...checklist.map((item) =>
         h('div', { class: 'flex', style: { gap: '10px', padding: '10px 0', borderBottom: '1px solid var(--border)', alignItems: 'flex-start' } },
           h('span', { class: 'chip pos', style: { flex: 'none' }, html: icon('check', 13) }),
           h('div', {},
@@ -309,30 +388,8 @@ export function render({ client, jur }) {
     ),
   );
 
-  // ---------- KPIs ----------
-  const thirdPartyKpi = lcgeSale(jur, exitValue, exitAcb, 1);
-  const kpis = h('div', { class: 'grid cols-3 span-full' },
-    kpi({
-      label: t('Valeur estimée de l’entreprise', 'Estimated business value'),
-      value: money(exitValue, { currency: cur, compact: true }),
-      iconName: 'briefcase',
-      sub: val.estimate > 0 ? t('Selon les multiples', 'Based on multiples') : t('Valeur par défaut', 'Default value'),
-    }),
-    kpi({
-      label: t('Gain en capital (vente tiers)', 'Capital gain (third-party sale)'),
-      value: money(thirdPartyKpi.gain, { currency: cur, compact: true }),
-      sub: t('PBR : ' + money(exitAcb, { currency: cur, compact: true }), 'ACB: ' + money(exitAcb, { currency: cur, compact: true })),
-    }),
-    kpi({
-      label: t('Économie EGC maximale', 'Maximum LCGE saving'),
-      value: money(thirdPartyKpi.taxSaved, { currency: cur, compact: true }),
-      accent: 'var(--pos)',
-      sub: t('Pour 1 détenteur', 'For 1 owner'),
-    }),
-  );
-
   return h('div', { class: 'grid' },
-    kpis,
+    kpiBox,
     exitCard,
     mechanicsCard,
     checklistCard,

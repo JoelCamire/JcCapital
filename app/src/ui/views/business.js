@@ -2,15 +2,45 @@ import { h, money, pct, num, icon, toast, t } from '../dom.js';
 import { kpi, card, slider, statList, legend, badgeScore } from '../widgets.js';
 import { barChart, donutChart, lineChart, PALETTE } from '../charts.js';
 import { formModal } from '../editor.js';
-import { store } from '../../state/store.js';
+import { store as appStore } from '../../state/store.js';
 import { newBusiness } from '../../state/models.js';
 import { corporateTaxCA, salaryVsDividend, retainVsDistribute, businessValuation, lcgeSale } from '../../engine/corporate.js';
+import { clientFacts, whatIf, saveWhatIf } from '../../engine/facts.js';
 
-export function render({ client, jur, navigate }) {
+/** Corporate rate outside Canada, read from the jurisdiction (never hard-coded). */
+function foreignCorpRate(jur, profit) {
+  const C = jur.corporate || {};
+  if (jur.country === 'US') return (C.fedCorp ?? 0) + ((C.stateCorp && C.stateCorp[jur.region]) ?? 0);
+  if (jur.country === 'UK') {
+    if (profit > C.upperLimit) return C.mainRate;
+    if (profit > C.lowerLimit) return C.smallRate + (C.mainRate - C.smallRate) * (profit - C.lowerLimit) / (C.upperLimit - C.lowerLimit);
+    return C.smallRate ?? 0;
+  }
+  return 0;
+}
+
+export function render({ store, client, jur, navigate }) {
+  store = store || appStore;
   const cur = jur.currency;
+  const F = clientFacts(client, jur);
+  const FB = F.business;                                   // derived business facts (null when no business on file)
   const B = client.business || newBusiness({ ownerId: client.members[0]?.id });
+  const owner = (FB && FB.owner) || F.primary || { age: 45, ordinary: 0, marginal: { ordinary: 0.45, noneligible: 0.4, eligible: 0.3, capgains: 0.25 } };
   const ownerName = client.members.find(m => m.id === B.ownerId)?.name || client.members[0]?.name || t('Propriétaire', 'Owner');
+  const ownerOther = FB ? FB.ownerOtherIncome : (B.otherPersonalIncome || owner.ordinary || 0);
   const isCA = jur.country === 'CA';
+  const val = FB ? FB.valuation : businessValuation(B.valuation || {});
+  const bizValue = FB ? FB.value : (val.estimate || B.retainedEarnings || 0);
+
+  // Persisted what-if parameters (engine-derived defaults, user overrides kept)
+  const P = whatIf(client, 'business', {
+    svdProfit: Math.min(B.activeIncome || 0, 200000) || 100000,
+    svdOther: Math.round(ownerOther),
+    rvAmount: 100000, rvYears: 15,
+    rvReturn: F.assumptions.preReturn,
+    rvMarg: owner.marginal.ordinary,
+  });
+  const setP = (k, v) => { P[k] = v; saveWhatIf(store, 'business', { [k]: v }); };
 
   const structOpts = [
     { value: 'incorporated', label: t('Société par actions (incorporée)', 'Incorporated') },
@@ -21,13 +51,14 @@ export function render({ client, jur, navigate }) {
   const structLabel = v => (structOpts.find(o => o.value === v) || {}).label || v;
 
   // ---------- KPIs ----------
-  const corp = isCA ? corporateTaxCA(jur, B.activeIncome, B.passiveIncome) : null;
-  const corpEff = corp ? corp.effectiveActiveRate : (jur.country === 'US' ? 0.21 : 0.20);
+  const corp = isCA ? (FB ? FB.corp : corporateTaxCA(jur, B.activeIncome, B.passiveIncome)) : null;
+  const corpEff = corp ? corp.effectiveActiveRate : foreignCorpRate(jur, B.activeIncome || 0);
+  const grindStart = jur.corporate?.passiveGrindStart ?? Infinity;
   const kpis = h('div', { class: 'grid cols-4 span-full' },
     kpi({ label: t('Revenu d’entreprise actif', 'Active business income'), value: money(B.activeIncome, { currency: cur, compact: true }), iconName: 'bank' }),
     kpi({ label: t('Revenu passif (placements)', 'Passive (investment) income'), value: money(B.passiveIncome, { currency: cur, compact: true }),
-      accent: B.passiveIncome > 50000 ? 'var(--warn)' : '', sub: B.passiveIncome > 50000 ? t('Érosion de la DPE', 'SBD grind') : '' }),
-    kpi({ label: t('Taux d’impôt corporatif effectif', 'Effective corporate tax rate'), value: pct(corpEff, 1), iconName: 'tax' }),
+      accent: B.passiveIncome > grindStart ? 'var(--warn)' : '', sub: B.passiveIncome > grindStart ? t('Érosion de la DPE', 'SBD grind') : '' }),
+    kpi({ label: t('Taux d’impôt corporatif effectif', 'Effective corporate tax rate'), value: pct(corpEff, 1), iconName: 'tax', sub: t(`Année d’imposition ${jur.taxYear}`, `Tax year ${jur.taxYear}`) }),
     kpi({ label: t('Bénéfices non répartis', 'Retained earnings'), value: money(B.retainedEarnings, { currency: cur, compact: true }), sub: t(`${money(B.corpInvestments, { currency: cur, compact: true })} en placements`, `${money(B.corpInvestments, { currency: cur, compact: true })} invested`) }),
   );
 
@@ -47,14 +78,14 @@ export function render({ client, jur, navigate }) {
         [t('Revenu actif', 'Active income'), money(B.activeIncome, { currency: cur })],
         [t('Revenu passif', 'Passive income'), money(B.passiveIncome, { currency: cur })],
         [t('Bénéfices non répartis', 'Retained earnings'), money(B.retainedEarnings, { currency: cur })],
-        [t('Placements corporatifs', 'Corporate investments'), money(B.corpInvestments, { currency: cur })],
+        [t('Autre revenu personnel du propriétaire', 'Owner other personal income'), money(ownerOther, { currency: cur })],
       ]),
     ));
 
   // ---------- Corporate tax breakdown ----------
   let corpCard;
   if (isCA && corp) {
-    const grindWarn = B.passiveIncome > jur.corporate.passiveGrindStart;
+    const grindWarn = B.passiveIncome > grindStart;
     corpCard = card(t('Imposition de la société (CCPC)', 'Corporate tax (CCPC)'), {
       sub: t(`Taux DPE ${pct(corp.sbRate, 1)} · Taux général ${pct(corp.genRate, 1)}`, `SBD rate ${pct(corp.sbRate, 1)} · General ${pct(corp.genRate, 1)}`),
       right: grindWarn ? h('span', { class: 'chip warn', html: icon('warning', 13) + ' ' + t('Érosion DPE', 'SBD grind') }) : null,
@@ -66,7 +97,7 @@ export function render({ client, jur, navigate }) {
       }) }),
       h('div', { class: 'sep' }),
       statList([
-        [t('Plafond des affaires (500 k$ – érosion)', 'Business limit (500k – grind)'), money(corp.sbdLimit, { currency: cur }), grindWarn ? 'neg' : ''],
+        [t(`Plafond des affaires (${money(jur.corporate.sbdLimit, { currency: cur, compact: true })} – érosion)`, `Business limit (${money(jur.corporate.sbdLimit, { currency: cur, compact: true })} – grind)`), money(corp.sbdLimit, { currency: cur }), grindWarn ? 'neg' : ''],
         [t('Revenu au taux des PME', 'Income at small-business rate'), money(corp.atSB, { currency: cur })],
         [t('Revenu au taux général', 'Income at general rate'), money(corp.atGen, { currency: cur })],
         [t('Impôt corporatif (actif)', 'Corporate tax (active)'), money(corp.activeTax, { currency: cur }), 'neg'],
@@ -75,35 +106,55 @@ export function render({ client, jur, navigate }) {
         [t('Bénéfice après impôt', 'After-tax profit'), money(corp.afterTaxActive, { currency: cur }), 'pos'],
       ]),
       grindWarn ? h('p', { class: 'tiny muted', style: { marginTop: '10px' } },
-        t('⚠ Le revenu passif dépasse 50 000 $ : le plafond de la déduction pour petite entreprise est réduit de 5 $ par dollar excédentaire (éliminé à 150 000 $), poussant le revenu actif vers le taux général.',
-          '⚠ Passive income exceeds $50,000: the small-business deduction limit is reduced by $5 per excess dollar (eliminated at $150,000), pushing active income to the general rate.')) : null,
+        t(`⚠ Le revenu passif dépasse ${money(grindStart, { currency: cur, compact: true })} : le plafond de la déduction pour petite entreprise est réduit de 5 $ par dollar excédentaire (éliminé à ${money(jur.corporate.passiveGrindEnd, { currency: cur, compact: true })}), poussant le revenu actif vers le taux général.`,
+          `⚠ Passive income exceeds ${money(grindStart, { currency: cur, compact: true })}: the small-business deduction limit is reduced by $5 per excess dollar (eliminated at ${money(jur.corporate.passiveGrindEnd, { currency: cur, compact: true })}), pushing active income to the general rate.`)) : null,
     );
   } else {
-    const fed = jur.country === 'US' ? B.activeIncome * 0.21 : B.activeIncome * 0.20;
-    corpCard = card(t('Imposition de la société', 'Corporate tax'), { sub: jur.name },
+    const rate = foreignCorpRate(jur, B.activeIncome || 0);
+    const fed = (B.activeIncome || 0) * rate;
+    corpCard = card(t('Imposition de la société', 'Corporate tax'), { sub: `${jur.name} · ${pct(rate, 1)}` },
       statList([
         [t('Revenu actif', 'Active income'), money(B.activeIncome, { currency: cur })],
+        [t('Taux corporatif (juridiction)', 'Corporate rate (jurisdiction)'), pct(rate, 2)],
         [t('Impôt corporatif estimé', 'Estimated corporate tax'), money(fed, { currency: cur }), 'neg'],
       ]),
       h('p', { class: 'tiny muted', style: { marginTop: '10px' } }, jur.country === 'US'
-        ? t('Société C : 21 % fédéral. En transparence (S-corp/LLC), le revenu est imposé personnellement avec la déduction QBI de 20 %.', 'C-Corp: 21 % federal. As pass-through (S-corp/LLC), income is taxed personally with the 20 % QBI deduction.')
-        : t('Impôt sur les sociétés : 19 % (petits bénéfices) à 25 % (allègement marginal entre 50 k£ et 250 k£).', 'Corporation tax: 19 % (small profits) to 25 % (marginal relief between £50k and £250k).')));
+        ? t(`Société C : ${pct(jur.corporate?.fedCorp ?? 0, 0)} fédéral + impôt d’État. En transparence (S-corp/LLC), le revenu est imposé personnellement avec la déduction QBI de ${pct(jur.corporate?.qbiDeduction ?? 0, 0)}.`, `C-Corp: ${pct(jur.corporate?.fedCorp ?? 0, 0)} federal + state tax. As pass-through (S-corp/LLC), income is taxed personally with the ${pct(jur.corporate?.qbiDeduction ?? 0, 0)} QBI deduction.`)
+        : t(`Impôt sur les sociétés : ${pct(jur.corporate?.smallRate ?? 0, 0)} (petits bénéfices) à ${pct(jur.corporate?.mainRate ?? 0, 0)} (allègement marginal entre ${money(jur.corporate?.lowerLimit, { currency: cur, compact: true })} et ${money(jur.corporate?.upperLimit, { currency: cur, compact: true })}).`, `Corporation tax: ${pct(jur.corporate?.smallRate ?? 0, 0)} (small profits) to ${pct(jur.corporate?.mainRate ?? 0, 0)} (marginal relief between ${money(jur.corporate?.lowerLimit, { currency: cur, compact: true })} and ${money(jur.corporate?.upperLimit, { currency: cur, compact: true })}).`)));
   }
 
   // ---------- Salary vs Dividend (flagship, interactive) ----------
-  let svdProfit = Math.min(B.activeIncome, 200000), svdOther = B.otherPersonalIncome || 0;
   const svdBox = h('div', {});
   function drawSVD() {
-    const r = salaryVsDividend(jur, svdProfit, svdOther);
+    const r = salaryVsDividend(jur, P.svdProfit, P.svdOther, { otherActiveIncome: 0, passiveIncome: B.passiveIncome, age: owner.age });
     if (!r.applicable) { svdBox.replaceChildren(h('div', { class: 'empty' }, t('Non disponible', 'Not available'))); return; }
     const aLabel = r.salary.label || t('Salaire', 'Salary');
     const bLabel = r.dividend.label || t('Dividende', 'Dividend');
     const rec = r.recommended === 'salary' ? aLabel : bLabel;
+    const salRows = [
+      [aLabel + ' — ' + t('net', 'net'), money(r.salary.net, { currency: cur }), 'pos'],
+      [t('Salaire brut', 'Gross salary'), money(r.salary.gross, { currency: cur })],
+      r.salary.employerCost != null ? [t('Coût employeur (RRQ/RPC, AE, RQAP)', 'Employer cost (CPP/QPP, EI, QPIP)'), money(r.salary.employerCost, { currency: cur }), 'neg'] : null,
+      r.salary.cppEmployee != null ? [t('Cotisations de l’employé', 'Employee contributions'), money(r.salary.cppEmployee, { currency: cur }), 'neg'] : null,
+      [t('Impôt corp.', 'Corp tax'), money(r.salary.corpTax, { currency: cur }), 'neg'],
+      [t('Impôt personnel', 'Personal tax'), money(r.salary.personalTax, { currency: cur }), 'neg'],
+      [t('Droits REER créés', 'RRSP room created'), money(r.salary.rrspRoom, { currency: cur })],
+    ].filter(Boolean);
+    const divRows = [
+      [bLabel + ' — ' + t('net', 'net'), money(r.dividend.net, { currency: cur }), 'pos'],
+      [t('Dividende brut', 'Gross dividend'), money(r.dividend.gross, { currency: cur })],
+      r.dividend.nonEligibleDiv != null ? [t('Dont non déterminé (revenu DPE)', 'Of which non-eligible (SBD income)'), money(r.dividend.nonEligibleDiv, { currency: cur })] : null,
+      r.dividend.eligibleDiv != null ? [t('Dont déterminé (taux général)', 'Of which eligible (general rate)'), money(r.dividend.eligibleDiv, { currency: cur })] : null,
+      [t('Impôt corp.', 'Corp tax'), money(r.dividend.corpTax, { currency: cur }), 'neg'],
+      [t('Impôt personnel', 'Personal tax'), money(r.dividend.personalTax, { currency: cur }), 'neg'],
+      [t('Droits REER créés', 'RRSP room created'), money(r.dividend.rrspRoom, { currency: cur })],
+    ].filter(Boolean);
     svdBox.replaceChildren(
       h('div', { class: 'flex between center', style: { marginBottom: '12px' } },
         h('div', { class: 'inline' }, h('span', { class: 'chip pos' }, t('Recommandé', 'Recommended') + ' : ' + rec),
-          h('span', { class: 'chip' }, t('Écart net', 'Net difference') + ' ' + money(r.advantage, { currency: cur }))),
-        h('span', { class: 'tiny muted' }, t(`Profit ${money(svdProfit, { currency: cur, compact: true })} · autre revenu ${money(svdOther, { currency: cur, compact: true })}`, `Profit ${money(svdProfit, { currency: cur, compact: true })} · other income ${money(svdOther, { currency: cur, compact: true })}`))),
+          h('span', { class: 'chip' }, t('Écart net', 'Net difference') + ' ' + money(r.advantage, { currency: cur })),
+          h('span', { class: 'chip info' }, t('Coût d’intégration', 'Integration cost') + ' ' + money(r.integrationCost, { currency: cur }))),
+        h('span', { class: 'tiny muted' }, t(`Profit ${money(P.svdProfit, { currency: cur, compact: true })} · autre revenu ${money(P.svdOther, { currency: cur, compact: true })} · ${owner.age} ans`, `Profit ${money(P.svdProfit, { currency: cur, compact: true })} · other income ${money(P.svdOther, { currency: cur, compact: true })} · age ${owner.age}`))),
       h('div', { html: barChart({
         xLabels: [t('Net au propriétaire', 'Net to owner'), t('Impôt total', 'Total tax')],
         series: [
@@ -112,42 +163,28 @@ export function render({ client, jur, navigate }) {
         ],
       }) }),
       legend([{ color: PALETTE[0], label: aLabel }, { color: PALETTE[2], label: bLabel }]),
-      h('div', { class: 'grid cols-2', style: { marginTop: '12px' } },
-        statList([
-          [aLabel + ' — ' + t('net', 'net'), money(r.salary.net, { currency: cur }), 'pos'],
-          [t('Impôt corp.', 'Corp tax'), money(r.salary.corpTax, { currency: cur }), 'neg'],
-          [t('Impôt personnel', 'Personal tax'), money(r.salary.personalTax, { currency: cur }), 'neg'],
-          [t('Droits REER créés', 'RRSP room created'), money(r.salary.rrspRoom, { currency: cur })],
-        ]),
-        statList([
-          [bLabel + ' — ' + t('net', 'net'), money(r.dividend.net, { currency: cur }), 'pos'],
-          [t('Impôt corp.', 'Corp tax'), money(r.dividend.corpTax, { currency: cur }), 'neg'],
-          [t('Impôt personnel', 'Personal tax'), money(r.dividend.personalTax, { currency: cur }), 'neg'],
-          [t('Droits REER créés', 'RRSP room created'), money(r.dividend.rrspRoom, { currency: cur })],
-        ]),
-      ),
+      h('div', { class: 'grid cols-2', style: { marginTop: '12px' } }, statList(salRows), statList(divRows)),
       h('p', { class: 'tiny muted', style: { marginTop: '10px' } }, r.note),
     );
   }
   drawSVD();
   const svdCard = card(t('Salaire vs dividende', 'Salary vs dividend'), { class: 'span-full',
-    sub: t('Optimisation de la rémunération du propriétaire (intégration)', 'Owner remuneration optimization (integration)') },
+    sub: t('Optimisation de la rémunération du propriétaire (intégration) — revenu passif et âge du propriétaire tirés du dossier', 'Owner remuneration optimization (integration) — passive income and owner age from the file') },
     h('div', { class: 'grid cols-2' },
-      slider({ label: t('Bénéfice à verser', 'Profit to extract'), value: svdProfit, min: 0, max: 500000, step: 5000,
-        format: v => money(v, { currency: cur, compact: true }), onInput: v => { svdProfit = v; drawSVD(); } }),
-      slider({ label: t('Autre revenu personnel du propriétaire', 'Owner other personal income'), value: svdOther, min: 0, max: 250000, step: 5000,
-        format: v => money(v, { currency: cur, compact: true }), onInput: v => { svdOther = v; drawSVD(); } }),
+      slider({ label: t('Bénéfice à verser', 'Profit to extract'), value: P.svdProfit, min: 0, max: 500000, step: 5000,
+        format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('svdProfit', v); drawSVD(); } }),
+      slider({ label: t('Autre revenu personnel du propriétaire', 'Owner other personal income'), value: P.svdOther, min: 0, max: 250000, step: 5000,
+        format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('svdOther', v); drawSVD(); } }),
     ),
     svdBox);
 
   // ---------- Retain vs Distribute ----------
-  let rvAmount = 100000, rvYears = 15, rvReturn = 0.06, rvMarg = 0.50;
   const rvBox = h('div', {});
   function drawRV() {
-    const r = retainVsDistribute(jur, rvAmount, rvYears, rvReturn, rvMarg);
+    const r = retainVsDistribute(jur, P.rvAmount, P.rvYears, P.rvReturn, P.rvMarg);
     const corpSeries = [], persSeries = [], xLabels = [];
-    for (let y = 0; y <= rvYears; y++) {
-      const rr = retainVsDistribute(jur, rvAmount, y, rvReturn, rvMarg);
+    for (let y = 0; y <= P.rvYears; y++) {
+      const rr = retainVsDistribute(jur, P.rvAmount, y, P.rvReturn, P.rvMarg);
       corpSeries.push(Math.round(rr.corpFinal)); persSeries.push(Math.round(rr.persFinal)); xLabels.push(y);
     }
     rvBox.replaceChildren(
@@ -157,6 +194,7 @@ export function render({ client, jur, navigate }) {
       legend([{ color: PALETTE[1], label: t('Conserver dans la société', 'Retain in corporation') }, { color: PALETTE[4], label: t('Sortir et investir personnellement', 'Distribute & invest personally') }]),
       h('div', { class: 'sep' }),
       statList([
+        [t('Taux corporatif utilisé', 'Corporate rate used'), pct(r.corpRate, 1)],
         [t('Capital reporté aujourd’hui (déferral)', 'Tax deferred today'), money(r.deferralToday, { currency: cur }), 'pos'],
         [t('Valeur finale — société', 'Final value — corporation'), money(r.corpFinal, { currency: cur })],
         [t('Valeur finale — personnel', 'Final value — personal'), money(r.persFinal, { currency: cur })],
@@ -168,15 +206,14 @@ export function render({ client, jur, navigate }) {
   const rvCard = card(t('Conserver vs distribuer', 'Retain vs distribute'), { class: 'span-full',
     sub: t('Report d’impôt : investir dans la société vs se verser le montant et investir personnellement', 'Tax deferral: invest in the corp vs take the money and invest personally') },
     h('div', { class: 'grid cols-4' },
-      slider({ label: t('Montant avant impôt', 'Pre-tax amount'), value: rvAmount, min: 10000, max: 500000, step: 10000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { rvAmount = v; drawRV(); } }),
-      slider({ label: t('Horizon (ans)', 'Horizon (yrs)'), value: rvYears, min: 1, max: 35, step: 1, format: v => `${v}`, onInput: v => { rvYears = v; drawRV(); } }),
-      slider({ label: t('Rendement', 'Return'), value: rvReturn, min: 0.02, max: 0.1, step: 0.005, format: v => pct(v), onInput: v => { rvReturn = v; drawRV(); } }),
-      slider({ label: t('Taux marginal personnel', 'Personal marginal rate'), value: rvMarg, min: 0.2, max: 0.55, step: 0.01, format: v => pct(v, 0), onInput: v => { rvMarg = v; drawRV(); } }),
+      slider({ label: t('Montant avant impôt', 'Pre-tax amount'), value: P.rvAmount, min: 10000, max: 500000, step: 10000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('rvAmount', v); drawRV(); } }),
+      slider({ label: t('Horizon (ans)', 'Horizon (yrs)'), value: P.rvYears, min: 1, max: 35, step: 1, format: v => `${v}`, onInput: v => { setP('rvYears', v); drawRV(); } }),
+      slider({ label: t('Rendement (hypothèse du dossier)', 'Return (file assumption)'), value: P.rvReturn, min: 0.02, max: 0.1, step: 0.005, format: v => pct(v), onInput: v => { setP('rvReturn', v); drawRV(); } }),
+      slider({ label: t('Taux marginal personnel (dérivé)', 'Personal marginal rate (derived)'), value: P.rvMarg, min: 0.2, max: 0.55, step: 0.01, format: v => pct(v, 0), onInput: v => { setP('rvMarg', v); drawRV(); } }),
     ),
     rvBox);
 
   // ---------- Valuation ----------
-  const val = businessValuation(B.valuation);
   const valCard = card(t('Évaluation de l’entreprise', 'Business valuation'), {
     sub: t('Estimation par multiples', 'Multiple-based estimate'),
     right: h('button', { class: 'btn sm', html: icon('edit', 14), onClick: editValuation }) },
@@ -185,24 +222,31 @@ export function render({ client, jur, navigate }) {
       h('div', { class: 'tiny muted' }, t('Valeur estimée', 'Estimated value'))),
     h('div', { class: 'sep' }),
     statList([
-      [t(`BAIIA × ${B.valuation.ebitdaMultiple}`, `EBITDA × ${B.valuation.ebitdaMultiple}`), val.byEbitda ? money(val.byEbitda, { currency: cur }) : '—'],
-      [t(`Revenus × ${B.valuation.revenueMultiple}`, `Revenue × ${B.valuation.revenueMultiple}`), val.byRevenue ? money(val.byRevenue, { currency: cur }) : '—'],
+      [t(`BAIIA × ${B.valuation?.ebitdaMultiple ?? 5}`, `EBITDA × ${B.valuation?.ebitdaMultiple ?? 5}`), val.byEbitda ? money(val.byEbitda, { currency: cur }) : '—'],
+      [t(`Revenus × ${B.valuation?.revenueMultiple ?? 1}`, `Revenue × ${B.valuation?.revenueMultiple ?? 1}`), val.byRevenue ? money(val.byRevenue, { currency: cur }) : '—'],
     ]));
 
-  // ---------- Sale & LCGE ----------
-  let saleProceeds = B.sale.proceeds || val.estimate || 1000000, saleAcb = B.sale.acb || 0, saleOwners = B.sale.owners || 1;
+  // ---------- Sale & LCGE (sliders write back to business.sale) ----------
+  const sale = { proceeds: B.sale?.proceeds || bizValue || 1000000, acb: B.sale?.acb || 0, owners: Math.max(1, B.sale?.owners || 1) };
+  function saveSale(patch) {
+    Object.assign(sale, patch);
+    store.quietUpdate(c => {
+      if (c.business) c.business.sale = { ...(c.business.sale || {}), ...patch };
+      else { c.calc = c.calc || {}; c.calc.business = { ...(c.calc.business || {}), sale: { ...((c.calc.business || {}).sale || {}), ...patch } }; }
+    });
+  }
   const saleBox = h('div', {});
   function drawSale() {
-    const l = lcgeSale(jur, saleProceeds, saleAcb, saleOwners);
+    const l = lcgeSale(jur, sale.proceeds, sale.acb, sale.owners, ownerOther, { age: owner.age });
     const lcgeApplies = isCA && (jur.corporate.lcge > 0);
     saleBox.replaceChildren(
       h('div', { class: 'grid cols-3', style: { marginBottom: '10px' } },
         kpi({ label: t('Gain en capital', 'Capital gain'), value: money(l.gain, { currency: cur, compact: true }) }),
-        kpi({ label: t('Impôt avec exonération', 'Tax with exemption'), value: money(l.taxWithLcge, { currency: cur, compact: true }), accent: 'var(--neg)' }),
+        kpi({ label: t('Impôt avec exonération', 'Tax with exemption'), value: money(l.taxWithLcge, { currency: cur, compact: true }), accent: 'var(--neg)', sub: t(`empilé sur ${money(l.otherIncome, { currency: cur, compact: true })} d’autre revenu`, `stacked on ${money(l.otherIncome, { currency: cur, compact: true })} other income`) }),
         kpi({ label: t('Économie d’impôt (EGC)', 'Tax saved (LCGE)'), value: money(l.taxSaved, { currency: cur, compact: true }), accent: 'var(--pos)' }),
       ),
       statList([
-        [t('Produit de la vente', 'Sale proceeds'), money(saleProceeds, { currency: cur })],
+        [t('Produit de la vente', 'Sale proceeds'), money(sale.proceeds, { currency: cur })],
         [t('Exonération cumulative (EGC)', 'Lifetime exemption (LCGE)'), lcgeApplies ? money(l.exemptionTotal, { currency: cur }) : t('s. o.', 'n/a')],
         [t('Portion exonérée', 'Exempt portion'), money(l.exempt, { currency: cur }), 'pos'],
         [t('Gain imposable', 'Taxable gain'), money(l.taxableGain, { currency: cur })],
@@ -210,18 +254,18 @@ export function render({ client, jur, navigate }) {
         [t('Produit net après impôt', 'Net after-tax proceeds'), money(l.netProceeds, { currency: cur }), 'pos'],
       ]),
       h('p', { class: 'tiny muted', style: { marginTop: '10px' } }, lcgeApplies
-        ? t('L’exonération cumulative des gains en capital (≈ 1,25 M$ / personne en 2025) s’applique aux actions admissibles de petite entreprise (AAPE). La multiplier entre conjoints/enfants démultiplie l’économie.', 'The lifetime capital gains exemption (≈ $1.25M/person in 2025) applies to Qualified Small Business Corporation shares. Multiplying it across spouse/children multiplies the saving.')
+        ? t(`L’exonération cumulative des gains en capital (${money(jur.corporate.lcge, { currency: cur, compact: true })} / personne en ${jur.taxYear}) s’applique aux actions admissibles de petite entreprise (AAPE). La multiplier entre conjoints/enfants démultiplie l’économie.`, `The lifetime capital gains exemption (${money(jur.corporate.lcge, { currency: cur, compact: true })}/person in ${jur.taxYear}) applies to Qualified Small Business Corporation shares. Multiplying it across spouse/children multiplies the saving.`)
         : jur.country === 'US' ? t('Aux États-Unis, l’exclusion §1202 (QSBS) peut exonérer jusqu’à 10 M$ de gain sur des actions admissibles détenues 5 ans.', 'In the US, the §1202 (QSBS) exclusion can exempt up to $10M of gain on qualifying shares held 5 years.')
           : t('Au Royaume-Uni, le Business Asset Disposal Relief réduit le taux de CGT à 10 % sur un plafond à vie de 1 M£.', 'In the UK, Business Asset Disposal Relief cuts CGT to 10 % on a £1M lifetime cap.')),
     );
   }
   drawSale();
   const saleCard = card(t('Vente d’entreprise & exonération', 'Business sale & exemption'), { class: 'span-full',
-    sub: t('Impact fiscal d’une cession des actions', 'Tax impact of a share sale') },
+    sub: t('Impact fiscal d’une cession des actions — les curseurs sont enregistrés dans le profil (vente)', 'Tax impact of a share sale — sliders are saved to the business profile (sale)') },
     h('div', { class: 'grid cols-3' },
-      slider({ label: t('Produit de la vente', 'Sale proceeds'), value: saleProceeds, min: 0, max: 10000000, step: 50000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { saleProceeds = v; drawSale(); } }),
-      slider({ label: t('Prix de base rajusté', 'Adjusted cost base'), value: saleAcb, min: 0, max: 2000000, step: 25000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { saleAcb = v; drawSale(); } }),
-      slider({ label: t('Nombre de détenteurs (multiplication EGC)', 'Number of owners (LCGE multiplication)'), value: saleOwners, min: 1, max: 4, step: 1, format: v => `${v}`, onInput: v => { saleOwners = v; drawSale(); } }),
+      slider({ label: t('Produit de la vente', 'Sale proceeds'), value: sale.proceeds, min: 0, max: 10000000, step: 50000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { saveSale({ proceeds: v }); drawSale(); } }),
+      slider({ label: t('Prix de base rajusté', 'Adjusted cost base'), value: sale.acb, min: 0, max: 2000000, step: 25000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { saveSale({ acb: v }); drawSale(); } }),
+      slider({ label: t('Nombre de détenteurs (multiplication EGC)', 'Number of owners (LCGE multiplication)'), value: sale.owners, min: 1, max: 4, step: 1, format: v => `${v}`, onInput: v => { saveSale({ owners: v }); drawSale(); } }),
     ),
     saleBox);
 
@@ -242,7 +286,7 @@ export function render({ client, jur, navigate }) {
       statList([
         [t('Placements corporatifs', 'Corporate investments'), money(B.corpInvestments, { currency: cur })],
         [t('Bénéfices non répartis', 'Retained earnings'), money(B.retainedEarnings, { currency: cur })],
-        [t('Valeur de l’entreprise (est.)', 'Business value (est.)'), money(val.estimate, { currency: cur })],
+        [t('Valeur de l’entreprise (est.)', 'Business value (est.)'), money(bizValue, { currency: cur })],
         [t('Valeur nette corporative totale', 'Total corporate net worth'), money((B.corpInvestments || 0) + (val.estimate || 0), { currency: cur }), 'pos'],
       ]))),
     saleCard,
@@ -262,13 +306,13 @@ export function render({ client, jur, navigate }) {
         { key: 'passiveIncome', label: t(`Revenu passif (${cur})`, `Passive income (${cur})`), type: 'number' },
         { key: 'retainedEarnings', label: t(`Bénéfices non répartis (${cur})`, `Retained earnings (${cur})`), type: 'number' },
         { key: 'corpInvestments', label: t(`Placements corporatifs (${cur})`, `Corporate investments (${cur})`), type: 'number' },
-        { key: 'otherPersonalIncome', label: t(`Autre revenu personnel (${cur})`, `Other personal income (${cur})`), type: 'number' },
+        { key: 'otherPersonalIncome', label: t(`Autre revenu personnel (${cur}) — 0 = revenu du dossier`, `Other personal income (${cur}) — 0 = income on file`), type: 'number' },
       ],
       onSave: (d) => store.update(c => { c.business = { ...(c.business || newBusiness()), ...d }; }),
     });
   }
   function editValuation() {
-    formModal({ title: t('Évaluation', 'Valuation'), item: { ...B.valuation },
+    formModal({ title: t('Évaluation', 'Valuation'), item: { ...(B.valuation || {}) },
       fields: [
         { key: 'ebitda', label: t(`BAIIA (${cur})`, `EBITDA (${cur})`), type: 'number' },
         { key: 'ebitdaMultiple', label: t('Multiple BAIIA', 'EBITDA multiple'), type: 'number', step: 0.5 },

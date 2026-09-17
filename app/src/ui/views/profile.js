@@ -3,6 +3,7 @@ import { kpi, card, dataTable, statList } from '../widgets.js';
 import { formModal } from '../editor.js';
 import { store } from '../../state/store.js';
 import { newMember, newDependent, newBeneficiary, newDocument, newContact } from '../../state/models.js';
+import { policiesOf } from '../../engine/policies.js';
 
 export function render({ client, jur }) {
   const cur = jur.currency;
@@ -48,11 +49,11 @@ export function render({ client, jur }) {
 
   // ---- Members (detailed personal info) ----
   const memberCards = client.members.map(m => {
-    const age = m.dob ? ageFromDob(m.dob) : m.currentAge;
+    const age = m.currentAge;                       // the store keeps currentAge in sync with dob
     return card(m.name, { sub: m.role === 'primary' ? t('Titulaire', 'Primary') : t('Conjoint(e)', 'Spouse'),
       right: h('button', { class: 'btn sm', html: icon('edit', 14), onClick: () => editMember(m, false) }) },
       statList([
-        [t('Date de naissance', 'Date of birth'), `${fmtDate(m.dob)}${age != null ? ` · ${age} ${t('ans', 'yrs')}` : ''}`],
+        [t('Date de naissance', 'Date of birth'), `${fmtDate(m.dob)}${age != null ? ` · ${age} ${t('ans', 'yrs')}${m.dob ? t(' (dérivé)', ' (derived)') : ''}` : ''}`],
         [t('Profession', 'Occupation'), m.occupation || '—'],
         [t('Employeur', 'Employer'), m.employer || '—'],
         [t('Statut d’emploi', 'Employment'), employmentLabel(m.employmentStatus)],
@@ -78,7 +79,7 @@ export function render({ client, jur }) {
       cols: [
         { key: 'name', label: t('Nom', 'Name') },
         { key: 'relationship', label: t('Lien', 'Relationship'), fmt: relationshipLabel },
-        { key: 'dob', label: t('Naissance', 'Birth'), fmt: (v, r) => v ? `${fmtDate(v)} (${ageFromDob(v)})` : `${r.age} ${t('ans', 'yrs')}` },
+        { key: 'dob', label: t('Naissance', 'Birth'), fmt: (v, r) => v ? `${fmtDate(v)} (${r.age})` : `${r.age} ${t('ans', 'yrs')}` },
         { key: 'educationGoalAge', label: t('Études à', 'Education at'), num: true, fmt: v => v ? v + ' ' + t('ans', 'yrs') : '—' },
         { key: 'financiallyDependent', label: t('À charge', 'Dependent'), fmt: v => v ? yes : no },
       ],
@@ -157,15 +158,20 @@ export function render({ client, jur }) {
         { key: 'reviewDate', label: t('Prochaine révision', 'Next review'), type: 'date' },
         { key: 'advisorNotes', label: t('Notes du conseiller', 'Advisor notes'), type: 'textarea', span: 2 },
       ],
-      onSave: (d) => store.update(c => { c.household = { ...c.household, ...d }; if (d.maritalStatus) c.filingStatus = (d.maritalStatus === 'married' || d.maritalStatus === 'commonlaw') ? 'married' : 'single'; }),
+      // filingStatus is DERIVED from household.maritalStatus by the store — never written here
+      onSave: (d) => store.update(c => { c.household = { ...c.household, ...d }; }),
     });
   }
   function editMember(item, isNew) {
+    const derivedAge = item.dob ? ageFromDob(item.dob) : null;
     formModal({ title: isNew ? t('Nouveau membre', 'New member') : item.name, item, wide: true,
       fields: [
         { key: 'name', label: t('Nom complet', 'Full name') },
         { key: 'role', label: t('Rôle', 'Role'), type: 'select', opts: [{ value: 'primary', label: t('Titulaire', 'Primary') }, { value: 'spouse', label: t('Conjoint(e)', 'Spouse') }] },
-        { key: 'dob', label: t('Date de naissance', 'Date of birth'), type: 'date', hint: t('Met l’âge à jour', 'Updates age') },
+        { key: 'dob', label: t('Date de naissance', 'Date of birth'), type: 'date',
+          hint: derivedAge != null
+            ? t(`Âge dérivé : ${derivedAge} ans (mis à jour automatiquement)`, `Derived age: ${derivedAge} yrs (kept current automatically)`)
+            : t('Renseignée, elle remplace l’âge saisi', 'When set, it overrides the typed age') },
         { key: 'gender', label: t('Genre', 'Gender'), type: 'select', opts: [{ value: '', label: '—' }, { value: 'M', label: 'M' }, { value: 'F', label: 'F' }, { value: 'X', label: 'X' }] },
         { key: 'sin', label: t('NAS / SIN', 'SIN / SSN') },
         { key: 'occupation', label: t('Profession', 'Occupation') },
@@ -177,29 +183,30 @@ export function render({ client, jur }) {
         { key: 'residency', label: t('Pays de résidence', 'Residency') },
         { key: 'riskTolerance', label: t('Tolérance au risque', 'Risk tolerance'), type: 'select', opts: riskOpts() },
         { key: 'smoker', label: t('Fumeur', 'Smoker'), type: 'checkbox', onLabel: t('Fumeur', 'Smoker') },
-        { key: 'currentAge', label: t('Âge actuel', 'Current age'), type: 'number' },
+        // age is editable only when no date of birth is on file (the store derives it from dob)
+        ...(derivedAge == null ? [{ key: 'currentAge', label: t('Âge actuel', 'Current age'), type: 'number', hint: t('Saisissez plutôt la date de naissance', 'Prefer entering the date of birth') }] : []),
         { key: 'retirementAge', label: t('Âge de retraite', 'Retirement age'), type: 'number' },
         { key: 'lifeExpectancy', label: t('Espérance de vie', 'Life expectancy'), type: 'number' },
       ],
       onSave: (d) => store.update(c => {
-        if (d.dob) { const a = ageFromDob(d.dob); if (a != null) d.currentAge = a; }
-        if (isNew) c.members.push(d); else Object.assign(c.members.find(m => m.id === d.id), d);
+        if (isNew) c.members.push(d); else Object.assign(c.members.find(m => m.id === d.id), d);   // store.syncDerived sets currentAge from dob
       }),
     });
   }
   function editDependent(item, isNew) {
+    const derivedAge = item.dob ? ageFromDob(item.dob) : null;
     formModal({ title: isNew ? t('Nouvelle personne à charge', 'New dependent') : item.name, item,
       fields: [
         { key: 'name', label: t('Nom', 'Name') },
         { key: 'relationship', label: t('Lien', 'Relationship'), type: 'select', opts: relationshipOpts() },
-        { key: 'dob', label: t('Date de naissance', 'Date of birth'), type: 'date' },
-        { key: 'age', label: t('Âge', 'Age'), type: 'number' },
+        { key: 'dob', label: t('Date de naissance', 'Date of birth'), type: 'date',
+          hint: derivedAge != null ? t(`Âge dérivé : ${derivedAge} ans`, `Derived age: ${derivedAge} yrs`) : null },
+        ...(derivedAge == null ? [{ key: 'age', label: t('Âge', 'Age'), type: 'number' }] : []),
         { key: 'educationGoalAge', label: t('Âge début études', 'Education start age'), type: 'number' },
         { key: 'financiallyDependent', label: t('À charge', 'Financially dependent'), type: 'checkbox', onLabel: t('À charge', 'Dependent') },
       ],
       onSave: (d) => store.update(c => {
-        if (d.dob) { const a = ageFromDob(d.dob); if (a != null) d.age = a; }
-        c.dependents = c.dependents || []; if (isNew) c.dependents.push(d); else Object.assign(c.dependents.find(x => x.id === d.id), d);
+        c.dependents = c.dependents || []; if (isNew) c.dependents.push(d); else Object.assign(c.dependents.find(x => x.id === d.id), d);   // age derived from dob by the store
       }),
     });
   }
@@ -268,6 +275,6 @@ function computeCompleteness(c) {
   const m = c.members[0] || {};
   checks.push(!!m.dob, !!m.occupation, !!m.email, !!m.sin, !!(c.household && c.household.address));
   checks.push((c.incomes || []).length > 0, (c.expenses || []).length > 0, (c.assets || []).length > 0);
-  checks.push((c.goals || []).length > 0, (c.insurance || []).length > 0, (c.documents || []).some(d => d.status === 'done'), (c.beneficiaries || []).length > 0);
+  checks.push((c.goals || []).length > 0, policiesOf(c).length > 0, (c.documents || []).some(d => d.status === 'done'), (c.beneficiaries || []).length > 0);
   return checks.filter(Boolean).length / checks.length;
 }

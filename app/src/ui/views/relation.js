@@ -2,25 +2,31 @@
 // Relationship tab (per active client) — the CRM heart of a file.
 // Contact + lifecycle, opportunities, activities, tasks, products,
 // email templates (mailto) and add-to-calendar (Google / .ics).
+// products[] is the single ledger for policies AND investments; the
+// store links investment products to balance-sheet assets on save.
 // ============================================================
 import { h, icon, money, t, fmtDate, modal, toast, field } from '../dom.js';
 import { card } from '../widgets.js';
 import {
-  primaryMember, contactName, lifecycleOf, LIFECYCLE_META, STAGE_META, STAGE_ORDER,
-  ACTIVITY_META, PRODUCT_KIND_META, SOURCE_OPTIONS, annualizePremium,
-  complianceStatus, CADENCES, cadenceTasks,
+  primaryMember, contactName, lifecycleOf, LIFECYCLE_META, STAGE_META, STAGE_ORDER, OPEN_STAGES,
+  ACTIVITY_META, PRODUCT_KIND_META, PRODUCT_STATUS_META, SOURCE_OPTIONS, OPP_TYPE_OPTIONS,
+  complianceStatus, CADENCES, cadenceTasks, applyStage, kindForOpportunity, normalizeStage,
+  clientAum, clientAnnualPremium, clientRecurring, todayLocalISO,
 } from '../../engine/crm.js';
-import { newOpportunity, newTask, newProduct, newActivity, todayISO } from '../../state/models.js';
+import { aumOf } from '../../engine/policies.js';
+import { newOpportunity, newTask, newProduct, newActivity, annualPremium, INVESTMENT_KINDS } from '../../state/models.js';
 import { openLog } from './activities.js';
 
 const ADVISOR = 'Joel Camire';
 const FIRM = 'JC Capital';
+const num0 = (v) => (Number.isFinite(+v) ? +v : 0);
 
 export function render({ store, client, navigate }) {
   const c = client;
   const m0 = primaryMember(c);
   const crm = c.crm || {};
   const up = (fn) => store.update(fn);
+  const memberName = (id) => ((c.members || []).find(m => m.id === id) || {}).name || '';
 
   // ---------- Contact header ----------
   const lifeSel = h('select', { style: { width: 'auto' }, onChange: e => up(x => { x.crm.lifecycle = e.target.value; }) },
@@ -71,44 +77,63 @@ export function render({ store, client, navigate }) {
       h('span', { class: 'tiny', style: { fontWeight: '500', maxWidth: '60%' } }, it.label),
       h('div', { class: 'inline', style: { flexWrap: 'nowrap', gap: '6px' } },
         it.date ? h('span', { class: 'tiny muted' }, fmtDate(it.date)) : null,
-        h('select', { style: { width: 'auto', fontSize: '12px' }, onChange: e => up(x => { x.compliance = x.compliance || {}; const cur = x.compliance[it.key] || {}; x.compliance[it.key] = { status: e.target.value, date: e.target.value === 'done' ? (cur.date || todayISO()) : (cur.date || '') }; }) },
-          h('option', { value: 'todo', selected: it.status === 'todo' }, t('À faire', 'To do')),
-          h('option', { value: 'done', selected: it.status === 'done' }, t('Complété', 'Done')),
-          h('option', { value: 'na', selected: it.status === 'na' }, t('S.O.', 'N/A'))),
+        it.derived
+          ? h('span', { class: 'chip pos', title: t('Dérivé du dossier (bénéficiaires / profil de risque saisis) — verrouillé', 'Derived from the file (beneficiaries / risk profile on record) — locked') }, '✓ ' + t('Auto', 'Auto'))
+          : h('select', { style: { width: 'auto', fontSize: '12px' }, onChange: e => up(x => { x.compliance = x.compliance || {}; const cur = x.compliance[it.key] || {}; x.compliance[it.key] = { status: e.target.value, date: e.target.value === 'done' ? (cur.date || todayLocalISO()) : (cur.date || '') }; }) },
+            h('option', { value: 'todo', selected: it.status === 'todo' }, t('À faire', 'To do')),
+            h('option', { value: 'done', selected: it.status === 'done' }, t('Complété', 'Done')),
+            h('option', { value: 'na', selected: it.status === 'na' }, t('S.O.', 'N/A'))),
       ),
     ))));
 
   // ---------- Opportunities ----------
   const ops = c.opportunities || [];
-  const oppCard = card(t('Opportunités', 'Opportunities'), { sub: `${ops.filter(o => ['new', 'contacted', 'meeting', 'proposal'].includes(o.stage)).length} ${t('ouverte(s)', 'open')}`,
+  const changeStage = (oppId, stage) => {
+    let won = null;
+    up(x => { const z = x.opportunities.find(q => q.id === oppId); if (!z) return; const before = normalizeStage(z.stage); applyStage(z, stage); if (z.stage === 'won' && before !== 'won') won = { ...z }; });
+    if (won) openProductFromOpportunity(store, c.id, won);
+  };
+  const oppCard = card(t('Opportunités', 'Opportunities'), { sub: `${ops.filter(o => OPEN_STAGES.includes(normalizeStage(o.stage))).length} ${t('ouverte(s)', 'open')}`,
       right: h('button', { class: 'btn sm', html: icon('plus', 13), onClick: () => openOpp(store, c.id) }) },
     ops.length ? h('div', {}, ...ops.map(o => h('div', { class: 'flex between center', style: { padding: '9px 0', borderBottom: '1px solid var(--border)' } },
       h('div', {}, h('div', { style: { fontWeight: '600', fontSize: '13px' } }, o.title),
         h('div', { class: 'tiny muted' }, `${money(o.value, { compact: true })}${o.valueKind === 'premium' ? '/an' : ' AUM'} · ${o.probability || 0} %${o.expectedClose ? ' · ' + fmtDate(o.expectedClose) : ''}`)),
       h('div', { class: 'inline', style: { flexWrap: 'nowrap' } },
-        h('select', { style: { width: 'auto', fontSize: '12px' }, onChange: e => up(x => { const z = x.opportunities.find(q => q.id === o.id); z.stage = e.target.value; z.closedAt = (e.target.value === 'won' || e.target.value === 'lost') ? Date.now() : null; }) },
-          ...STAGE_ORDER.map(s => h('option', { value: s, selected: s === o.stage }, STAGE_META[s].label()))),
+        h('select', { style: { width: 'auto', fontSize: '12px' }, onChange: e => changeStage(o.id, e.target.value) },
+          ...STAGE_ORDER.map(s => h('option', { value: s, selected: s === normalizeStage(o.stage) }, STAGE_META[s].label()))),
+        normalizeStage(o.stage) === 'won' ? h('button', { class: 'btn icon sm ghost', title: t('Créer le produit', 'Create the product'), html: icon('insurance', 14), onClick: () => openProductFromOpportunity(store, c.id, o) }) : null,
         h('button', { class: 'btn icon sm ghost', html: icon('trash', 14), onClick: () => up(x => { x.opportunities = x.opportunities.filter(q => q.id !== o.id); }) }),
       ),
     ))) : h('div', { class: 'empty tiny' }, t('Aucune opportunité', 'No opportunities')));
 
-  // ---------- Products / policies ----------
+  // ---------- Products / policies (status-filtered totals; AUM read through the linked asset) ----------
   const prods = c.products || [];
-  const aum = prods.reduce((s, p) => s + (+p.aum || 0), 0);
-  const prem = prods.reduce((s, p) => s + annualizePremium(p), 0);
+  const aum = clientAum(c), prem = clientAnnualPremium(c), rec = clientRecurring(c);
+  const amountOf = (p) => {
+    const measure = (PRODUCT_KIND_META[p.kind] || {}).measure;
+    if (measure === 'aum') return money(aumOf(c, p), { compact: true });
+    if (measure === 'face') return money(num0(p.faceAmount), { compact: true });
+    return '—';
+  };
   const prodCard = card(t('Produits & polices', 'Products & policies'), {
-      sub: `${money(aum, { compact: true })} AUM · ${money(prem, { compact: true })}/an`,
+      sub: `${money(aum, { compact: true })} AUM · ${money(prem, { compact: true })}/${t('an', 'yr')} ${t('primes', 'premium')} · ${money(rec, { compact: true })}/${t('an', 'yr')} ${t('récurrent', 'recurring')}`,
       right: h('button', { class: 'btn sm', html: icon('plus', 13), onClick: () => openProduct(store, c.id) }) },
     prods.length ? h('div', { class: 'tbl-wrap' }, h('table', { class: 'tbl' },
       h('thead', {}, h('tr', {}, h('th', {}, t('Type', 'Type')), h('th', {}, t('Assureur', 'Carrier')),
-        h('th', { class: 'num' }, t('Montant', 'Amount')), h('th', { class: 'num' }, t('Prime', 'Premium')), h('th', {}, ''))),
-      h('tbody', {}, ...prods.map(p => h('tr', {},
-        h('td', {}, (PRODUCT_KIND_META[p.kind] || {}).label?.() || p.kind),
-        h('td', {}, h('div', {}, p.carrier || '—'), p.policyNumber ? h('div', { class: 'tiny muted' }, p.policyNumber) : null),
-        h('td', { class: 'num mono' }, money(p.aum > 0 ? p.aum : p.faceAmount, { compact: true })),
-        h('td', { class: 'num mono' }, p.premium ? money(annualizePremium(p), { compact: true }) : '—'),
-        h('td', { class: 'num' }, h('button', { class: 'btn icon sm ghost', html: icon('trash', 14), onClick: () => up(x => { x.products = x.products.filter(q => q.id !== p.id); }) })),
-      ))),
+        h('th', { class: 'num' }, t('Montant', 'Amount')), h('th', { class: 'num' }, t('Prime/an', 'Premium/yr')), h('th', {}, ''))),
+      h('tbody', {}, ...prods.map(p => {
+        const inactive = p.status === 'lapsed' || p.status === 'cancelled';
+        return h('tr', { style: inactive ? { opacity: '.55' } : {} },
+          h('td', {}, h('div', {}, (PRODUCT_KIND_META[p.kind] || { label: () => p.kind }).label()),
+            h('div', { class: 'tiny muted' }, [memberName(p.insuredId), (PRODUCT_STATUS_META[p.status] || {}).label?.()].filter(Boolean).join(' · '))),
+          h('td', {}, h('div', {}, p.carrier || '—'), p.policyNumber ? h('div', { class: 'tiny muted' }, p.policyNumber) : null),
+          h('td', { class: 'num mono' }, amountOf(p)),
+          h('td', { class: 'num mono' }, num0(p.premium) ? money(annualPremium(p), { compact: true }) : '—'),
+          h('td', { class: 'num', style: { whiteSpace: 'nowrap' } },
+            h('button', { class: 'btn icon sm ghost', title: t('Modifier', 'Edit'), html: icon('edit', 14), onClick: () => openProduct(store, c.id, p, { existingId: p.id }) }),
+            h('button', { class: 'btn icon sm ghost', html: icon('trash', 14), onClick: () => up(x => { x.products = x.products.filter(q => q.id !== p.id); }) })),
+        );
+      })),
     )) : h('div', { class: 'empty tiny' }, t('Aucun produit en vigueur', 'No in-force products')));
 
   // ---------- Tasks ----------
@@ -120,7 +145,7 @@ export function render({ store, client, navigate }) {
         h('input', { type: 'checkbox', checked: tk.done, style: { width: 'auto' }, onChange: () => up(x => { const z = x.tasks.find(q => q.id === tk.id); z.done = !z.done; z.completedAt = z.done ? Date.now() : null; }) }),
         h('span', { style: { fontSize: '13px', textDecoration: tk.done ? 'line-through' : 'none', opacity: tk.done ? '.6' : '1' } }, tk.title)),
       h('div', { class: 'inline', style: { flexWrap: 'nowrap' } },
-        h('span', { class: 'chip ' + (tk.due && !tk.done ? '' : '') }, tk.due ? fmtDate(tk.due) : '—'),
+        h('span', { class: 'chip' }, tk.due ? fmtDate(tk.due) : '—'),
         h('button', { class: 'btn icon sm ghost', html: icon('trash', 14), onClick: () => up(x => { x.tasks = x.tasks.filter(q => q.id !== tk.id); }) })),
     ))) : h('div', { class: 'empty tiny' }, t('Aucune tâche', 'No tasks')));
 
@@ -146,7 +171,7 @@ export function render({ store, client, navigate }) {
 }
 
 function openCadence(store, clientId) {
-  let key = CADENCES[0].key, from = todayISO();
+  let key = CADENCES[0].key, from = todayLocalISO();
   const preview = h('div', { class: 'tiny muted', style: { marginTop: '4px' } });
   const refresh = () => { preview.replaceChildren(...cadenceTasks(key, from).map(x => h('div', { style: { padding: '2px 0' } }, `• ${x.title} — ${fmtDate(x.due)}`))); };
   const cadSel = h('select', { onChange: e => { key = e.target.value; refresh(); } }, ...CADENCES.map(c => h('option', { value: c.key, selected: c.key === key }, `${c.label()} — ${c.desc()}`)));
@@ -187,14 +212,17 @@ function openOpp(store, clientId) {
   const m = modal({ title: t('Nouvelle opportunité', 'New opportunity'),
     body: h('div', { class: 'grid', style: { gap: '12px' } },
       field(t('Titre', 'Title'), h('input', { value: draft.title, onInput: e => draft.title = e.target.value })),
+      field(t('Type', 'Type'), h('select', { onChange: e => draft.type = e.target.value },
+        ...OPP_TYPE_OPTIONS.map(([v, l]) => h('option', { value: v, selected: v === draft.type }, l())))),
       h('div', { class: 'grid cols-2', style: { gap: '12px' } },
-        field(t('Valeur', 'Value'), h('input', { type: 'number', value: draft.value, onInput: e => draft.value = parseFloat(e.target.value) || 0 })),
+        field(t('Valeur', 'Value'), h('input', { type: 'number', value: draft.value, onInput: e => draft.value = num0(e.target.value) })),
         field(t('Type de valeur', 'Value type'), h('select', { onChange: e => draft.valueKind = e.target.value },
-          h('option', { value: 'aum', selected: true }, t('Actifs (AUM)', 'Assets (AUM)')),
-          h('option', { value: 'premium' }, t('Prime annuelle', 'Annual premium'))))),
+          h('option', { value: 'aum', selected: draft.valueKind === 'aum' }, t('Actifs (AUM)', 'Assets (AUM)')),
+          h('option', { value: 'premium', selected: draft.valueKind === 'premium' }, t('Prime annuelle', 'Annual premium'))))),
       h('div', { class: 'grid cols-2', style: { gap: '12px' } },
-        field(t('Probabilité (%)', 'Probability (%)'), h('input', { type: 'number', value: draft.probability, onInput: e => draft.probability = parseFloat(e.target.value) || 0 })),
+        field(t('Probabilité (%)', 'Probability (%)'), h('input', { type: 'number', value: draft.probability, onInput: e => draft.probability = num0(e.target.value) })),
         field(t('Clôture prévue', 'Expected close'), h('input', { type: 'date', onInput: e => draft.expectedClose = e.target.value }))),
+      field(t('Notes', 'Notes'), h('textarea', { rows: 2, onInput: e => draft.notes = e.target.value })),
     ),
     footer: [h('button', { class: 'btn ghost', onClick: () => m.close() }, t('Annuler', 'Cancel')),
       h('button', { class: 'btn primary', onClick: () => { store.updateClient(clientId, c => { (c.opportunities = c.opportunities || []).push(draft); }); m.close(); toast(t('Ajouté', 'Added')); } }, t('Ajouter', 'Add'))] });
@@ -211,28 +239,87 @@ function openTask(store, clientId) {
     footer: [h('button', { class: 'btn ghost', onClick: () => m.close() }, t('Annuler', 'Cancel')),
       h('button', { class: 'btn primary', onClick: () => { store.updateClient(clientId, c => { (c.tasks = c.tasks || []).push(draft); }); m.close(); toast(t('Ajouté', 'Added')); } }, t('Ajouter', 'Add'))] });
 }
-function openProduct(store, clientId) {
-  const draft = newProduct();
-  const m = modal({ title: t('Nouveau produit', 'New product'),
+
+/**
+ * Product / policy modal. `seed` pre-fills the draft (a won opportunity, or an existing product when
+ * `existingId` is given → edit in place). Investment kinds may link an existing balance-sheet asset;
+ * left blank, the store creates the asset on save and mirrors its value into p.aum.
+ */
+export function openProduct(store, clientId, seed = {}, { existingId = null, title = null } = {}) {
+  const client = store.state.clients.find(x => x.id === clientId); if (!client) return;
+  const members = client.members || [];
+  const draft = existingId ? { ...seed } : newProduct({ insuredId: primaryMember(client).id || null, ...seed });
+  const measure = () => (PRODUCT_KIND_META[draft.kind] || {}).measure || 'face';
+  const isInv = () => INVESTMENT_KINDS.includes(draft.kind);
+  const numInput = (key, extra = {}) => h('input', { type: 'number', value: num0(draft[key]) || '', placeholder: '0', onInput: e => draft[key] = num0(e.target.value), ...extra });
+  const txtInput = (key, extra = {}) => h('input', { value: draft[key] || '', onInput: e => draft[key] = e.target.value, ...extra });
+  const dateInput = (key) => h('input', { type: 'date', value: draft[key] || '', onInput: e => draft[key] = e.target.value });
+
+  const aumInp = numInput('aum');
+  const faceField = field(t('Capital assuré', 'Face amount'), numInput('faceAmount'));
+  const aumField = field(t('Actifs (AUM)', 'Assets (AUM)'), aumInp, t('Reflète la valeur de l’actif lié au bilan.', 'Mirrors the linked balance-sheet asset.'));
+  const linkedElsewhere = new Set((client.products || []).filter(p => p.assetId && p.id !== draft.id).map(p => p.assetId));
+  const assetSel = h('select', { onChange: e => { draft.assetId = e.target.value || null; const a = (client.assets || []).find(x => x.id === draft.assetId); if (a) { draft.aum = num0(a.value); aumInp.value = draft.aum; } } },
+    h('option', { value: '', selected: !draft.assetId }, t('— Créer un nouvel actif au bilan —', '— Create a new balance-sheet asset —')),
+    ...(client.assets || []).filter(a => !linkedElsewhere.has(a.id) || a.id === draft.assetId).map(a => h('option', { value: a.id, selected: a.id === draft.assetId }, `${a.label || a.type} · ${money(num0(a.value), { compact: true })}`)));
+  const assetField = field(t('Actif lié (bilan)', 'Linked asset (balance sheet)'), assetSel, t('Laissez vide pour créer l’actif automatiquement à l’enregistrement.', 'Leave blank to create the asset automatically on save.'));
+  const refreshKind = () => { const m = measure(); faceField.style.display = m === 'face' ? '' : 'none'; aumField.style.display = m === 'aum' ? '' : 'none'; assetField.style.display = isInv() ? '' : 'none'; };
+  const kindSel = h('select', { onChange: e => { draft.kind = e.target.value; refreshKind(); } },
+    ...Object.keys(PRODUCT_KIND_META).map(k => h('option', { value: k, selected: k === draft.kind }, PRODUCT_KIND_META[k].label())));
+  const statusSel = h('select', { onChange: e => draft.status = e.target.value },
+    ...Object.keys(PRODUCT_STATUS_META).map(k => h('option', { value: k, selected: k === (draft.status || 'inforce') }, PRODUCT_STATUS_META[k].label())));
+  const insuredSel = h('select', { onChange: e => draft.insuredId = e.target.value || null },
+    ...members.map(mm => h('option', { value: mm.id, selected: mm.id === draft.insuredId }, mm.name)));
+  const freqSel = h('select', { onChange: e => draft.frequency = e.target.value },
+    h('option', { value: 'annual', selected: (draft.frequency || 'annual') === 'annual' }, t('Annuelle', 'Annual')),
+    h('option', { value: 'monthly', selected: draft.frequency === 'monthly' }, t('Mensuelle', 'Monthly')),
+    h('option', { value: 'single', selected: draft.frequency === 'single' }, t('Unique', 'Single')));
+  refreshKind();
+
+  const m = modal({ title: title || (existingId ? t('Modifier le produit', 'Edit product') : t('Nouveau produit', 'New product')),
     body: h('div', { class: 'grid', style: { gap: '12px' } },
       h('div', { class: 'grid cols-2', style: { gap: '12px' } },
-        field(t('Type', 'Type'), h('select', { onChange: e => draft.kind = e.target.value },
-          ...Object.keys(PRODUCT_KIND_META).map(k => h('option', { value: k, selected: k === draft.kind }, PRODUCT_KIND_META[k].label())))),
-        field(t('Assureur / firme', 'Carrier / firm'), h('input', { onInput: e => draft.carrier = e.target.value }))),
-      field(t('N° de police / compte', 'Policy / account #'), h('input', { onInput: e => draft.policyNumber = e.target.value })),
+        field(t('Type', 'Type'), kindSel),
+        field(t('Statut', 'Status'), statusSel)),
       h('div', { class: 'grid cols-2', style: { gap: '12px' } },
-        field(t('Capital assuré', 'Face amount'), h('input', { type: 'number', onInput: e => draft.faceAmount = parseFloat(e.target.value) || 0 })),
-        field('AUM', h('input', { type: 'number', onInput: e => draft.aum = parseFloat(e.target.value) || 0 }))),
+        field(t('Assureur / firme', 'Carrier / firm'), txtInput('carrier')),
+        field(t('N° de police / compte', 'Policy / account #'), txtInput('policyNumber'))),
       h('div', { class: 'grid cols-2', style: { gap: '12px' } },
-        field(t('Prime', 'Premium'), h('input', { type: 'number', onInput: e => draft.premium = parseFloat(e.target.value) || 0 })),
-        field(t('Fréquence', 'Frequency'), h('select', { onChange: e => draft.frequency = e.target.value },
-          h('option', { value: 'monthly', selected: true }, t('Mensuelle', 'Monthly')), h('option', { value: 'annual' }, t('Annuelle', 'Annual')), h('option', { value: 'single' }, t('Unique', 'Single'))))),
+        field(t('Assuré / titulaire', 'Insured / owner'), insuredSel),
+        faceField, aumField),
+      assetField,
       h('div', { class: 'grid cols-2', style: { gap: '12px' } },
-        field(t('Renouvellement', 'Renewal'), h('input', { type: 'date', onInput: e => draft.renewalDate = e.target.value })),
-        field(t('Commission récurrente', 'Recurring commission'), h('input', { type: 'number', onInput: e => draft.renewalCommission = parseFloat(e.target.value) || 0 }))),
+        field(t('Prime', 'Premium'), numInput('premium')),
+        field(t('Fréquence', 'Frequency'), freqSel)),
+      h('div', { class: 'grid cols-2', style: { gap: '12px' } },
+        field(t('Date d’émission', 'Issue date'), dateInput('issueDate')),
+        field(t('Renouvellement', 'Renewal'), dateInput('renewalDate'))),
+      h('div', { class: 'grid cols-2', style: { gap: '12px' } },
+        field(t('Commission 1re année', 'First-year commission'), numInput('firstYearCommission')),
+        field(t('Commission récurrente / an', 'Recurring commission / yr'), numInput('renewalCommission'))),
+      field(t('Notes', 'Notes'), h('textarea', { rows: 2, onInput: e => draft.notes = e.target.value }, draft.notes || '')),
     ),
     footer: [h('button', { class: 'btn ghost', onClick: () => m.close() }, t('Annuler', 'Cancel')),
-      h('button', { class: 'btn primary', onClick: () => { store.updateClient(clientId, c => { (c.products = c.products || []).push(draft); }); m.close(); toast(t('Ajouté', 'Added')); } }, t('Ajouter', 'Add'))] });
+      h('button', { class: 'btn primary', onClick: () => {
+        if (!isInv()) { draft.assetId = null; draft.aum = 0; }
+        store.updateClient(clientId, c => {
+          c.products = c.products || [];
+          const i = existingId ? c.products.findIndex(q => q.id === existingId) : -1;
+          if (i >= 0) c.products[i] = draft; else c.products.push(draft);
+          // investment kinds: the store's syncDerived links the chosen asset (or creates one) and mirrors its value into p.aum
+        });
+        m.close(); toast(existingId ? t('Produit mis à jour ✓', 'Product updated ✓') : t('Produit ajouté ✓', 'Product added ✓'));
+      } }, existingId ? t('Enregistrer', 'Save') : t('Ajouter', 'Add'))] });
+}
+
+/** Won opportunity → pre-filled product (type → kind, value → AUM or annual premium by valueKind, issued today). */
+export function openProductFromOpportunity(store, clientId, o) {
+  const client = store.state.clients.find(x => x.id === clientId); if (!client || !o) return;
+  const kind = kindForOpportunity(o);
+  const seed = { kind, status: 'pending', insuredId: primaryMember(client).id || null, issueDate: todayLocalISO(), firstYearCommission: 0, notes: o.title || '' };
+  if (o.valueKind === 'premium') { seed.premium = num0(o.value); seed.frequency = 'annual'; }
+  else seed.aum = num0(o.value);
+  openProduct(store, clientId, seed, { title: t('Opportunité gagnée — créer le produit', 'Won opportunity — create the product') });
 }
 
 // ---------- email templates (mailto) ----------
@@ -259,8 +346,7 @@ function openEmailTemplates(store, clientId, member) {
   const send = (tpl) => {
     window.location.href = `mailto:${member.email}?subject=${encodeURIComponent(tpl.subj())}&body=${encodeURIComponent(tpl.body(first))}`;
     store.updateClient(clientId, cc => {
-      (cc.activities = cc.activities || []).push(newActivity({ type: 'email', subject: tpl.name(), date: todayISO(), body: t('Courriel envoyé (modèle).', 'Email sent (template).') }));
-      cc.crm = cc.crm || {}; cc.crm.lastContactAt = Date.now();
+      (cc.activities = cc.activities || []).push(newActivity({ type: 'email', subject: tpl.name(), date: todayLocalISO(), body: t('Courriel envoyé (modèle).', 'Email sent (template).') }));
     });
     toast(t('Courriel ouvert et consigné ✓', 'Email opened and logged ✓'));
   };

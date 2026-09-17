@@ -3,8 +3,8 @@ import { card } from '../widgets.js';
 import { store } from '../../state/store.js';
 import { sync } from '../../sync.js';
 import { getJurisdiction, JURISDICTIONS, COUNTRY_LIST } from '../../jurisdictions/index.js';
-import { netWorthBreakdown } from '../../engine/analysis.js';
-import { lifecycleOf, LIFECYCLE_META, contactName } from '../../engine/crm.js';
+import { clientFacts } from '../../engine/facts.js';
+import { lifecycleOf, LIFECYCLE_META, contactName, normalizeStage, OPEN_STAGES } from '../../engine/crm.js';
 
 function syncErr(e) {
   const m = (e && e.message) || '';
@@ -123,8 +123,10 @@ export function render({ client, jur, navigate }) {
   }
 
   function buildGrid() {
+    const q = query.trim().toLowerCase();
+    const matches = (c) => !q || (c.name || '').toLowerCase().includes(q) || contactName(c).toLowerCase().includes(q) || (c.members || []).some(m => (m.name || '').toLowerCase().includes(q));
     const clients = store.state.clients
-      .filter(c => !query || c.name.toLowerCase().includes(query.toLowerCase()) || contactName(c).toLowerCase().includes(query.toLowerCase()))
+      .filter(matches)
       .filter(c => lifeFilter === 'all' || lifecycleOf(c) === lifeFilter || (lifeFilter === 'prospect' && lifecycleOf(c) === 'lead'))
       .slice().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
@@ -134,11 +136,12 @@ export function render({ client, jur, navigate }) {
 
     const cards = clients.map(c => {
       const cj = getJurisdiction(c.jurisdiction.country, c.jurisdiction.region);
-      const nw = netWorthBreakdown(c);
+      let netWorth = 0; // facts.netWorth already includes the AUM of linked investment products
+      try { netWorth = clientFacts(c, cj).netWorth.netWorth || 0; } catch (e) { netWorth = 0; }
       const isActive = c.id === store.state.activeId;
       const life = lifecycleOf(c);
       const lm = LIFECYCLE_META[life] || LIFECYCLE_META.client;
-      const openOpps = (c.opportunities || []).filter(o => ['new', 'contacted', 'meeting', 'proposal'].includes(o.stage)).length;
+      const openOpps = (c.opportunities || []).filter(o => OPEN_STAGES.includes(normalizeStage(o.stage))).length;
       const tags = (c.crm && c.crm.tags) || [];
       return h('div', { class: 'card', style: { position: 'relative', cursor: 'pointer', borderColor: isActive ? 'var(--brand-400)' : 'var(--border)', boxShadow: isActive ? '0 0 0 2px var(--brand-400) inset' : 'var(--shadow-sm)' }, onClick: () => openClient(c.id) },
         h('span', { class: 'chip', style: { position: 'absolute', top: '12px', right: '12px', background: lm.color, color: 'var(--c-black)' } }, lm.label()),
@@ -149,7 +152,7 @@ export function render({ client, jur, navigate }) {
         tags.length ? h('div', { class: 'inline', style: { gap: '5px', marginTop: '7px' } }, ...tags.slice(0, 4).map(tg => h('span', { class: 'chip', style: { fontSize: '10.5px' } }, tg))) : null,
         openOpps ? h('div', { class: 'tiny', style: { marginTop: '7px', color: 'var(--c-gold)', display: 'flex', alignItems: 'center', gap: '5px' } }, h('span', { html: icon('funnel', 12) }), `${openOpps} ${t('opportunité(s) ouverte(s)', 'open opportunity(ies)')}`) : null,
         h('div', { class: 'flex between', style: { marginTop: '12px' } },
-          h('div', {}, h('div', { class: 'tiny muted' }, t('Valeur nette', 'Net worth')), h('b', { class: 'mono' }, money(nw.netWorth, { currency: cj.currency, compact: true }))),
+          h('div', {}, h('div', { class: 'tiny muted' }, t('Valeur nette', 'Net worth')), h('b', { class: 'mono' }, money(netWorth, { currency: cj.currency, compact: true }))),
           h('div', { style: { textAlign: 'right' } }, h('div', { class: 'tiny muted' }, t('Modifié', 'Updated')), h('div', { class: 'tiny' }, fmtDate(new Date(c.updatedAt || c.createdAt || Date.now()).toISOString())))),
         c.household?.reviewDate ? h('div', { class: 'tiny', style: { marginTop: '6px', color: 'var(--warn)', display: 'flex', alignItems: 'center', gap: '5px' } }, h('span', { html: icon('warning', 12) }), t('Révision : ', 'Review: ') + fmtDate(c.household.reviewDate)) : null,
         h('div', { class: 'sep', style: { margin: '12px 0 8px' } }),
@@ -178,7 +181,7 @@ export function render({ client, jur, navigate }) {
         h('h2', { style: { margin: '0 0 2px', fontFamily: 'var(--font-display)' } }, t('Contacts', 'Contacts')),
         h('div', { class: 'muted tiny' }, t(`${counts.prospect || 0} prospect(s) · ${counts.client || 0} client(s) · sauvegarde automatique`, `${counts.prospect || 0} prospect(s) · ${counts.client || 0} client(s) · auto-saved`))),
       h('div', { class: 'inline' },
-        h('input', { placeholder: t('Rechercher…', 'Search…'), style: { width: '200px' }, onInput: e => { query = e.target.value; buildGrid(); } }),
+        h('input', { placeholder: t('Rechercher (dossier ou membre)…', 'Search (file or member)…'), style: { width: '200px' }, onInput: e => { query = e.target.value; buildGrid(); } }),
         h('button', { class: 'btn', html: icon('download', 14) + ' ' + t('Sauvegarde', 'Backup'), onClick: exportAll }),
         h('button', { class: 'btn', html: icon('doc', 14) + ' ' + t('Restaurer', 'Restore'), onClick: importAll }),
         h('button', { class: 'btn primary', html: icon('plus', 14) + ' ' + t('Nouveau contact', 'New contact'), onClick: newClientModal }),

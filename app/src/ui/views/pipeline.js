@@ -1,17 +1,12 @@
 // ============================================================
 // Sales pipeline — Kanban board of opportunities across the book.
 // Move a card through the stages; click to open the contact.
+// Premium (per year) and AUM are always shown side by side — never summed.
 // ============================================================
 import { h, icon, money, t, fmtDate, modal, toast, field } from '../dom.js';
-import { allOpportunities, pipelineSummary, STAGE_META, STAGE_ORDER, contactName } from '../../engine/crm.js';
+import { allOpportunities, pipelineSummary, STAGE_META, STAGE_ORDER, OPP_TYPE_OPTIONS, applyStage, normalizeStage } from '../../engine/crm.js';
 import { newOpportunity } from '../../state/models.js';
-
-const TYPE_OPTS = [
-  ['investment', () => t('Placement', 'Investment')], ['life', () => t('Assurance vie', 'Life')],
-  ['disability', () => t('Invalidité', 'Disability')], ['ci', () => t('Maladies graves', 'Critical illness')],
-  ['mortgage', () => t('Hypothèque', 'Mortgage')], ['group', () => t('Collectif', 'Group')],
-  ['planning', () => t('Planification', 'Planning')], ['other', () => t('Autre', 'Other')],
-];
+import { openProductFromOpportunity } from './relation.js';
 
 export function render({ store, navigate }) {
   const clients = store.state.clients;
@@ -19,27 +14,34 @@ export function render({ store, navigate }) {
   const pipe = pipelineSummary(clients);
   const ops = allOpportunities(clients);
 
-  const move = (op, dir) => {
-    const i = STAGE_ORDER.indexOf(op.stage);
-    const ni = Math.max(0, Math.min(STAGE_ORDER.length - 1, i + dir));
-    const ns = STAGE_ORDER[ni];
+  /** Same rule everywhere: applyStage() sets closedAt + the stage's probability; a fresh 'won' opens the product modal. */
+  const setStage = (op, ns) => {
+    let won = null;
     store.updateClient(op.clientId, c => {
       const o = (c.opportunities || []).find(z => z.id === op.id); if (!o) return;
-      o.stage = ns;
-      o.closedAt = (ns === 'won' || ns === 'lost') ? Date.now() : null;
-      if (ns === 'won') o.probability = 100; else if (ns === 'lost') o.probability = 0;
+      const before = normalizeStage(o.stage);
+      applyStage(o, ns);
+      if (o.stage === 'won' && before !== 'won') won = { ...o };
     });
+    if (won) openProductFromOpportunity(store, op.clientId, won);
+  };
+  const move = (op, dir) => {
+    const i = STAGE_ORDER.indexOf(normalizeStage(op.stage));
+    const ni = Math.max(0, Math.min(STAGE_ORDER.length - 1, i + dir));
+    setStage(op, STAGE_ORDER[ni]);
   };
 
   const columns = STAGE_ORDER.map(stage => {
     const meta = STAGE_META[stage];
     const list = ops.filter(o => o.stage === stage);
-    const sum = pipe.stages.find(s => s.key === stage) || { premium: 0, aum: 0 };
+    const sum = pipe.stages.find(s => s.key === stage) || { premium: 0, aum: 0, weightedPremium: 0, weightedAum: 0 };
     return h('div', { style: { flex: '1 0 230px', minWidth: '230px', background: 'var(--surface-2)', borderRadius: 'var(--r)', padding: '10px', display: 'flex', flexDirection: 'column', gap: '9px' } },
       h('div', { class: 'flex between center', style: { paddingBottom: '8px', borderBottom: `2px solid ${meta.color}` } },
         h('span', { style: { fontWeight: '700', fontSize: '13px' } }, meta.label()),
         h('span', { class: 'chip', style: { background: meta.color, color: 'var(--c-black)' } }, String(list.length))),
-      h('div', { class: 'tiny muted', style: { marginTop: '-4px' } }, money(sum.premium + sum.aum, { compact: true })),
+      h('div', { class: 'tiny muted', style: { marginTop: '-4px', display: 'flex', justifyContent: 'space-between', gap: '6px' } },
+        h('span', { title: t('Primes annuelles (pondérées)', 'Annual premium (weighted)') }, `${money(sum.premium, { compact: true })}/${t('an', 'yr')} · ${money(sum.weightedPremium, { compact: true })}`),
+        h('span', { title: t('AUM (pondéré)', 'AUM (weighted)') }, `${money(sum.aum, { compact: true })} AUM · ${money(sum.weightedAum, { compact: true })}`)),
       ...(list.length ? list.map(op => opCard(op, stage, move, goto)) :
         [h('div', { class: 'tiny muted', style: { textAlign: 'center', padding: '18px 4px', opacity: '.6' } }, '—')]),
     );
@@ -47,11 +49,13 @@ export function render({ store, navigate }) {
 
   const board = h('div', { style: { display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px', alignItems: 'flex-start' } }, ...columns);
 
+  const convLabel = pipe.decided12m ? Math.round(pipe.conversion * 100) + ' %' : '—';
   const header = h('div', { class: 'flex between center', style: { marginBottom: '16px', flexWrap: 'wrap', gap: '10px' } },
     h('div', { class: 'legend' },
-      h('span', {}, h('b', { class: 'mono' }, money(pipe.weightedPremium, { compact: true })), ' ', t('pipeline pondéré', 'weighted pipeline')),
-      h('span', {}, h('b', { class: 'mono' }, money(pipe.openAum, { compact: true })), ' ', t('AUM en jeu', 'AUM in play')),
-      h('span', {}, h('b', { class: 'mono', style: { color: 'var(--pos)' } }, pipe.conversion ? Math.round(pipe.conversion * 100) + ' %' : '—'), ' ', t('conversion', 'conversion'))),
+      h('span', {}, h('b', { class: 'mono' }, money(pipe.weightedPremium, { compact: true }) + '/' + t('an', 'yr')), ' ', t('primes pondérées', 'weighted premium'), h('span', { class: 'muted' }, ` (${money(pipe.openPremium, { compact: true })} ${t('ouvert', 'open')})`)),
+      h('span', {}, h('b', { class: 'mono' }, money(pipe.weightedAum, { compact: true })), ' ', t('AUM pondéré', 'weighted AUM'), h('span', { class: 'muted' }, ` (${money(pipe.openAum, { compact: true })} ${t('en jeu', 'in play')})`)),
+      h('span', { title: t(`Gagné / décidé, 12 derniers mois (${pipe.decided12m} décidée(s)) — tout temps : ${Math.round(pipe.conversionAllTime * 100)} %`, `Won / decided, trailing 12 months (${pipe.decided12m} decided) — all-time: ${Math.round(pipe.conversionAllTime * 100)} %`) },
+        h('b', { class: 'mono', style: { color: 'var(--pos)' } }, convLabel), ' ', t('conversion (12 mois)', 'conversion (12 mo)'))),
     h('button', { class: 'btn primary', html: icon('plus', 14) + ' ' + t('Nouvelle opportunité', 'New opportunity'),
       onClick: () => openNewOpp(store, clients) }),
   );
@@ -69,7 +73,7 @@ function opCard(op, stage, move, goto) {
     h('div', { style: { fontWeight: '700', fontSize: '13px', marginBottom: '2px' } }, op.title),
     h('div', { class: 'tiny muted' }, `${op.contact} · ${op.clientName}`),
     h('div', { class: 'flex between center', style: { marginTop: '8px' } },
-      h('span', { class: 'chip' }, money(op.value, { compact: true }) + (op.valueKind === 'premium' ? '/an' : ' AUM')),
+      h('span', { class: 'chip' }, money(op.value, { compact: true }) + (op.valueKind === 'premium' ? '/' + t('an', 'yr') : ' AUM')),
       h('span', { class: 'tiny muted' }, (op.probability || 0) + ' %')),
     op.expectedClose ? h('div', { class: 'tiny muted', style: { marginTop: '5px' } }, icon('calendar', 11) + '') : null,
     op.expectedClose ? h('div', { class: 'tiny muted', style: { marginTop: '2px' } }, t('Clôture ', 'Close ') + fmtDate(op.expectedClose)) : null,
@@ -94,7 +98,7 @@ function openNewOpp(store, clients) {
           ...clients.map(c => h('option', { value: c.id, selected: c.id === clientId }, `${c.name}`)))),
       field(t('Titre', 'Title'), h('input', { value: draft.title, onInput: e => draft.title = e.target.value })),
       field(t('Type', 'Type'),
-        h('select', { onChange: e => draft.type = e.target.value }, ...TYPE_OPTS.map(([v, l]) => h('option', { value: v, selected: v === draft.type }, l())))),
+        h('select', { onChange: e => draft.type = e.target.value }, ...OPP_TYPE_OPTIONS.map(([v, l]) => h('option', { value: v, selected: v === draft.type }, l())))),
       h('div', { class: 'grid cols-2', style: { gap: '12px' } },
         field(t('Valeur', 'Value'), h('input', { type: 'number', value: draft.value, onInput: e => draft.value = parseFloat(e.target.value) || 0 })),
         field(t('Type de valeur', 'Value type'),

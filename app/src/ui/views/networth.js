@@ -5,11 +5,13 @@ import { formModal } from '../editor.js';
 import { store } from '../../state/store.js';
 import { newAsset, newLiability } from '../../state/models.js';
 import { accountTypesFor, accountMeta } from '../../jurisdictions/index.js';
-import { netWorthBreakdown } from '../../engine/analysis.js';
+import { clientFacts } from '../../engine/facts.js';
 
 export function render({ client, jur }) {
   const cur = jur.currency;
-  const nw = netWorthBreakdown(client);
+  const F = clientFacts(client, jur);
+  const nw = F.netWorth;
+  const fmtYears = (y) => !Number.isFinite(y) ? t('Impayable', 'Unpayable') : y <= 0 ? '—' : t(`${y.toFixed(1)} ans`, `${y.toFixed(1)} yrs`);
   const accTypes = accountTypesFor(client.jurisdiction.country);
   const accOpts = [...accTypes.map(a => ({ value: a.id, label: `${a.name}` })),
     { value: 'realestate', label: t('Immobilier', 'Real estate') }, { value: 'cash', label: t('Encaisse', 'Cash') }, { value: 'other', label: t('Autre actif', 'Other asset') }];
@@ -52,13 +54,14 @@ export function render({ client, jur }) {
     right: h('button', { class: 'btn primary sm', html: icon('plus', 14) + ' ' + t('Passif', 'Liability'), onClick: () => editLiab(newLiability(), true) }),
   },
     dataTable({
-      rows: client.liabilities,
+      rows: F.liabilities,                       // facts rows carry payoff / compounding derived by the shared amortization engine
       cols: [
         { key: 'label', label: t('Description', 'Description') },
         { key: 'type', label: 'Type', fmt: liabLbl },
         { key: 'balance', label: t('Solde', 'Balance'), num: true, fmt: v => money(v, { currency: cur }) },
-        { key: 'rate', label: t('Taux', 'Rate'), num: true, fmt: v => pct(v, 2) },
-        { key: 'payment', label: t('Paiement/mois', 'Payment/mo'), num: true, fmt: v => money(v, { currency: cur }) },
+        { key: 'rate', label: t('Taux', 'Rate'), num: true, fmt: (v, r) => `${pct(v, 2)} ${r.compounding === 'semi-annual' ? t('(semestriel)', '(semi-annual)') : ''}` },
+        { key: 'payment', label: t('Paiement/mois', 'Payment/mo'), num: true, fmt: (v, r) => r.extraPayment > 0 ? `${money(v, { currency: cur })} + ${money(r.extraPayment, { currency: cur })}` : money(v, { currency: cur }) },
+        { key: 'payoffYears', label: t('Remboursée dans', 'Paid off in'), num: true, fmt: fmtYears },
       ],
       onEdit: (r) => editLiab(r, false),
       onDelete: (r) => { store.update(c => c.liabilities = c.liabilities.filter(l => l.id !== r.id)); toast(t('Passif supprimé', 'Liability removed')); },
@@ -102,15 +105,27 @@ export function render({ client, jur }) {
     });
   }
   function editLiab(item, isNew) {
-    formModal({ title: isNew ? t('Nouveau passif', 'New liability') : t('Modifier le passif', 'Edit liability'), item,
+    // edit the raw client record (not the facts row) so derived fields never get persisted
+    const raw = client.liabilities.find(l => l.id === item.id) || item;
+    const compOpts = [
+      { value: '', label: t(`Auto (hypothèque ${jur.country === 'CA' ? 'semestriel' : 'mensuel'}, autres mensuel)`, `Auto (mortgage ${jur.country === 'CA' ? 'semi-annual' : 'monthly'}, others monthly)`) },
+      { value: 'monthly', label: t('Mensuel', 'Monthly') },
+      { value: 'semi-annual', label: t('Semestriel (hypothèque canadienne)', 'Semi-annual (Canadian mortgage)') },
+    ];
+    formModal({ title: isNew ? t('Nouveau passif', 'New liability') : t('Modifier le passif', 'Edit liability'), item: { ...raw, compounding: raw.compounding || '' },
       fields: [
         { key: 'label', label: t('Description', 'Description') },
         { key: 'type', label: 'Type', type: 'select', opts: liabOpts },
         { key: 'balance', label: t(`Solde (${cur})`, `Balance (${cur})`), type: 'number' },
         { key: 'rate', label: t('Taux d\'intérêt', 'Interest rate'), type: 'pct', step: 0.01 },
         { key: 'payment', label: t(`Paiement mensuel (${cur})`, `Monthly payment (${cur})`), type: 'number' },
+        { key: 'extraPayment', label: t(`Paiement additionnel / mois (${cur})`, `Extra payment / mo (${cur})`), type: 'number', hint: t('Utilisé par la projection et l’onglet Dettes', 'Used by the projection and the Debt tab') },
+        { key: 'compounding', label: t('Capitalisation', 'Compounding'), type: 'select', opts: compOpts },
       ],
-      onSave: (d) => store.update(c => { if (isNew) c.liabilities.push(d); else Object.assign(c.liabilities.find(l => l.id === d.id), d); }),
+      onSave: (d) => store.update(c => {
+        d.compounding = d.compounding || null; d.extraPayment = Math.max(0, +d.extraPayment || 0);
+        if (isNew) c.liabilities.push(d); else Object.assign(c.liabilities.find(l => l.id === d.id), d);
+      }),
     });
   }
 }

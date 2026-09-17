@@ -19,13 +19,16 @@ export function render({ store, navigate }) {
   const kpis = h('div', { class: 'grid cols-3' },
     kpi({ label: t('Référents actifs', 'Active referrers'), value: num(net.referrers.length), iconName: 'users' }),
     kpi({ label: t('Contacts référés', 'Referred contacts'), value: num(totalReferred), iconName: 'funnel', accent: 'var(--c-gold)' }),
-    kpi({ label: t('Commissions issues de références', 'Commissions from referrals'), value: money(totalValue, { compact: true }), sub: t('récurrent / an', 'recurring / yr'), iconName: 'dollar', accent: 'var(--pos)' }),
+    kpi({ label: t('Commissions issues de références', 'Commissions from referrals'), value: money(totalValue, { compact: true }), sub: t('valeur client = récurrent / an', 'client value = recurring / yr'), iconName: 'dollar', accent: 'var(--pos)' }),
   );
 
-  const refCard = card(t('Meilleurs référents', 'Top referrers'), { sub: t('Triés par valeur générée', 'Sorted by value generated') },
+  const refCard = card(t('Meilleurs référents', 'Top referrers'), { sub: t('Triés par valeur générée · « Référé par » est rapproché du nom du dossier et des membres', 'Sorted by value generated · “Referred by” is matched against file and member names') },
     net.referrers.length ? h('div', {}, ...net.referrers.map(r => h('div', { style: { padding: '11px 0', borderBottom: '1px solid var(--border)' } },
       h('div', { class: 'flex between center' },
-        h('div', { class: 'inline', style: { gap: '8px' } }, h('span', { style: { color: 'var(--c-gold)' }, html: icon('users', 16) }), h('b', { style: { fontSize: '13.5px' } }, r.name)),
+        h('div', { class: 'inline', style: { gap: '8px', flexWrap: 'nowrap' } }, h('span', { style: { color: 'var(--c-gold)' }, html: icon('users', 16) }),
+          h('div', {},
+            r.clientId ? h('a', { href: 'javascript:void 0', style: { fontWeight: '700', fontSize: '13.5px' }, onClick: e => { e.preventDefault(); goto(r.clientId); } }, r.name) : h('b', { style: { fontSize: '13.5px' } }, r.name),
+            r.clientId ? h('div', { class: 'tiny muted' }, [r.contact, ...r.aliases.filter(a => a !== r.name && a !== r.contact)].filter(Boolean).join(' · ')) : null)),
         h('div', { style: { textAlign: 'right' } }, h('b', { class: 'mono' }, money(r.value, { compact: true })), h('div', { class: 'tiny muted' }, t(`${r.count} référé(s)`, `${r.count} referred`)))),
       h('div', { class: 'inline', style: { gap: '6px', marginTop: '7px' } }, ...r.referred.map(rc =>
         h('span', { class: 'chip', style: { cursor: 'pointer' }, onClick: () => goto(rc.id) }, rc.name))),

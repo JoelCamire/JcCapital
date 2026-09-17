@@ -44,6 +44,32 @@ function within(name, a, b, pct) { ok(name, Math.abs(a - b) <= Math.abs(b) * pct
 
 const QC = getJurisdiction('CA', 'QC'), ON = getJurisdiction('CA', 'ON'), BC = getJurisdiction('CA', 'BC'), AB = getJurisdiction('CA', 'AB');
 
+// ---------------- 0. Jurisdiction parameter self-consistency ----------------
+{
+  const asc = (br) => br.every((b, i) => i === 0 || b.upTo == null || (br[i - 1].upTo != null && b.upTo > br[i - 1].upTo));
+  const ratesAsc = (br) => br.every((b, i) => i === 0 || b.rate >= br[i - 1].rate);
+  ok('federal brackets ascending', asc(QC.fed.brackets) && ratesAsc(QC.fed.brackets));
+  for (const [k, jur] of [['QC', QC], ['ON', ON], ['BC', BC], ['AB', AB]]) {
+    ok(`${k} brackets ascending`, asc(jur.regionData.brackets) && ratesAsc(jur.regionData.brackets));
+    ok(`${k} BPA credit rate = lowest bracket rate`, Math.abs((jur.regionData.creditRate ?? jur.regionData.bpaRate) - jur.regionData.brackets[0].rate) < 1e-9);
+  }
+  ok('federal credit rate = lowest federal rate', Math.abs(QC.fed.creditRate - QC.fed.brackets[0].rate) < 1e-9);
+  ok('federal BPA taper spans the 4th bracket', QC.fed.bpaTaperFrom === QC.fed.brackets[2].upTo && QC.fed.bpaTaperTo === QC.fed.brackets[3].upTo && QC.fed.bpaMin < QC.fed.bpa);
+  for (const k of ['ROC', 'QC']) {
+    const p = QC.payroll[k];
+    ok(`${k} payroll: YMPE < YAMPE, base + enhancement = rate`, p.cpp.ympe < p.cpp2.to && p.cpp2.from === p.cpp.ympe && Math.abs(p.cpp.baseRate + p.cpp.enhRate - p.cpp.rate) < 1e-9);
+  }
+  ok('QPP rate exceeds CPP rate (Québec)', QC.payroll.QC.cpp.rate > QC.payroll.ROC.cpp.rate);
+  ok('EI reduced in Québec (QPIP province)', QC.payroll.QC.ei.rate < QC.payroll.ROC.ei.rate);
+  const rr = Object.entries(QC.rrifMin).map(([a, f]) => [+a, f]).sort((x, y) => x[0] - y[0]);
+  ok('RRIF factors increasing with age, 20 % at 95', rr.every(([a, f], i) => i === 0 || f > rr[i - 1][1]) && QC.rrifMin[95] === 0.20);
+  ok('OAS clawbackFull derived from threshold, max and rate', Math.abs(QC.pensions.oas.clawbackFull - (QC.pensions.oas.clawbackStart + QC.pensions.oas.maxAnnual / QC.pensions.oas.clawbackRate)) < 0.01);
+  ok('RRSP limit = 18 % rule ceiling and TFSA limit present', QC.accounts.find(a => a.id === 'rrsp').limit === 33810 && QC.accounts.find(a => a.id === 'tfsa').limit === 7000);
+  ok('SBD grind ends at 150k (5:1)', QC.corporate.passiveGrindStart + QC.corporate.sbdLimit / 5 === QC.corporate.passiveGrindEnd);
+  ok('tax year is 2026 across jurisdictions', QC.taxYear === 2026 && getJurisdiction('US', 'CA').taxYear === 2026 && getJurisdiction('UK', 'EW').taxYear === 2026);
+  ok('Ontario health premium table monotone and capped at 900', (() => { const t = ON.regionData.healthPremium; let prev = 0; for (let i = 0; i <= 300000; i += 250) { const v = T.computeTax(ON, { ordinary: i, withPayroll: false, employment: false }).detail.healthPremium; if (v < prev - 1e-9 || v > 900) return false; prev = v; } return prev === 900; })());
+}
+
 // ---------------- 1. Tax golden values (2026) ----------------
 {
   const t = T.computeTax(QC, { ordinary: 60000, age: 40 });
