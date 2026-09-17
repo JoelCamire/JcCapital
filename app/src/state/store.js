@@ -1,30 +1,102 @@
 // ============================================================
-// Central reactive store with localStorage persistence
+// Central reactive store with localStorage persistence.
+// normalize() is the ONE migration/consistency pass: every client
+// loaded, imported, merged or mutated goes through syncDerived() so
+// derived fields can never drift from their source of truth:
+//   • member/dependent ages ⇐ date of birth (always current)
+//   • filingStatus ⇐ household.maritalStatus
+//   • household.country/region ⇐ jurisdiction
+//   • legacy insurance[] ⇒ products[] (policies) — products is the SoT,
+//     insurance[] is rebuilt as a read-only mirror for legacy readers
+//   • investment products ⇔ assets (AUM = linked asset value)
+//   • assumptions filled with defaults
 // ============================================================
-import { seedClients, newClient } from './models.js';
+import { seedClients, newClient, newProduct, newAsset, defaultAssumptions, INSURANCE_TO_KIND, KIND_TO_INSURANCE, INSURANCE_KINDS, INVESTMENT_KINDS, isActiveProduct, annualPremium } from './models.js';
 
 const KEY = 'jc_planner_v1';
 const THEME_KEY = 'jc_planner_theme';
 const GOALS_KEY = 'jc_crm_goals';
 
+function ageFromDob(dob) {
+  if (!dob) return null;
+  const d = new Date(dob); if (isNaN(d)) return null;
+  const now = new Date();
+  let a = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) a--;
+  return a >= 0 && a < 130 ? a : null;
+}
+
+/** Recompute every derived field from its source of truth (idempotent, cheap). */
+export function syncDerived(c) {
+  // ages from dates of birth
+  for (const m of c.members || []) { const a = ageFromDob(m.dob); if (a != null) m.currentAge = a; }
+  for (const d of c.dependents || []) { const a = ageFromDob(d.dob); if (a != null) d.age = a; }
+  // marital status → filing status
+  const ms = c.household?.maritalStatus;
+  if (ms) c.filingStatus = (ms === 'married' || ms === 'common-law' || ms === 'commonlaw') ? 'married' : 'single';
+  // jurisdiction is the geographic source of truth
+  if (c.jurisdiction && c.household) { c.household.country = c.jurisdiction.country; c.household.region = c.jurisdiction.region; }
+  // policies: products[] is the source of truth; migrate any legacy insurance[] rows not yet represented
+  c.products = c.products || [];
+  for (const ins of (c.insurance || [])) {
+    if (!ins || ins._mirror) continue;                       // rows we generated ourselves
+    const kind = INSURANCE_TO_KIND[ins.type] || ins.type;
+    const dup = c.products.find(p => p.migratedFrom === ins.id || (p.kind === kind && p.insuredId === ins.insuredId && Math.abs((+p.faceAmount || 0) - (+ins.coverage || 0)) < 1));
+    if (dup) { if (!dup.migratedFrom) dup.migratedFrom = ins.id; continue; }
+    c.products.push(newProduct({ kind, insuredId: ins.insuredId ?? null, faceAmount: +ins.coverage || 0, premium: +ins.premium || 0, frequency: ins.frequency || 'annual', status: 'inforce', carrier: ins.carrier || '', policyNumber: ins.policyNumber || '', migratedFrom: ins.id, notes: ins.notes || '' }));
+  }
+  // rebuild the read-only mirror (same ids as the products so editors can round-trip)
+  c.insurance = c.products.filter(p => INSURANCE_KINDS.includes(p.kind) && isActiveProduct(p) && KIND_TO_INSURANCE[p.kind])
+    .map(p => ({ id: p.id, type: KIND_TO_INSURANCE[p.kind], insuredId: p.insuredId, coverage: +p.faceAmount || 0, premium: annualPremium(p), carrier: p.carrier, policyNumber: p.policyNumber, _mirror: true }));
+  // investment products ⇔ assets: link by owner + equal value, else create the asset once; AUM mirrors the asset
+  c.assets = c.assets || [];
+  for (const p of c.products) {
+    if (!INVESTMENT_KINDS.includes(p.kind)) continue;
+    if (p.assetId && !c.assets.find(a => a.id === p.assetId)) p.assetId = null;
+    if (!p.assetId) {
+      const owner = p.insuredId ?? c.members?.[0]?.id ?? null;
+      const match = c.assets.find(a => !c.products.some(q => q !== p && q.assetId === a.id) && (a.ownerId ?? c.members?.[0]?.id) === owner && Math.abs((+a.value || 0) - (+p.aum || 0)) < 1 && (+p.aum || 0) > 0);
+      if (match) p.assetId = match.id;
+      else if ((+p.aum || 0) > 0) {
+        const a = newAsset({ ownerId: owner, label: [p.carrier, p.policyNumber].filter(Boolean).join(' ') || 'Placement', type: 'nonreg', value: +p.aum, costBasis: +p.aum, annualContribution: 0 });
+        c.assets.push(a); p.assetId = a.id;
+      }
+    }
+    if (p.assetId) { const a = c.assets.find(x => x.id === p.assetId); if (a) p.aum = +a.value || 0; }
+  }
+  // assumptions: fill defaults, fix legacy key
+  const A = { ...defaultAssumptions(), ...(c.assumptions || {}) };
+  if (A.rriffConvertAge != null) { if (A.rrifConvertAge == null) A.rrifConvertAge = A.rriffConvertAge; delete A.rriffConvertAge; }
+  c.assumptions = A;
+  c.calc = c.calc || {};
+  return c;
+}
+
 /** Ensure clients loaded from an older schema have all current fields. */
-function normalize(c) {
+export function normalize(c) {
   c.household = c.household || { address: '', city: '', region: c.jurisdiction?.region || '', postal: '', country: c.jurisdiction?.country || 'CA', maritalStatus: c.filingStatus || 'single', reviewDate: '', advisorNotes: '' };
+  c.jurisdiction = c.jurisdiction || { country: 'CA', region: 'QC' };
+  c.members = (c.members && c.members.length) ? c.members : [ { id: Math.random().toString(36).slice(2, 10), name: 'Titulaire', role: 'primary', currentAge: 40, retirementAge: 65, lifeExpectancy: 95 } ];
+  c.incomes = c.incomes || []; c.expenses = c.expenses || []; c.assets = c.assets || []; c.liabilities = c.liabilities || []; c.goals = c.goals || []; c.insurance = c.insurance || [];
   c.dependents = c.dependents || [];
   c.beneficiaries = c.beneficiaries || [];
   c.documents = c.documents || [];
   c.contacts = c.contacts || [];
   c.snapshots = c.snapshots || [];
   // CRM layer (back-fill for clients created before the CRM existed)
-  c.crm = c.crm || { lifecycle: 'client', source: '', referredBy: '', tags: [], rating: '', nextActionDate: '', lastContactAt: null };
+  c.crm = c.crm || { lifecycle: 'client', source: '', referredBy: '', tags: [], rating: '', nextActionDate: '' };
   if (!Array.isArray(c.crm.tags)) c.crm.tags = [];
+  delete c.crm.lastContactAt;                                  // derived (crm.lastTouch), never stored
   c.opportunities = c.opportunities || [];
   c.activities = c.activities || [];
   c.tasks = c.tasks || [];
   c.products = c.products || [];
   c.compliance = c.compliance || {};
+  for (const l of c.liabilities) { if (l.extraPayment == null) l.extraPayment = 0; if (l.compounding === undefined) l.compounding = null; }
   c.updatedAt = c.updatedAt || c.createdAt || Date.now();
-  return c;
+  c._rev = c._rev || 0;
+  return syncDerived(c);
 }
 
 function load() {
@@ -32,7 +104,7 @@ function load() {
     const raw = localStorage.getItem(KEY);
     if (raw) { const s = JSON.parse(raw); (s.clients || []).forEach(normalize); return s; }
   } catch (e) { console.warn('Load failed', e); }
-  const clients = seedClients();
+  const clients = seedClients().map(normalize);
   return { clients, activeId: clients[0].id };
 }
 
@@ -51,6 +123,7 @@ function persist() {
   }, 250);
 }
 function notify() { subs.forEach(fn => fn(state)); }
+function touch(c, bumpTime = true) { c._rev = (c._rev || 0) + 1; if (bumpTime) c.updatedAt = Date.now(); syncDerived(c); }
 
 export const store = {
   get state() { return state; },
@@ -61,16 +134,16 @@ export const store = {
   /** Mutate the active client via a function, then persist + notify. */
   update(mutator) {
     const c = this.activeClient();
-    mutator(c); c.updatedAt = Date.now();
+    mutator(c); touch(c);
     persist(); notify();
   },
-  /** Mutate the active client but DON'T re-render (live sliders / typing). */
-  quietUpdate(mutator) { mutator(this.activeClient()); persist(); },
+  /** Mutate the active client but DON'T re-render (live sliders / typing). Still persists and re-derives. */
+  quietUpdate(mutator) { const c = this.activeClient(); mutator(c); touch(c); persist(); },
 
   /** Mutate a specific client by id (used by cross-client CRM views). */
   updateClient(id, mutator) {
     const c = state.clients.find(x => x.id === id); if (!c) return;
-    mutator(c); c.updatedAt = Date.now();
+    mutator(c); touch(c);
     persist(); notify();
   },
 
@@ -83,13 +156,13 @@ export const store = {
   setCrmGoals(g) { state.crmGoals = { ...state.crmGoals, ...g }; try { localStorage.setItem(GOALS_KEY, JSON.stringify(state.crmGoals)); } catch (e) {} notify(); },
 
   addClient(name, country, region) {
-    const c = newClient(name, country, region);
+    const c = normalize(newClient(name, country, region));
     state.clients.push(c); state.activeId = c.id; persist(); notify();
     return c;
   },
   deleteClient(id) {
     state.clients = state.clients.filter(c => c.id !== id);
-    if (!state.clients.length) { const c = newClient(); state.clients.push(c); }
+    if (!state.clients.length) { const c = normalize(newClient()); state.clients.push(c); }
     if (state.activeId === id) state.activeId = state.clients[0].id;
     persist(); notify();
   },
@@ -98,6 +171,7 @@ export const store = {
     const copy = JSON.parse(JSON.stringify(src));
     copy.id = Math.random().toString(36).slice(2, 10);
     copy.name = src.name + ' (copie)';
+    normalize(copy);
     state.clients.push(copy); state.activeId = copy.id; persist(); notify();
   },
 
@@ -113,7 +187,7 @@ export const store = {
   },
 
   exportJSON() {
-    return JSON.stringify({ version: 1, exported: new Date().toISOString(), savedAt: this.latestUpdatedAt(), clients: state.clients }, null, 2);
+    return JSON.stringify({ version: 2, exported: new Date().toISOString(), savedAt: this.latestUpdatedAt(), clients: state.clients }, null, 2);
   },
   importJSON(text) {
     const data = JSON.parse(text);

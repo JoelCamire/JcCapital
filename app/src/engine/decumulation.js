@@ -1,15 +1,15 @@
 // ============================================================
 // Retirement decumulation optimizer (Canada-centric)
 // Simulates the retirement phase under different withdrawal
-// strategies, modelling forced RRIF minimums and OAS clawback,
-// to compare lifetime tax and after-tax estate value.
+// strategies with EXACT taxes (all credits, OAS recovery tax),
+// forced RRIF minimums from the jurisdiction table (RRSP → first
+// minimum at 72), and an exact after-tax estate value (deemed
+// disposition of the RRIF + latent capital gains).
 // ============================================================
-import { computeTax } from './tax.js';
+import { computeTax, grossUpForNet, rrifMinFactor } from './tax.js';
 import { t } from '../i18n.js';
 
-// RRIF minimum factors (age 71+)
-const RRIF = { 71:0.0528,72:0.0540,73:0.0553,74:0.0567,75:0.0582,76:0.0598,77:0.0617,78:0.0636,79:0.0658,80:0.0682,81:0.0708,82:0.0738,83:0.0771,84:0.0808,85:0.0851,86:0.0899,87:0.0955,88:0.1021,89:0.1099,90:0.1192,91:0.1306,92:0.1449,93:0.1634,94:0.1879,95:0.20 };
-
+const fin = (v, d = 0) => (Number.isFinite(+v) ? +v : d);
 const STRATEGIES = ['nonregFirst', 'meltdown', 'tfsaPreserve'];
 
 export function strategyLabel(key) {
@@ -30,86 +30,110 @@ export function strategyDesc(key) {
   }[key];
 }
 
+/** Default bracket target = top of the first federal bracket (today's $). */
+export function defaultBracketTarget(jur) { return fin(jur?.fed?.brackets?.[0]?.upTo, 57000); }
+
 /**
  * params = {
- *   startAge, endAge, deferred, tfsa, nonreg, nonregBasis,
- *   otherIncomeNow (taxable pensions excl OAS, today's $), oasAnnual,
- *   spending (today's $), inflation, returnRate, oasThreshold, oasClawRate,
- *   bracketTarget (meltdown/tfsaPreserve target taxable income)
+ *   startAge, endAge, deferred, tfsa, nonreg, nonregBasis, deferredType ('rrsp'|'rrif'),
+ *   otherIncomeNow (taxable pensions excl. OAS, today's $), pensionIncomeNow (eligible pension part),
+ *   oasAnnual, oasStartAge, spending (today's $), inflation, returnRate, distributionYield,
+ *   bracketTarget (meltdown/tfsaPreserve target taxable income, today's $)
  * }
  */
 export function simulateDecumulation(jur, params, strategy) {
-  const {
-    startAge, endAge, inflation = 0.021, returnRate = 0.045,
-    oasThreshold = 93454, oasClawRate = 0.15, bracketTarget = 57000,
-  } = params;
-  let deferred = params.deferred, tfsa = params.tfsa, nonreg = params.nonreg;
-  let basis = params.nonregBasis ?? nonreg;
+  const inflation = fin(params.inflation, 0.021), returnRate = fin(params.returnRate, 0.045);
+  const distYield = fin(params.distributionYield, 0.45);
+  const bracketTarget = fin(params.bracketTarget, defaultBracketTarget(jur));
+  const deferredType = params.deferredType || 'rrsp';
+  let deferred = Math.max(0, fin(params.deferred)), tfsa = Math.max(0, fin(params.tfsa)), nonreg = Math.max(0, fin(params.nonreg));
+  let basis = Math.max(0, Math.min(nonreg, fin(params.nonregBasis, nonreg)));
   let totalTax = 0, totalClawback = 0;
   const rows = [];
+  const _sA = Number.isFinite(+params.startAge) ? Math.max(0, Math.min(120, +params.startAge)) : 65;
+  const _eA = Number.isFinite(+params.endAge) ? Math.max(_sA, Math.min(120, +params.endAge)) : 90;
+  const oasStart = fin(params.oasStartAge, fin(jur?.pensions?.oas?.startAge, 65));
 
-  const _sA = Number.isFinite(+startAge) ? Math.max(0, Math.min(120, +startAge)) : 65;
-  const _eA = Number.isFinite(+endAge) ? Math.max(_sA, Math.min(120, +endAge)) : 90;
   for (let i = 0, age = _sA; age <= _eA; age++, i++) {
     const infl = Math.pow(1 + inflation, i);
-    const otherIncome = params.otherIncomeNow * infl;
-    const oas = params.oasAnnual * infl;
-    const spending = params.spending * infl;
+    const otherIncome = fin(params.otherIncomeNow) * infl;
+    const pensionPart = Math.min(otherIncome, fin(params.pensionIncomeNow, params.otherIncomeNow) * infl);
+    const oas = age >= oasStart ? fin(params.oasAnnual) * infl : 0;
+    const spending = fin(params.spending) * infl;
 
     // grow balances
     deferred *= 1 + returnRate; tfsa *= 1 + returnRate;
     const nonregGrowth = nonreg * returnRate;
-    nonreg += nonregGrowth; basis += nonregGrowth * 0.45; // distributions reinvested
-    let ordinaryTaxable = otherIncome + oas + nonregGrowth * 0.45;
+    nonreg += nonregGrowth; basis += nonregGrowth * distYield;          // distributions reinvested
+    let ordinaryTaxable = otherIncome + nonregGrowth * distYield;
 
-    // forced RRIF minimum (age >= 72 modelled; convert at 71)
+    // forced RRIF minimum
     let forced = 0;
-    const f = RRIF[age];
-    if (f && deferred > 0) { forced = deferred * f; deferred -= forced; ordinaryTaxable += forced; }
+    const f = rrifMinFactor(jur, age, deferredType);
+    if (f > 0 && deferred > 0) { forced = deferred * f; deferred -= forced; ordinaryTaxable += forced; }
 
     // discretionary RRSP draw to a bracket target (meltdown / tfsaPreserve)
-    let deferredW = 0;
+    let deferredW = forced;
     if ((strategy === 'meltdown' || strategy === 'tfsaPreserve') && deferred > 0) {
       const room = Math.max(0, bracketTarget * infl - ordinaryTaxable);
       const extra = Math.min(deferred, room);
       deferredW += extra; deferred -= extra; ordinaryTaxable += extra;
     }
 
-    // tax + OAS clawback on the mandatory taxable income
-    const tx = computeTax(jur, { ordinary: ordinaryTaxable, withPayroll: false });
-    const baseTax = tx.total;
-    const marg = tx.marginalRate;
-    let claw = ordinaryTaxable > oasThreshold * infl
-      ? Math.min(oas, (ordinaryTaxable - oasThreshold * infl) * oasClawRate) : 0;
-    const afterTaxIncome = ordinaryTaxable - baseTax - claw;
+    const eligiblePension = pensionPart + (age >= 65 ? deferredW : 0);
+    const taxOpts = { age, pensionIncome: eligiblePension, oasIncome: oas, withPayroll: false, employment: false };
+    const tx = computeTax(jur, { ordinary: ordinaryTaxable, ...taxOpts });
+    const baseTax = tx.incomeTax;
+    let claw = tx.clawback;
+    const afterTaxIncome = ordinaryTaxable + oas - baseTax - claw;
 
-    // fill the remaining spending gap: non-reg → RRSP → TFSA
+    // fill the remaining spending gap: non-reg → RRSP → TFSA (or RRSP → non-reg → TFSA for tfsaPreserve)
     let gap = spending - afterTaxIncome;
     let extraTax = 0, wNonreg = 0, wTfsa = 0;
-    if (gap > 0 && nonreg > 0) {
-      const gainFrac = Math.max(0, (nonreg - basis) / nonreg);
-      const eff = Math.min(0.27, marg * 0.5 * gainFrac);
-      const take = Math.min(nonreg, gap / (1 - eff));
+    const drawNonreg = () => {
+      if (gap <= 0.5 || nonreg <= 0) return;
+      const gainFrac = nonreg > 0 ? Math.max(0, Math.min(1, (nonreg - basis) / nonreg)) : 0;
+      let take = Math.min(nonreg, gap);
+      let tax = 0;
+      for (let k = 0; k < 3; k++) {
+        const t1 = computeTax(jur, { ordinary: ordinaryTaxable, capGains: take * gainFrac, ...taxOpts });
+        const t0 = computeTax(jur, { ordinary: ordinaryTaxable, ...taxOpts });
+        tax = Math.max(0, t1.total - t0.total);
+        const net = take - tax;
+        if (net >= gap - 0.5 || take >= nonreg) break;
+        take = Math.min(nonreg, take + (gap - net) / Math.max(0.5, 1 - tax / Math.max(1, take)));
+      }
       nonreg -= take; basis = Math.max(0, basis - take * (1 - gainFrac));
-      wNonreg += take; gap -= take * (1 - eff); extraTax += take * eff;
-    }
-    if (gap > 0 && deferred > 0) {
-      const mr = Math.min(0.53, Math.max(0.20, marg));
-      const gross = Math.min(deferred, gap / (1 - mr));
-      deferred -= gross; deferredW += gross; ordinaryTaxable += gross;
-      gap -= gross * (1 - mr); extraTax += gross * mr;
-    }
-    if (gap > 0 && tfsa > 0) { const take = Math.min(tfsa, gap); tfsa -= take; wTfsa += take; gap -= take; }
-    else if (gap < 0) { nonreg += -gap; basis += -gap; gap = 0; } // reinvest after-tax surplus
+      wNonreg += take; gap -= take - tax; extraTax += tax;
+    };
+    const drawDeferred = () => {
+      if (gap <= 0.5 || deferred <= 0) return;
+      const g = grossUpForNet(jur, gap, ordinaryTaxable, deferred, taxOpts);
+      if (g.gross <= 0) return;
+      deferred -= g.gross; deferredW += g.gross; ordinaryTaxable += g.gross;
+      gap -= g.net; extraTax += g.tax;
+      // recovery tax on the extra withdrawal is inside g.tax; split it out for reporting
+      const after = computeTax(jur, { ordinary: ordinaryTaxable, ...taxOpts });
+      claw = after.clawback;
+    };
+    if (strategy === 'tfsaPreserve') { drawDeferred(); drawNonreg(); } else { drawNonreg(); drawDeferred(); }
+    if (gap > 0.5 && tfsa > 0) { const take = Math.min(tfsa, gap); tfsa -= take; wTfsa += take; gap -= take; }
+    else if (gap < -0.5) { nonreg += -gap; basis += -gap; gap = 0; }   // reinvest after-tax surplus
 
-    const yearTax = baseTax + extraTax + claw;
-    totalTax += baseTax + extraTax; totalClawback += claw;
-    const estate = deferred * (1 - 0.40) + tfsa + nonreg; // RRSP/RRIF ~40% taxable at death
-    rows.push({ age, deferred, tfsa, nonreg, taxable: ordinaryTaxable, tax: yearTax, clawback: claw, estate, shortfall: Math.max(0, gap), withdrawals: { deferred: deferredW, nonreg: wNonreg, tfsa: wTfsa } });
+    const yearTax = baseTax + extraTax;
+    totalTax += yearTax; totalClawback += claw;
+
+    // after-tax estate: deemed disposition of the RRIF as income + latent gains on the non-registered account
+    const estateTaxDeferred = deferred > 0 ? computeTax(jur, { ordinary: deferred, withPayroll: false, employment: false, age }).total : 0;
+    const gainLatent = Math.max(0, nonreg - basis);
+    const estateTaxGains = gainLatent > 0 ? Math.max(0, computeTax(jur, { ordinary: 0, capGains: gainLatent, withPayroll: false, employment: false, age }).total) : 0;
+    const estate = deferred - estateTaxDeferred + tfsa + nonreg - estateTaxGains;
+
+    rows.push({ age, deferred, tfsa, nonreg, taxable: ordinaryTaxable, oas, tax: yearTax + claw, incomeTax: yearTax, clawback: claw, estate, estateTax: estateTaxDeferred + estateTaxGains, shortfall: Math.max(0, gap), withdrawals: { deferred: deferredW, nonreg: wNonreg, tfsa: wTfsa } });
   }
 
-  const finalEstate = rows[rows.length - 1].estate;
-  return { strategy, rows, totalTax, totalClawback, finalEstate };
+  const last = rows[rows.length - 1];
+  return { strategy, rows, totalTax, totalClawback, finalEstate: last ? last.estate : 0, finalEstateTax: last ? last.estateTax : 0 };
 }
 
 /** Run all strategies and pick the one with the highest after-tax estate. */

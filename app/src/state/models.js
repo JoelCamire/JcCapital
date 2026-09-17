@@ -7,13 +7,33 @@ export const CURRENT_YEAR = new Date().getFullYear();
 export function defaultAssumptions() {
   return {
     inflation: 0.021,
-    preReturn: 0.058,        // accumulation real-ish nominal return
+    preReturn: 0.058,        // accumulation nominal return
     postReturn: 0.042,       // de-risked in retirement
     returnStdev: 0.11,       // volatility for Monte Carlo
+    retiredVolFactor: 0.8,   // volatility multiplier once retired (de-risked portfolio)
     salaryGrowth: 0.025,
     realEstateGrowth: 0.03,
-    rriffConvertAge: 71,
+    rrifConvertAge: 71,
+    spendingLevel: 1,        // multiplier on all expenses (what-if lever, persisted)
+    distributionYield: 0.45, // share of a taxable account's return distributed (and taxed) yearly
+    savingsTarget: 0.15,     // target savings rate (share of gross income)
+    emergencyMonths: 3,      // months of expenses to hold in cash
+    educationInflation: 0.04,
+    lifeReplaceRate: 0.7,    // income replacement for life-insurance needs
+    lifeDiscount: 0.03,      // real discount rate for capital-needs analysis
+    finalExpenses: 25000,
+    diReplaceRate: 0.65,     // disability income replacement
+    mcTrials: 1000,          // Monte Carlo trajectories (one number for the whole app)
   };
+}
+
+/** Planning-policy assumptions merged with defaults (tolerates legacy keys). */
+export function assumptionsOf(client) {
+  const A = { ...defaultAssumptions(), ...((client && client.assumptions) || {}) };
+  if (A.rriffConvertAge != null && A.rrifConvertAge == null) A.rrifConvertAge = A.rriffConvertAge;
+  delete A.rriffConvertAge;
+  for (const k of Object.keys(A)) if (typeof defaultAssumptions()[k] === 'number' && !Number.isFinite(+A[k])) A[k] = defaultAssumptions()[k];
+  return A;
 }
 
 export function newMember(over = {}) {
@@ -59,7 +79,8 @@ export function newAsset(over = {}) {
   return { id: uid(), ownerId: null, label: 'Compte', type: 'nonreg', value: 10000, costBasis: 10000, growth: 0.058, annualContribution: 0, employerMatch: 0, ...over };
 }
 export function newLiability(over = {}) {
-  return { id: uid(), label: 'Dette', type: 'mortgage', balance: 200000, rate: 0.049, payment: 1400, ...over };
+  // compounding: null → by type (Canadian mortgages semi-annual, others monthly)
+  return { id: uid(), label: 'Dette', type: 'mortgage', balance: 200000, rate: 0.049, payment: 1400, extraPayment: 0, compounding: null, amortizationYears: null, ...over };
 }
 export function newGoal(over = {}) {
   return { id: uid(), type: 'purchase', name: 'Objectif', targetAge: 55, amount: 50000, priority: 'medium', ...over };
@@ -67,6 +88,23 @@ export function newGoal(over = {}) {
 export function newInsurance(over = {}) {
   return { id: uid(), type: 'life', insuredId: null, coverage: 250000, premium: 600, ...over };
 }
+
+// Planning insurance type ↔ CRM product kind (products[] is the single source of truth for policies)
+export const INSURANCE_TO_KIND = { life: 'life', di: 'disability', ci: 'ci', ltc: 'ltc', health: 'health' };
+export const KIND_TO_INSURANCE = { life: 'life', disability: 'di', ci: 'ci', ltc: 'ltc', health: 'health' };
+export const INSURANCE_KINDS = ['life', 'disability', 'ci', 'ltc', 'health', 'group'];
+export const INVESTMENT_KINDS = ['investment', 'segfund', 'annuity'];
+export const ACTIVE_STATUSES = ['inforce', 'pending', 'paid'];
+
+/** Premium normalised to an annual amount (single = one-time, not recurring). */
+export function annualPremium(p) {
+  const v = Number.isFinite(+p?.premium) ? +p.premium : 0;
+  if (p?.frequency === 'monthly') return v * 12;
+  if (p?.frequency === 'single') return 0;
+  return v;
+}
+/** Is the product currently providing coverage / holding assets? */
+export function isActiveProduct(p) { return !p?.status || ACTIVE_STATUSES.includes(p.status); }
 
 // ===================== CRM =====================
 export const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -113,10 +151,10 @@ export function newTask(over = {}) {
 }
 export function newProduct(over = {}) {
   return {
-    id: uid(), kind: 'life',    // life | disability | ci | health | investment | segfund | mortgage | group | annuity
+    id: uid(), kind: 'life',    // life | disability | ci | ltc | health | investment | segfund | mortgage | group | annuity
     carrier: '', policyNumber: '', status: 'inforce', // pending | inforce | lapsed | cancelled | paid
-    faceAmount: 0, aum: 0, premium: 0, frequency: 'monthly', // monthly | annual | single
-    insuredId: null, issueDate: '', renewalDate: '',
+    faceAmount: 0, aum: 0, premium: 0, frequency: 'annual', // monthly | annual | single
+    insuredId: null, assetId: null, issueDate: '', renewalDate: '',
     firstYearCommission: 0, renewalCommission: 0, notes: '', ...over,
   };
 }
@@ -138,7 +176,9 @@ export function newClient(name = 'Nouveau ménage', country = 'CA', region = 'QC
     beneficiaries: [],
     documents: [],
     contacts: [],
+    snapshots: [],
     business: null,
+    calc: {},              // persisted what-if parameters, namespaced by view (enter once, keep)
     // ----- CRM layer -----
     crm: defaultCRM({ lifecycle: 'prospect' }),
     opportunities: [],
@@ -222,6 +262,8 @@ export function seedClients() {
       newContact({ name: 'Me Sophie Lavoie', role: 'notary', firm: 'Lavoie & Associés', phone: '418-555-0111', email: 'slavoie@notaire.qc.ca' }),
       newContact({ name: 'Pierre Gagnon, CPA', role: 'accountant', firm: 'Gagnon Comptables', phone: '418-555-0133', email: 'pgagnon@cpa.qc.ca' }),
     ],
+    snapshots: [],
+    calc: {},
     business: newBusiness({
       name: 'Tremblay Génie-Conseil inc.', structure: 'incorporated', ownerId: a, fiscalYearEnd: '12-31',
       activeIncome: 285000, passiveIncome: 45000, retainedEarnings: 320000, corpInvestments: 280000,
@@ -281,7 +323,7 @@ export function seedClients() {
       employer: 'Boulangerie Côté inc.', occupation: 'Présidente', employmentStatus: 'business' })],
     dependents: [], incomes: [newIncome({ memberId: p, label: 'Revenu', amount: 160000 })],
     expenses: [], assets: [], liabilities: [], goals: [], insurance: [],
-    beneficiaries: [], documents: [], contacts: [], business: null,
+    beneficiaries: [], documents: [], contacts: [], snapshots: [], business: null, calc: {},
     crm: defaultCRM({ lifecycle: 'prospect', source: 'referral', referredBy: 'Marc Tremblay',
       tags: ['Entreprise', 'Personne clé'], rating: 'A', nextActionDate: '2026-06-27' }),
     opportunities: [

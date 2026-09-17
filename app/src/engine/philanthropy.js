@@ -41,13 +41,17 @@ export function charitableGift(jur, p) {
 /**
  * Multi-year giving with carry-forward / bunching illustration.
  * Donation credits can be carried forward up to 5 years (CA).
+ * firstTier / lowerRate default to the jurisdiction's donation table when `jur` is given.
  */
-export function bunchingStrategy({ annualGift, years = 5, donationCredit = 0.50, lowerRate = 0.20 }) {
-  // First $200/yr only gets the lower federal rate when spread; bunching pushes more into the high-credit band.
-  const spreadCredit = years * (200 * lowerRate + (annualGift - 200) * donationCredit);
-  const bunchedTotal = annualGift * years;
-  const bunchedCredit = 200 * lowerRate + (bunchedTotal - 200) * donationCredit;
-  return { spreadCredit, bunchedCredit, advantage: bunchedCredit - spreadCredit, bunchedTotal };
+export function bunchingStrategy({ annualGift, years = 5, donationCredit = 0.50, lowerRate = null, firstTier = null }, jur = null) {
+  const tier = fin(firstTier, jur?.fed?.donation?.first ?? 200);
+  const low = lowerRate != null ? lowerRate : (jur ? (fin(jur.fed?.donation?.lowRate, 0.14) * (1 - fin(jur.regionData?.federalAbatement)) + fin(jur.regionData?.donation?.lowRate, 0.2)) : 0.20);
+  const gift = Math.max(0, fin(annualGift));
+  const creditOn = (amt) => Math.min(amt, tier) * low + Math.max(0, amt - tier) * donationCredit;
+  const spreadCredit = years * creditOn(gift);
+  const bunchedTotal = gift * years;
+  const bunchedCredit = creditOn(bunchedTotal);
+  return { spreadCredit, bunchedCredit, advantage: bunchedCredit - spreadCredit, bunchedTotal, firstTier: tier, lowerRate: low };
 }
 
 export const VEHICLES = () => [

@@ -145,18 +145,12 @@ export function verdict(successRate) {
 
 /**
  * runStress(client) -> { base, scenarios[] }
- *
- * base: { successRate, medianFinal, finalInvestable, depletionAge }
- * scenarios[i]: { key, name, desc, successRate, medianFinal, finalInvestable,
- *                 depletionAge, deltaSuccess, deltaFinal }
- *
- * Uses 400 MC trials per run. The real client is NEVER mutated.
+ * Uses the app-wide Monte Carlo settings (same trial count and seeding as
+ * every other screen). The real client is NEVER mutated.
  */
 export function runStress(client) {
-  const TRIALS = 400;
-
-  // --- Base run ---
-  const baseMC   = runMonteCarlo(client, { trials: TRIALS });
+  // --- Base run (shared cached run) ---
+  const baseMC   = runMonteCarlo(client);
   const baseProj = baseMC.det;
 
   const base = {
@@ -171,7 +165,7 @@ export function runStress(client) {
     const clone = JSON.parse(JSON.stringify(client));
     scen.apply(clone);
 
-    const mc   = runMonteCarlo(clone, { trials: TRIALS });
+    const mc   = runMonteCarlo(clone);
     const proj = mc.det;
 
     return {

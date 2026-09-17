@@ -36,12 +36,13 @@ const ACCOUNTS = [
 ];
 const UK = {
   country: 'UK', name: 'Royaume-Uni', flag: '🇬🇧', currency: 'GBP', locale: 'en-GB',
+  taxYear: 2026,   // 2026/27 tax year — thresholds frozen at 2025/26 levels
   regionLabel: 'Nation', regions: Object.fromEntries(Object.entries(REGIONS).map(([k, v]) => [k, v.name])),
   defaultRegion: 'EW', capGainsInclusion: 1.0,
   labels: { retirement1: 'State Pension', retirement2: 'Workplace Pension', taxAdvantaged: 'Pension', taxFree: 'ISA', education: 'Junior ISA' },
   pensions: {
-    cpp: { name: 'State Pension', maxAnnual: 11973, avgAnnual: 9000, startAge: 67 },
-    oas: { name: 'Pension Credit', maxAnnual: 0, startAge: 66 },
+    cpp: { name: 'State Pension', maxAnnual: 12548, avgAnnual: 9500, startAge: 67, minAge: 67, maxAge: 75, defer: 0.058 },
+    oas: { name: 'Pension Credit', maxAnnual: 0, startAge: 66, minAge: 66, maxAge: 66 },
   },
   fed: UK_MAIN, prov: REGIONS, regionsData: REGIONS, accounts: ACCOUNTS, rrifMin: {},
   corporate: {
@@ -49,7 +50,9 @@ const UK = {
     smallRate: 0.19, mainRate: 0.25,         // corporation tax
     lowerLimit: 50000, upperLimit: 250000,   // marginal relief band
     divAllowance: 500, divBasic: 0.0875, divHigher: 0.3375, divAdditional: 0.3935,
-    employerNI: 0.138,
+    employerNI: 0.15,                        // 15 % from April 2025
   },
+  estate: { nilRateBand: 325000, residenceNilRateBand: 175000, rate: 0.40 },
+  pensionAllowance: 60000, lisaLimit: 4000, isaLimit: 20000,
 };
 export default UK;

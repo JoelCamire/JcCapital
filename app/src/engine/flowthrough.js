@@ -6,77 +6,98 @@
 //   METC (Mineral Exploration Tax Credit) 15% federal + provincial
 //   ACB of FTS = $0  -> full proceeds are a capital gain
 //   Gift of listed securities -> 0% capital-gains inclusion
-// All figures CAD. Rates are parameters so the advisor can tune them.
+// Donation credit rates are DERIVED from the jurisdiction's donation
+// tables (federal top rate net of the Québec abatement + provincial).
 // ============================================================
 import { t } from '../i18n.js';
-import { cleanse, fin } from './util.js';
+import { cleanse } from './util.js';
+import CA from '../jurisdictions/ca.js';
 
-// Reasonable provincial add-on exploration credits (illustrative).
+// Provincial add-on exploration credits (planning values).
 export const PROV_EXPLORATION_CREDIT = { QC: 0.20, BC: 0.20, ON: 0.05, SK: 0.10, MB: 0.30, AB: 0.0, OTHER: 0.0 };
-// Approx combined top-bracket charitable donation credit by province.
-export const DONATION_CREDIT = { QC: 0.53, ON: 0.5053, BC: 0.4980, AB: 0.50, OTHER: 0.50 };
+export const METC_RATE = 0.15;
 
 export function provExploration(region) { return PROV_EXPLORATION_CREDIT[region] ?? PROV_EXPLORATION_CREDIT.OTHER; }
-export function donationCreditRate(region) { return DONATION_CREDIT[region] ?? DONATION_CREDIT.OTHER; }
+
+/**
+ * Combined donation credit rate on gifts above the first tier, for a top-bracket donor:
+ * federal highRate/topRate × (1 − Québec abatement) + provincial highRate/topRate.
+ * Accepts a jurisdiction object or a region code.
+ */
+export function donationCreditRate(jurOrRegion, { topBracket = true } = {}) {
+  const region = typeof jurOrRegion === 'string' ? jurOrRegion : jurOrRegion?.region;
+  const jur = typeof jurOrRegion === 'object' && jurOrRegion ? jurOrRegion : null;
+  const fed = (jur && jur.fed && jur.fed.donation) || CA.fed.donation;
+  const prov = (jur && jur.regionData && jur.regionData.donation) || (CA.prov[region] && CA.prov[region].donation) || CA.prov.QC.donation;
+  const abate = (jur && jur.regionData && jur.regionData.federalAbatement) || (CA.prov[region] && CA.prov[region].federalAbatement) || 0;
+  const fedRate = topBracket ? (fed.topRate || fed.highRate) : fed.highRate;
+  const provRate = topBracket ? (prov.topRate || prov.highRate) : prov.highRate;
+  return fedRate * (1 - abate) + provRate;
+}
+/** Combined credit rate on the first tier ($200) of donations. */
+export function donationLowRate(jurOrRegion) {
+  const region = typeof jurOrRegion === 'string' ? jurOrRegion : jurOrRegion?.region;
+  const jur = typeof jurOrRegion === 'object' && jurOrRegion ? jurOrRegion : null;
+  const fed = (jur && jur.fed && jur.fed.donation) || CA.fed.donation;
+  const prov = (jur && jur.regionData && jur.regionData.donation) || (CA.prov[region] && CA.prov[region].donation) || CA.prov.QC.donation;
+  const abate = (jur && jur.regionData && jur.regionData.federalAbatement) || (CA.prov[region] && CA.prov[region].federalAbatement) || 0;
+  return fed.lowRate * (1 - abate) + prov.lowRate;
+}
 
 /**
  * Straight flow-through share INVESTMENT (held, not donated).
- * p = { amount, marginalRate, ceeRate=1.0, metcRate=0.15, provCredit=0, saleValue }
+ * p = { amount, marginalRate, ceeRate=1.0, metcRate=0.15, provCredit=0, saleValue, capGainsInclusion }
  */
-export function flowThroughInvestment(p) {
+export function flowThroughInvestment(p, jur = null) {
   p = cleanse(p);
-  const { amount = 0, marginalRate = 0.5, ceeRate = 1.0, metcRate = 0.15, provCredit = 0, saleValue = null } = p;
+  const inclusion = p.capGainsInclusion ?? (jur?.capGainsInclusion ?? 0.5);
+  const { amount = 0, marginalRate = 0.5, ceeRate = 1.0, metcRate = METC_RATE, provCredit = 0, saleValue = null } = p;
   const ceeDeduction = amount * ceeRate;
   const ceeSaving = ceeDeduction * marginalRate;
   const metcCredit = amount * (metcRate + provCredit);
-  const metcInclusionTax = metcCredit * marginalRate;        // METC is taxable income next year
+  const metcInclusionTax = metcCredit * marginalRate;        // the METC reduces next year's CEE pool (taxable)
   const netMetc = metcCredit - metcInclusionTax;
   const firstYearBenefit = ceeSaving + netMetc;
-  const netCostAfterTax = amount - firstYearBenefit;          // out-of-pocket after tax relief
+  const netCostAfterTax = amount - firstYearBenefit;
 
   const sale = saleValue == null ? amount * 0.85 : saleValue; // ACB = 0
-  const capGain = sale;                                        // entire proceeds are a gain
-  const capGainsTax = capGain * 0.5 * marginalRate;
+  const capGain = sale;
+  const capGainsTax = capGain * inclusion * marginalRate;
   const afterTaxProceeds = sale - capGainsTax;
   const netPosition = afterTaxProceeds - netCostAfterTax;
-  // break-even sale value where after-tax proceeds recover the net cost
-  const breakEven = (1 - 0.5 * marginalRate) !== 0 ? netCostAfterTax / (1 - 0.5 * marginalRate) : 0;
+  const breakEven = (1 - inclusion * marginalRate) !== 0 ? netCostAfterTax / (1 - inclusion * marginalRate) : 0;
 
   return {
     amount, ceeDeduction, ceeSaving, metcCredit, netMetc, firstYearBenefit,
     netCostAfterTax, effectiveCostPct: amount > 0 ? netCostAfterTax / amount : 0,
-    sale, capGain, capGainsTax, afterTaxProceeds, netPosition, breakEven,
+    sale, capGain, capGainsTax, afterTaxProceeds, netPosition, breakEven, inclusion,
   };
 }
 
 /**
- * Charitable flow-through donation ("PearTree" structure):
- * subscribe FTS, immediately donate the listed shares to a charity.
- * Stacks CEE deduction + METC + donation credit + 0% gains inclusion.
- * p = { amount, marginalRate, donationCredit, ceeRate=1.0, metcRate=0.15,
- *       provCredit=0, liquidityDiscount=0.12 }
+ * Charitable flow-through donation ("PearTree" structure).
+ * p = { amount, marginalRate, donationCredit, ceeRate=1.0, metcRate=0.15, provCredit=0, liquidityDiscount=0.12 }
  */
-export function peartreeDonation(p) {
+export function peartreeDonation(p, jur = null) {
   p = cleanse(p);
-  const { amount = 0, marginalRate = 0.5, donationCredit = 0.5, ceeRate = 1.0, metcRate = 0.15, provCredit = 0, liquidityDiscount = 0.12 } = p;
+  const inclusion = p.capGainsInclusion ?? (jur?.capGainsInclusion ?? 0.5);
+  const { amount = 0, marginalRate = 0.5, ceeRate = 1.0, metcRate = METC_RATE, provCredit = 0, liquidityDiscount = 0.12 } = p;
+  const donationCredit = p.donationCredit ?? donationCreditRate(jur || 'QC');
   const ceeSaving = amount * ceeRate * marginalRate;
   const metcCredit = amount * (metcRate + provCredit);
   const netMetc = metcCredit * (1 - marginalRate);
-  const donationReceipt = amount;                              // FMV of donated shares
+  const donationReceipt = amount;
   const donationSaving = donationReceipt * donationCredit;
-  // ACB = 0 -> capital gain = amount; gift of listed security => 0% inclusion
-  const capGainsAvoided = amount * 0.5 * marginalRate;         // tax avoided vs selling first
-  const liquidityCost = amount * liquidityDiscount;            // dealer spread / structuring cost
+  const capGainsAvoided = amount * inclusion * marginalRate;
+  const liquidityCost = amount * liquidityDiscount;
 
   const totalRelief = ceeSaving + netMetc + donationSaving;
   const netCost = amount - totalRelief + liquidityCost;
   const costPerDollar = amount > 0 ? netCost / amount : 0;
-
-  // Comparison: simple cash gift of the same amount
   const cashGiftNetCost = amount * (1 - donationCredit);
 
   return {
-    amount, ceeSaving, metcCredit, netMetc, donationSaving, capGainsAvoided,
+    amount, ceeSaving, metcCredit, netMetc, donationSaving, capGainsAvoided, donationCredit,
     liquidityCost, totalRelief, netCost, costPerDollar,
     cashGiftNetCost, advantageVsCash: cashGiftNetCost - netCost,
     note: t('Structure agressive scrutée par l’ARC : exige une émission admissible, une fiducie de bienfaisance et un avis fiscal/juridique. Les chiffres sont illustratifs.',

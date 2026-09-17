@@ -25,15 +25,19 @@ export function cdaCredit(deathBenefit, policyACB = 0) {
 }
 
 /**
- * Compare extracting corporate cash at death WITHOUT insurance (taxable
- * dividend) vs WITH a corporate policy crediting the CDA.
+ * Compare funding a liquidity need at death WITHOUT insurance (the corporation
+ * must pay a taxable dividend large enough to net the need) vs WITH a corporate
+ * policy whose death benefit credits the CDA (tax-free capital dividend).
  */
 export function corporateInsuranceEstate(needAtDeath, deathBenefit, policyACB, dividendTaxRate = 0.47) {
-  const taxableRoute = needAtDeath * (1 - dividendTaxRate); // net after dividend tax to extract `need`
-  const grossToExtract = needAtDeath / (1 - dividendTaxRate);
+  needAtDeath = Number.isFinite(+needAtDeath) ? +needAtDeath : 0;
+  const grossToExtract = needAtDeath / Math.max(0.01, 1 - dividendTaxRate);   // taxable dividend needed to net the need
+  const taxWithout = grossToExtract - needAtDeath;
   const cda = cdaCredit(deathBenefit, policyACB);
-  const insuredNet = cda.cda + cda.taxablePortion * (1 - dividendTaxRate);
-  return { taxableRoute, grossToExtract, cda: cda.cda, insuredNet, advantage: insuredNet - taxableRoute };
+  const insuredNet = cda.cda + cda.taxablePortion * (1 - dividendTaxRate);       // net to the estate from the policy
+  const shortfall = Math.max(0, needAtDeath - insuredNet);
+  const taxWith = cda.taxablePortion * dividendTaxRate + shortfall / Math.max(0.01, 1 - dividendTaxRate) * dividendTaxRate;
+  return { needAtDeath, grossToExtract, taxWithout, cda: cda.cda, taxablePortion: cda.taxablePortion, insuredNet, taxWith, shortfall, advantage: taxWithout - taxWith, taxableRoute: needAtDeath };
 }
 
 /**

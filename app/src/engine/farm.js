@@ -7,8 +7,10 @@
 import { computeTax } from './tax.js';
 import { cleanse } from './util.js';
 import { t } from '../i18n.js';
+import CA from '../jurisdictions/ca.js';
 
-const QFFP_LCGE = 1250000; // qualified farm/fishing property LCGE (2025)
+/** Qualified farm/fishing property LCGE — same indexed amount as the QSBC exemption, from the jurisdiction. */
+const qffpLcge = (jur) => (jur && jur.corporate && jur.corporate.lcge) || CA.corporate.lcge;
 
 /**
  * Sale of the farm vs intergenerational rollover to a child.
@@ -24,20 +26,21 @@ export function farmTransfer(jur, p) {
   const quotaGain = Math.max(0, quotaFMV - quotaACB);        // quota = class 14.1 / ECP
   const buildingGain = Math.max(0, buildingsFMV - buildingsACB);
   const totalGain = landGain + quotaGain + buildingGain;
+  const QFFP_LCGE = qffpLcge(jur);
+  const age = Number.isFinite(+p.age) ? +p.age : 55;
 
-  // ---- Option A: arm's-length SALE, using QFFP LCGE ----
-  const lcgeTotal = QFFP_LCGE * Math.max(1, owners);
+  // ---- Option A: arm's-length SALE, using QFFP LCGE (per owner) ----
+  const n = Math.max(1, owners);
+  const lcgeTotal = QFFP_LCGE * n;
   const exempt = Math.min(totalGain, lcgeTotal);
   const taxableGain = totalGain - exempt;
-  const t0 = computeTax(jur, { ordinary: otherIncome, withPayroll: false });
-  const t1 = computeTax(jur, { ordinary: otherIncome, capGains: taxableGain, withPayroll: false });
-  const taxOnSale = Math.max(0, t1.total - t0.total);
+  const perOwnerTax = (g) => { const t0 = computeTax(jur, { ordinary: otherIncome, withPayroll: false, employment: false, age }); const t1 = computeTax(jur, { ordinary: otherIncome, capGains: g / n, withPayroll: false, employment: false, age }); return Math.max(0, t1.total - t0.total) * n; };
+  const taxOnSale = perOwnerTax(taxableGain);
   const proceeds = landFMV + quotaFMV + buildingsFMV;
   const netSale = proceeds - taxOnSale;
 
   // Tax if NO exemption claimed (for comparison)
-  const tNoLcge = computeTax(jur, { ordinary: otherIncome, capGains: totalGain, withPayroll: false });
-  const taxNoLcge = Math.max(0, tNoLcge.total - t0.total);
+  const taxNoLcge = perOwnerTax(totalGain);
 
   // ---- Option B: intergenerational ROLLOVER to a child at cost (tax-deferred) ----
   // Transfer at an elected amount between ACB and FMV; default = ACB -> $0 tax now.

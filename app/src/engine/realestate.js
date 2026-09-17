@@ -1,103 +1,52 @@
 // ============================================================
 // Real estate / rental property analysis engine
+//   • Canadian mortgage math (semi-annual compounding by default)
+//   • exact yearly interest / principal from the shared amortizer
+//   • CCA (class 1) with half-year rule, recapture on sale
+//   • AFTER-TAX result: recapture at the marginal rate, capital gain
+//     at the inclusion rate, selling costs — and a true IRR on the
+//     equity cash flows (pre-tax and after-tax).
 // ============================================================
 import { t } from '../i18n.js';
-import { cleanse, fin } from './util.js';
+import { cleanse } from './util.js';
+import { monthlyPayment, effectiveMonthlyRate, irr } from './amortization.js';
+
+const fin = (v, d = 0) => (Number.isFinite(+v) ? +v : d);
 
 /**
- * Compute standard monthly mortgage payment (fixed-rate amortization).
- * Returns 0 if loanAmount <= 0 or rate <= 0 but amort > 0.
- */
-function monthlyMortgagePayment(loanAmount, annualRate, amortYears) {
-  if (loanAmount <= 0) return 0;
-  if (annualRate <= 0) return amortYears > 0 ? loanAmount / (amortYears * 12) : 0;
-  const r = annualRate / 12;
-  const n = amortYears * 12;
-  return loanAmount * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-}
-
-/**
- * Remaining mortgage balance after k months of payments.
- */
-function remainingBalance(loanAmount, annualRate, amortYears, months) {
-  if (loanAmount <= 0) return 0;
-  if (annualRate <= 0) {
-    const n = amortYears * 12;
-    return Math.max(0, loanAmount * (1 - months / n));
-  }
-  const r = annualRate / 12;
-  const n = amortYears * 12;
-  return loanAmount * (Math.pow(1 + r, n) - Math.pow(1 + r, months)) / (Math.pow(1 + r, n) - 1);
-}
-
-/**
- * Annual mortgage interest paid in year y (1-indexed).
- * Computes the total interest between month (y-1)*12 and y*12.
- */
-function annualInterest(loanAmount, annualRate, amortYears, year) {
-  if (loanAmount <= 0 || annualRate <= 0) return 0;
-  const r = annualRate / 12;
-  const monthlyPmt = monthlyMortgagePayment(loanAmount, annualRate, amortYears);
-  const startMonth = (year - 1) * 12;
-  const endMonth = year * 12;
-  const maxMonth = amortYears * 12;
-  let totalInterest = 0;
-  for (let m = startMonth + 1; m <= Math.min(endMonth, maxMonth); m++) {
-    const bal = remainingBalance(loanAmount, annualRate, amortYears, m - 1);
-    if (bal <= 0) break;
-    totalInterest += bal * r;
-  }
-  return totalInterest;
-}
-
-/**
- * Simple annualized return from total return over holdYears.
- * Uses: (1 + totalReturn)^(1/holdYears) - 1
- */
-function annualizedReturn(totalReturn, holdYears) {
-  if (!(holdYears > 0) || !Number.isFinite(totalReturn)) return 0;
-  if (1 + totalReturn <= 0) return -1; // a >100% loss -> ~ -100% annualized (avoid NaN from pow of negative base)
-  return Math.pow(1 + totalReturn, 1 / holdYears) - 1;
-}
-
-/**
- * Analyze a rental / investment real estate property.
- *
  * @param {object} p
- * @param {number} p.price           Purchase price
- * @param {number} p.downPct         Down payment as fraction (e.g. 0.20)
- * @param {number} p.rate            Annual mortgage rate (e.g. 0.055)
- * @param {number} p.amortYears      Amortization in years
- * @param {number} p.grossRent       Gross annual rent income
- * @param {number} p.vacancyPct      Vacancy rate fraction (e.g. 0.05)
- * @param {number} p.opexPct         Operating expenses as fraction of gross rent (e.g. 0.35)
- * @param {number} p.appreciation    Annual property appreciation rate (e.g. 0.03)
- * @param {number} p.rentGrowth      Annual rent growth rate (e.g. 0.02)
- * @param {number} p.marginalRate    Investor marginal income tax rate (e.g. 0.46)
- * @param {number} [p.ccaRate=0.04]  CCA (depreciation) rate on building (e.g. 0.04)
- * @param {number} p.holdYears       Hold period in years
- *
- * @returns {object} Rich metrics + yearly series
+ *   price, downPct, rate, amortYears, grossRent (annual), vacancyPct, opexPct (of gross rent),
+ *   appreciation, rentGrowth, marginalRate (full ordinary marginal), capGainsInclusion (0.5 CA),
+ *   ccaRate (0.04), buildingPct (0.80), sellingCostPct (0.05), closingCostPct (0.015),
+ *   holdYears, compounding ('semi-annual' | 'monthly'), claimCCA (bool)
  */
 export function analyzeProperty(p) {
   p = cleanse(p);
-  const price        = Math.max(0, p.price        || 0);
-  const downPct      = Math.min(1, Math.max(0, p.downPct      ?? 0.20));
-  const rate         = Math.max(0, p.rate         ?? 0.055);
-  const amortYears   = Math.max(1, p.amortYears   || 25);
-  const grossRent    = Math.max(0, p.grossRent    || 0);
-  const vacancyPct   = Math.min(1, Math.max(0, p.vacancyPct   ?? 0.05));
-  const opexPct      = Math.min(1, Math.max(0, p.opexPct      ?? 0.35));
+  const price        = Math.max(0, p.price || 0);
+  const downPct      = Math.min(1, Math.max(0, p.downPct ?? 0.20));
+  const rate         = Math.max(0, p.rate ?? 0.055);
+  const amortYears   = Math.max(1, p.amortYears || 25);
+  const grossRent    = Math.max(0, p.grossRent || 0);
+  const vacancyPct   = Math.min(1, Math.max(0, p.vacancyPct ?? 0.05));
+  const opexPct      = Math.min(1, Math.max(0, p.opexPct ?? 0.35));
   const appreciation = p.appreciation ?? 0.03;
-  const rentGrowth   = p.rentGrowth   ?? 0.02;
+  const rentGrowth   = p.rentGrowth ?? 0.02;
   const marginalRate = Math.min(1, Math.max(0, p.marginalRate ?? 0.46));
-  const ccaRate      = Math.max(0, p.ccaRate      ?? 0.04);
+  const inclusion    = Math.min(1, Math.max(0, p.capGainsInclusion ?? 0.5));
+  const ccaRate      = Math.max(0, p.ccaRate ?? 0.04);
+  const buildingPct  = Math.min(1, Math.max(0, p.buildingPct ?? 0.80));
+  const sellingCostPct = Math.min(0.2, Math.max(0, p.sellingCostPct ?? 0.05));
+  const closingCostPct = Math.min(0.1, Math.max(0, p.closingCostPct ?? 0.015));
   const holdYears    = Math.max(1, Math.min(50, p.holdYears || 10));
+  const compounding  = p.compounding || 'semi-annual';
+  const claimCCA     = p.claimCCA !== false;
 
-  // ---- Purchase metrics ---------------------------------------------------
+  // ---- Purchase metrics ----
   const downPayment   = price * downPct;
+  const closingCosts  = price * closingCostPct;
   const loanAmount    = price - downPayment;
-  const monthlyMortgage = monthlyMortgagePayment(loanAmount, rate, amortYears);
+  const i             = effectiveMonthlyRate(rate, compounding);
+  const monthlyMortgage = monthlyPayment(loanAmount, rate, amortYears, compounding);
   const annualDebtService = monthlyMortgage * 12;
 
   // Year-1 income statement
@@ -105,111 +54,76 @@ export function analyzeProperty(p) {
   const operatingExpenses    = grossRent * opexPct;
   const noi                  = effectiveGrossIncome - operatingExpenses;
   const capRate              = price > 0 ? noi / price : 0;
-  const cfbt                 = noi - annualDebtService; // cash flow before tax
+  const cfbt                 = noi - annualDebtService;
   const cashOnCash           = downPayment > 0 ? cfbt / downPayment : 0;
   const dscr                 = annualDebtService > 0 ? noi / annualDebtService : Infinity;
 
-  // CCA base = building value (assume 80 % of price is building, land is not depreciable)
-  const buildingBase = price * 0.80;
-
-  // ---- Year-by-year projection --------------------------------------------
+  const buildingBase = price * buildingPct;
+  let ucc = buildingBase;                 // undepreciated capital cost
+  let balance = loanAmount;
   const series = [];
-  let cumCashFlow = 0;
+  let cumCashFlow = 0, cumCashFlowAfterTax = 0;
+  const cfPre = [-(downPayment + closingCosts)], cfPost = [-(downPayment + closingCosts)];
 
-  // CCA declining balance tracking (half-year rule in year 1 for CA)
-  let ccaUndepreciated = buildingBase * 0.50; // half-year rule opening balance
-
-  for (let y = 1, _n = Math.max(0, Math.min(60, Number(holdYears) || 0)); y <= _n; y++) {
-    const growthFactor  = Math.pow(1 + appreciation, y);
-    const rentFactor    = Math.pow(1 + rentGrowth, y - 1);
-
-    const value         = price * growthFactor;
-    const balance       = Math.max(0, remainingBalance(loanAmount, rate, amortYears, y * 12));
-    const equity        = value - balance;
-
-    // Income for this year
+  for (let y = 1; y <= holdYears; y++) {
+    const value = price * Math.pow(1 + appreciation, y);
+    // exact monthly amortization for the year
+    let yearInterest = 0, yearPrincipal = 0;
+    for (let m = 0; m < 12 && balance > 0; m++) { const int = balance * i; const due = Math.min(monthlyMortgage, balance + int); const pr = Math.max(0, due - int); yearInterest += int; yearPrincipal += pr; balance = Math.max(0, balance - pr); }
+    const equity = value - balance;
+    const rentFactor = Math.pow(1 + rentGrowth, y - 1);
     const yearGrossRent = grossRent * rentFactor;
-    const yearEGI       = yearGrossRent * (1 - vacancyPct);
-    const yearOpex      = yearGrossRent * opexPct;
-    const yearNOI       = yearEGI - yearOpex;
-    const yearInterest  = annualInterest(loanAmount, rate, amortYears, y);
-    const yearPrincipal = Math.max(0, Math.min(annualDebtService - yearInterest, loanAmount - Math.max(0, remainingBalance(loanAmount, rate, amortYears, y * 12))));
-    const cashFlow      = yearNOI - annualDebtService;
-    cumCashFlow        += cashFlow;
-
-    // CCA for this year (declining balance)
-    const ccaThisYear   = ccaUndepreciated * ccaRate;
-    ccaUndepreciated    = Math.max(0, ccaUndepreciated - ccaThisYear);
-    // Add back half-year basis in year 2 (second half of first-year addition)
-    if (y === 1) ccaUndepreciated += buildingBase * 0.50;
-
-    // Taxable income (for informational purposes — not factored into cashFlow)
-    const taxableIncome = yearNOI - yearInterest - ccaThisYear;
-
-    series.push({
-      year: y,
-      value        : Math.round(value),
-      balance      : Math.round(balance),
-      equity       : Math.round(equity),
-      cashFlow     : Math.round(cashFlow),
-      cumCashFlow  : Math.round(cumCashFlow),
-      yearNOI      : Math.round(yearNOI),
-      yearInterest : Math.round(yearInterest),
-      yearDebtSvc  : Math.round(annualDebtService),
-      yearCCA      : Math.round(ccaThisYear),
-      taxableIncome: Math.round(taxableIncome),
-    });
+    const yearEGI = yearGrossRent * (1 - vacancyPct);
+    const yearOpex = yearGrossRent * opexPct;
+    const yearNOI = yearEGI - yearOpex;
+    const cashFlow = yearNOI - (yearInterest + yearPrincipal);
+    cumCashFlow += cashFlow;
+    // CCA: half-year rule in year 1; cannot create a rental loss
+    const incomeBeforeCCA = yearNOI - yearInterest;
+    let ccaThisYear = 0;
+    if (claimCCA && incomeBeforeCCA > 0 && ucc > 0) ccaThisYear = Math.min(incomeBeforeCCA, ucc * ccaRate * (y === 1 ? 0.5 : 1));
+    ucc = Math.max(0, ucc - ccaThisYear);
+    const taxableIncome = incomeBeforeCCA - ccaThisYear;
+    const taxThisYear = Math.max(0, taxableIncome) * marginalRate;   // rental losses assumed deductible against other income at the same rate
+    const taxSaving = taxableIncome < 0 ? -taxableIncome * marginalRate : 0;
+    const cashFlowAfterTax = cashFlow - taxThisYear + taxSaving;
+    cumCashFlowAfterTax += cashFlowAfterTax;
+    series.push({ year: y, value: Math.round(value), balance: Math.round(balance), equity: Math.round(equity), cashFlow: Math.round(cashFlow), cashFlowAfterTax: Math.round(cashFlowAfterTax), cumCashFlow: Math.round(cumCashFlow), yearNOI: Math.round(yearNOI), yearInterest: Math.round(yearInterest), yearPrincipal: Math.round(yearPrincipal), yearDebtSvc: Math.round(yearInterest + yearPrincipal), yearCCA: Math.round(ccaThisYear), taxableIncome: Math.round(taxableIncome), tax: Math.round(taxThisYear - taxSaving), grossRent: Math.round(yearGrossRent) });
+    cfPre.push(cashFlow); cfPost.push(cashFlowAfterTax);
   }
 
-  // ---- Sale metrics -------------------------------------------------------
-  const lastRow     = series[series.length - 1];
-  const saleValue   = lastRow.value;
-  const finalBalance = lastRow.balance;
-  const finalEquity  = lastRow.equity;
-
-  // Capital gain = saleValue - original price (simplified, no selling costs)
-  const capitalGain  = Math.max(0, saleValue - price);
-  // CCA recapture = original building base - remaining UCC (if UCC < building base)
-  const totalCCAused = buildingBase - ccaUndepreciated;
-  const ccaRecapture = Math.max(0, Math.min(totalCCAused, saleValue * 0.80 - ccaUndepreciated));
-
-  // Total profit: net sale proceeds + cumulative cash flow - down payment
-  const saleProceeds = finalEquity; // saleValue - remaining mortgage
-  const totalProfit  = saleProceeds + cumCashFlow - downPayment;
-  const simpleTotal  = downPayment > 0 ? totalProfit / downPayment : 0;
-  const annReturn    = annualizedReturn(simpleTotal, holdYears);
+  // ---- Sale metrics ----
+  const last = series[series.length - 1];
+  const saleValue = last.value;
+  const sellingCosts = saleValue * sellingCostPct;
+  const capitalGain = Math.max(0, saleValue - sellingCosts - price - closingCosts);
+  const totalCCAused = buildingBase - ucc;
+  const ccaRecapture = Math.min(totalCCAused, Math.max(0, Math.min(saleValue * buildingPct, buildingBase) - ucc));
+  const taxOnGain = capitalGain * inclusion * marginalRate;
+  const taxOnRecapture = ccaRecapture * marginalRate;
+  const netSaleProceeds = saleValue - sellingCosts - last.balance;
+  const netSaleProceedsAfterTax = netSaleProceeds - taxOnGain - taxOnRecapture;
+  const totalProfit = netSaleProceeds + cumCashFlow - downPayment - closingCosts;
+  const totalProfitAfterTax = netSaleProceedsAfterTax + cumCashFlowAfterTax - downPayment - closingCosts;
+  cfPre[cfPre.length - 1] += netSaleProceeds;
+  cfPost[cfPost.length - 1] += netSaleProceedsAfterTax;
+  const annReturn = irr(cfPre);
+  const annReturnAfterTax = irr(cfPost);
 
   return {
-    // Purchase
-    price,
-    downPayment  : Math.round(downPayment),
-    loanAmount   : Math.round(loanAmount),
-    monthlyMortgage: Math.round(monthlyMortgage),
-    annualDebtService: Math.round(annualDebtService),
-
-    // Year-1 income statement
-    effectiveGrossIncome: Math.round(effectiveGrossIncome),
-    operatingExpenses   : Math.round(operatingExpenses),
-    noi                 : Math.round(noi),
-    cfbt                : Math.round(cfbt),
-    monthlyNetCashFlow  : Math.round(cfbt / 12),
-
-    // Ratios
-    capRate,
-    cashOnCash,
-    dscr: isFinite(dscr) ? dscr : 999,
-
-    // Sale
-    saleValue    : Math.round(saleValue),
-    capitalGain  : Math.round(capitalGain),
-    ccaRecapture : Math.round(ccaRecapture),
-    totalCCAused : Math.round(totalCCAused),
-    finalEquity  : Math.round(finalEquity),
-    cumCashFlow  : Math.round(cumCashFlow),
-    totalProfit  : Math.round(totalProfit),
-    annReturn,
-
-    // Series
+    price, downPayment: Math.round(downPayment), closingCosts: Math.round(closingCosts), loanAmount: Math.round(loanAmount),
+    monthlyMortgage: Math.round(monthlyMortgage), annualDebtService: Math.round(annualDebtService), compounding,
+    grossRent: Math.round(grossRent), effectiveGrossIncome: Math.round(effectiveGrossIncome), operatingExpenses: Math.round(operatingExpenses),
+    noi: Math.round(noi), cfbt: Math.round(cfbt), monthlyNetCashFlow: Math.round(cfbt / 12),
+    capRate, cashOnCash, dscr: isFinite(dscr) ? dscr : 999,
+    saleValue: Math.round(saleValue), sellingCosts: Math.round(sellingCosts), capitalGain: Math.round(capitalGain), ccaRecapture: Math.round(ccaRecapture), totalCCAused: Math.round(totalCCAused),
+    taxOnGain: Math.round(taxOnGain), taxOnRecapture: Math.round(taxOnRecapture), taxOnSale: Math.round(taxOnGain + taxOnRecapture),
+    finalEquity: Math.round(saleValue - last.balance), netSaleProceeds: Math.round(netSaleProceeds), netSaleProceedsAfterTax: Math.round(netSaleProceedsAfterTax),
+    cumCashFlow: Math.round(cumCashFlow), cumCashFlowAfterTax: Math.round(cumCashFlowAfterTax),
+    totalProfit: Math.round(totalProfit), totalProfitAfterTax: Math.round(totalProfitAfterTax),
+    annReturn, annReturnAfterTax,
     series,
+    note: t('Rendement = TRI des flux nets sur la mise de fonds (avant et après impôt : récupération de la DPA au taux marginal, gain en capital au taux d’inclusion, frais de vente).',
+      'Return = IRR of the equity cash flows (pre- and after-tax: CCA recapture at the marginal rate, capital gain at the inclusion rate, selling costs).'),
   };
 }

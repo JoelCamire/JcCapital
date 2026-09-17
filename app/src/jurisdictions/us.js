@@ -1,27 +1,30 @@
 // ============================================================
-// UNITED STATES — Federal + state tax law (2025, single filer base)
+// UNITED STATES — Federal + state tax law (2026, single filer base)
 // All figures USD. A filingStatus multiplier widens brackets for MFJ.
+// 2026 figures reflect the OBBBA (July 2025) permanent extension of
+// the TCJA brackets and the enlarged standard deduction.
 // ============================================================
 
 const US_FED = {
-  brackets: [
-    { upTo: 11925, rate: 0.10 },
-    { upTo: 48475, rate: 0.12 },
-    { upTo: 103350, rate: 0.22 },
-    { upTo: 197300, rate: 0.24 },
-    { upTo: 250525, rate: 0.32 },
-    { upTo: 626350, rate: 0.35 },
+  brackets: [                                   // 2026 (IRS Rev. Proc. 2025-32)
+    { upTo: 12400, rate: 0.10 },
+    { upTo: 50400, rate: 0.12 },
+    { upTo: 105700, rate: 0.22 },
+    { upTo: 201775, rate: 0.24 },
+    { upTo: 256225, rate: 0.32 },
+    { upTo: 640600, rate: 0.35 },
     { upTo: null, rate: 0.37 },
   ],
-  standardDeduction: { single: 15000, married: 30000 },
-  // Long-term capital gains brackets (single)
+  standardDeduction: { single: 16100, married: 32200 },
+  // Long-term capital gains brackets (single), 2026
   ltcg: [
-    { upTo: 48350, rate: 0.0 },
-    { upTo: 533400, rate: 0.15 },
+    { upTo: 49450, rate: 0.0 },
+    { upTo: 545500, rate: 0.15 },
     { upTo: null, rate: 0.20 },
   ],
   niit: { rate: 0.038, threshold: 200000 }, // net investment income tax
   capGainsInclusion: 1.0, // short-term taxed as ordinary; LTCG via ltcg table
+  estate: { exemption: 15000000, rate: 0.40 },  // 2026 (OBBBA), indexed after 2026
 };
 
 const STATES = {
@@ -49,19 +52,19 @@ const STATES = {
 };
 
 const PAYROLL = {
-  socialSecurity: { rate: 0.062, wageBase: 176100 },
+  socialSecurity: { rate: 0.062, wageBase: 184500 },   // 2026 wage base
   medicare: { rate: 0.0145, additional: { rate: 0.009, threshold: 200000 } },
 };
 
 const ACCOUNTS = [
   { id: '401k', name: '401(k)', long: 'Employer 401(k)', treatment: 'deferred',
-    limit: 23500, catchup: 7500, catchupAge: 50, note: 'Pre-tax. Taxed on withdrawal. RMD at 73.' },
+    limit: 24500, catchup: 8000, catchupAge: 50, note: 'Pre-tax. Taxed on withdrawal. RMD at 73.' },     // 2026
   { id: 'ira', name: 'Traditional IRA', long: 'Individual Retirement Account', treatment: 'deferred',
-    limit: 7000, catchup: 1000, catchupAge: 50, note: 'Pre-tax (income limits). Taxed on withdrawal.' },
+    limit: 7500, catchup: 1100, catchupAge: 50, note: 'Pre-tax (income limits). Taxed on withdrawal.' },
   { id: 'roth', name: 'Roth IRA', long: 'Roth IRA', treatment: 'taxfree',
-    limit: 7000, catchup: 1000, catchupAge: 50, note: 'After-tax. Tax-free growth & qualified withdrawals.' },
+    limit: 7500, catchup: 1100, catchupAge: 50, note: 'After-tax. Tax-free growth & qualified withdrawals.' },
   { id: 'hsa', name: 'HSA', long: 'Health Savings Account', treatment: 'taxfree',
-    limit: 4300, family: 8550, note: 'Triple tax advantage for medical expenses.' },
+    limit: 4400, family: 8750, note: 'Triple tax advantage for medical expenses.' },
   { id: '529', name: '529 Plan', long: '529 Education Savings', treatment: 'education',
     note: 'Tax-free growth for qualified education expenses.' },
   { id: 'nonreg', name: 'Brokerage', long: 'Taxable brokerage account', treatment: 'taxable',
@@ -76,6 +79,7 @@ const RMD_MIN = Object.fromEntries(Object.entries(RMD_DIV).map(([a, d]) => [a, +
 
 const US = {
   country: 'US', name: 'États-Unis', flag: '🇺🇸', currency: 'USD', locale: 'en-US',
+  taxYear: 2026,
   regionLabel: 'État', regions: Object.fromEntries(Object.entries(STATES).map(([k, v]) => [k, v.name])),
   defaultRegion: 'CA',
   capGainsInclusion: 1.0,
@@ -84,19 +88,20 @@ const US = {
     taxAdvantaged: '401(k)', taxFree: 'Roth IRA', education: '529 Plan',
   },
   pensions: {
-    cpp: { name: 'Social Security', maxAnnual: 48216, avgAnnual: 22884, startAge: 67, defer: 0.08, early: -0.067 },
-    oas: { name: 'Medicare (âge 65)', maxAnnual: 0, startAge: 65 },
+    cpp: { name: 'Social Security', maxAnnual: 49440, avgAnnual: 24000, startAge: 67, minAge: 62, maxAge: 70, defer: 0.08, early: -0.067 },
+    oas: { name: 'Medicare (âge 65)', maxAnnual: 0, startAge: 65, minAge: 65, maxAge: 65 },
   },
   fed: US_FED, states: STATES, prov: STATES, payroll: PAYROLL, accounts: ACCOUNTS, rrifMin: RMD_MIN,
   filingStatusWidth: { single: 1, married: 2 },
   corporate: {
     structure: 'us',
     fedCorp: 0.21,                 // C-corp federal flat rate
-    qbiDeduction: 0.20,            // 199A pass-through deduction
+    qbiDeduction: 0.20,            // 199A pass-through deduction (made permanent, OBBBA)
     seTaxRate: 0.153,              // self-employment tax (SS+Medicare)
-    seWageBase: 176100,
+    seWageBase: 184500,
     stateCorp: { CA: 0.0884, NY: 0.0725, TX: 0, FL: 0.055, WA: 0 },
   },
+  estate: US_FED.estate,
 };
 
 export default US;

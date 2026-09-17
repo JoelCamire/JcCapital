@@ -3,29 +3,38 @@
 // Ceasing Canadian residency triggers a deemed disposition of most
 // property at FMV. Excluded: Canadian real property, RRSP/RRIF,
 // pensions, and property of a Canadian business PE.
+// Tax is EXACT when `jur` and `otherIncome` are supplied (the deemed
+// gain is stacked on the departure-year income through the tax engine).
 // ============================================================
 import { t } from '../i18n.js';
-import { cleanse, fin } from './util.js';
+import { cleanse } from './util.js';
+import { computeTax } from './tax.js';
 
 /**
  * p = { portfolioFMV, portfolioACB, realEstateFMV, rrspValue, privateCoFMV,
- *       privateCoACB, marginalRate }
+ *       privateCoACB, marginalRate (full ordinary marginal), otherIncome, age }
  */
-export function departureTax(p) {
+export function departureTax(p, jur = null) {
   p = cleanse(p);
   const { portfolioFMV = 0, portfolioACB = 0, realEstateFMV = 0,
-    rrspValue = 0, privateCoFMV = 0, privateCoACB = 0, marginalRate = 0.26 } = p;
+    rrspValue = 0, privateCoFMV = 0, privateCoACB = 0, marginalRate = 0.50, otherIncome = null, age = 45 } = p;
+  const inclusion = jur && jur.capGainsInclusion != null ? jur.capGainsInclusion : 0.5;
 
-  // Deemed disposition applies to non-registered portfolio and private shares.
   const portfolioGain = Math.max(0, portfolioFMV - portfolioACB);
   const privateGain = Math.max(0, privateCoFMV - privateCoACB);
   const deemedGain = portfolioGain + privateGain;
-  const taxableGain = deemedGain * 0.5;                       // 50% inclusion
-  const tax = taxableGain * marginalRate;                     // tax on the deemed gain
+  const taxableGain = deemedGain * inclusion;
+  let tax, method;
+  if (jur && otherIncome != null && Number.isFinite(+otherIncome)) {
+    const t0 = computeTax(jur, { ordinary: +otherIncome, withPayroll: false, employment: false, age });
+    const t1 = computeTax(jur, { ordinary: +otherIncome, capGains: deemedGain, withPayroll: false, employment: false, age });
+    tax = Math.max(0, t1.total - t0.total); method = 'exact';
+  } else { tax = taxableGain * marginalRate; method = 'marginal'; }
 
-  const excluded = realEstateFMV + rrspValue;                 // not subject to departure tax
+  const excluded = realEstateFMV + rrspValue;
   return {
-    deemedGain, taxableGain, tax,
+    deemedGain, taxableGain, tax, method, inclusion,
+    effectiveRateOnGain: deemedGain > 0 ? tax / deemedGain : 0,
     excludedFromDeparture: excluded,
     realEstateFMV, rrspValue,
     canDeferWithSecurity: true,

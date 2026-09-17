@@ -8,8 +8,12 @@
 // ============================================================
 import { t } from '../i18n.js';
 import { cleanse } from './util.js';
+import CA from '../jurisdictions/ca.js';
 
-const LCGE = 1250000; // lifetime capital gains exemption per individual, 2025
+/** LCGE from the jurisdiction (single source of truth), falling back to the Canadian value. */
+const lcgeOf = (jur) => (jur && jur.corporate && jur.corporate.lcge) || CA.corporate.lcge;
+const inclusionOf = (jur) => (jur && jur.capGainsInclusion != null) ? jur.capGainsInclusion : CA.capGainsInclusion;
+const fin = (v, d = 0) => (Number.isFinite(+v) ? +v : d);
 
 /**
  * Two-tier Holdco analysis: how much passive cash/investments should move
@@ -34,18 +38,19 @@ export function holdcoAnalysis(p) {
  * Estate freeze + family trust: freeze today's value to the founder, grow
  * future value in a trust whose beneficiaries each claim their own LCGE.
  */
-export function estateFreezeLCGE(p) {
-  const { currentValue = 0, futureValue = 0, beneficiaries = 1, marginalRate = 0.26 } = cleanse(p);
+export function estateFreezeLCGE(p, jur = null) {
+  const { currentValue = 0, futureValue = 0, beneficiaries = 1, marginalRate = 0.50 } = cleanse(p);
+  const LCGE = lcgeOf(jur);
   const growth = Math.max(0, futureValue - currentValue);
   const lcgeTotal = beneficiaries * LCGE;
   const exemptWithFreeze = Math.min(growth, lcgeTotal);
   const exemptSingle = Math.min(growth, LCGE);
   const extraExemption = exemptWithFreeze - exemptSingle;     // captured by multiplication
-  const inclusion = 0.5;
-  const taxSaved = extraExemption * inclusion * marginalRate; // effective tax on cap gains ≈ marginal/2
+  const inclusion = inclusionOf(jur);
+  const taxSaved = extraExemption * inclusion * marginalRate;
   const taxableGrowth = Math.max(0, growth - exemptWithFreeze);
   return {
-    growth, beneficiaries, lcge: LCGE, lcgeTotal,
+    growth, beneficiaries, lcge: LCGE, lcgeTotal, inclusion,
     exemptWithFreeze, exemptSingle, extraExemption, taxableGrowth, taxSaved,
   };
 }
@@ -53,9 +58,12 @@ export function estateFreezeLCGE(p) {
 /**
  * RCA: corp contributes for the owner; 50% goes to a refundable tax account,
  * 50% is invested. Contribution is deductible to the corp.
+ * corpRate defaults to the jurisdiction's combined small-business rate.
  */
-export function rcaAnalysis(p) {
-  const { contribution = 0, corpRate = 0.122, years = 10, returnRate = 0.05 } = cleanse(p);
+export function rcaAnalysis(p, jur = null) {
+  const c = cleanse(p);
+  const corpRate = fin(c.corpRate, jur ? (fin(jur.corporate?.fedSB, 0.09) + fin(jur.regionData?.provSB, 0.032)) : 0.122);
+  const { contribution = 0, years = 10, returnRate = 0.05 } = c;
   const toInvest = contribution * 0.5;
   const toRTA = contribution * 0.5;                           // refundable to corp as benefits are paid
   const corpDeductionSaving = contribution * corpRate;
@@ -77,8 +85,10 @@ export function rcaAnalysis(p) {
  * interest is attributed back, the excess return is taxed in low-income hands.
  * Saving/yr = loan*(return − prescribed)*(highMarg − lowMarg).
  */
-export function prescribedRateLoan(p) {
-  const { loan = 0, returnRate = 0.06, prescribedRate = 0.04, highMarg = 0.5, lowMarg = 0.25, years = 10 } = cleanse(p);
+export function prescribedRateLoan(p, jur = null) {
+  const c = cleanse(p);
+  const prescribedRate = fin(c.prescribedRate, fin(jur?.prescribedRate, CA.prescribedRate));
+  const { loan = 0, returnRate = 0.06, highMarg = 0.5, lowMarg = 0.25, years = 10 } = c;
   const annualReturn = loan * returnRate;
   const annualInterest = loan * prescribedRate;
   const splitIncome = Math.max(0, annualReturn - annualInterest);

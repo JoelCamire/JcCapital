@@ -31,7 +31,7 @@ export function projectLTC(p) {
   let totalCost = 0; const series = [];
   for (let i = 0, _n = Math.max(0, Math.min(60, Number(durationYears) || 0)); i < _n; i++) {
     const c = _cost * Math.pow(1 + _hi, yearsToOnset + i);
-    totalCost += c; series.push({ age: onsetAge + i, cost: c });
+    totalCost += c; series.push({ age: _ons + i, cost: c });
   }
 
   // Insurance: premiums paid from now until end of care; benefit offsets cost
