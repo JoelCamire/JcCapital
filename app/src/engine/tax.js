@@ -315,7 +315,10 @@ export function afterTaxWithdrawal(jur, amount, otherOrdinary = 0, opts = {}) {
  * Returns { gross, tax, net } with gross ≤ maxGross.
  */
 export function grossUpForNet(jur, netNeeded, otherOrdinary = 0, maxGross = Infinity, opts = {}) {
-  if (!(netNeeded > 0)) return { gross: 0, tax: 0, net: 0 };
+  netNeeded = Number.isFinite(+netNeeded) ? +netNeeded : 0;
+  otherOrdinary = Number.isFinite(+otherOrdinary) ? Math.max(0, +otherOrdinary) : 0;
+  maxGross = Number.isFinite(+maxGross) ? Math.max(0, +maxGross) : Infinity;
+  if (!(netNeeded > 0) || maxGross <= 0) return { gross: 0, tax: 0, net: 0 };
   const t0 = computeTax(jur, { ordinary: otherOrdinary, withPayroll: false, employment: false, ...opts }).total;
   const netOf = (g) => g - (computeTax(jur, { ordinary: otherOrdinary + g, withPayroll: false, employment: false, ...opts }).total - t0);
   let hi = Math.min(maxGross, netNeeded * 2.5 + 1000), lo = 0;

@@ -226,8 +226,9 @@ function buildJurisdictionPill() {
     ...COUNTRY_LIST.map(x => h('option', { value: x.code, selected: x.code === c.jurisdiction.country }, `${x.flag} ${x.name}`)));
   const regionSel = h('select', { onChange: e => store.setJurisdiction(c.jurisdiction.country, e.target.value) },
     ...Object.entries(jur.regions).map(([k, v]) => h('option', { value: k, selected: k === c.jurisdiction.region }, v)));
-  return h('div', { class: 'juris-pill', title: t('Juridiction de planification', 'Planning jurisdiction') },
-    h('span', { class: 'flag' }, jur.flag), countrySel, h('span', { class: 'muted' }, '·'), regionSel);
+  return h('div', { class: 'juris-pill', title: t('Juridiction de planification — paramètres fiscaux de l’année indiquée', 'Planning jurisdiction — tax parameters of the year shown') },
+    h('span', { class: 'flag' }, jur.flag), countrySel, h('span', { class: 'muted' }, '·'), regionSel,
+    jur.taxYear ? h('span', { class: 'chip', style: { marginLeft: '6px', fontSize: '11px' }, title: t('Année des paramètres fiscaux en vigueur dans les calculs', 'Tax-parameter year used in every calculation') }, String(jur.taxYear)) : null);
 }
 
 function render() {

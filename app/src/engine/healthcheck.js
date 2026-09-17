@@ -10,6 +10,7 @@ import { treatmentOf } from './projection.js';
 import { netWorthBreakdown, lifeInsuranceNeeds, disabilityNeeds } from './analysis.js';
 import { computeTax, bracketMarginal } from './tax.js';
 import { clientFacts } from './facts.js';
+import { integrityChecks } from './integrity.js';
 import { accountTypesFor } from '../jurisdictions/index.js';
 import { t } from '../i18n.js';
 
@@ -120,6 +121,14 @@ export function healthCheck(client, jur) {
     add(f, t('Mix salaire / dividende', 'Salary / dividend mix'), t('Revalidez chaque année la rémunération optimale (REER, RRQ, CDC, fractionnement).', 'Re-check the optimal remuneration each year (RRSP, CPP, CDA, splitting).'), 'good');
     score = clamp(score);
     categories.push({ key: 'business', label: t('Entreprise', 'Business'), score, status: statusOf(score), findings: f });
+  }
+
+  // ---- Data integrity (coherence between every source of truth) ----
+  {
+    const I = integrityChecks(client, jur);
+    const f = I.findings.filter(x => x.severity !== 'info').slice(0, 6).map(x => ({ title: x.title, text: x.text || x.detail, severity: x.severity === 'error' ? 'risk' : 'warn', view: x.view }));
+    if (!f.length) add(f, t('Dossier cohérent', 'File is coherent'), t('Aucune contradiction entre les données saisies.', 'No contradiction between the entered data.'), 'good');
+    categories.push({ key: 'integrity', label: t('Cohérence du dossier', 'Data integrity'), score: I.score, status: statusOf(I.score), findings: f, infos: I.findings.filter(x => x.severity === 'info').length });
   }
 
   const overall = Math.round(categories.reduce((s, c) => s + c.score, 0) / categories.length);

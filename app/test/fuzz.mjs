@@ -8,7 +8,7 @@
 //   && node test/fuzz.mjs ; rm -f package.json
 // ============================================================
 const store = {}; globalThis.localStorage = { getItem: k => store[k] ?? null, setItem: (k, v) => store[k] = String(v), removeItem: k => delete store[k] };
-globalThis.document = { documentElement: {} };
+globalThis.document = { documentElement: {}, body: { dataset: {} } };
 
 const M = await import('../src/state/models.js');
 const { getJurisdiction } = await import('../src/jurisdictions/index.js');
@@ -31,6 +31,13 @@ const adv = await import('../src/engine/advstructures.js');
 const icmp = await import('../src/engine/insurancecompare.js');
 const re = await import('../src/engine/realestate.js');
 const phil = await import('../src/engine/philanthropy.js');
+const facts = await import('../src/engine/facts.js');
+const integrity = await import('../src/engine/integrity.js');
+const am = await import('../src/engine/amortization.js');
+const selfbiz = await import('../src/engine/selfbiz.js');
+const benefits = await import('../src/engine/benefits.js');
+const optimize = await import('../src/engine/optimize.js');
+const { normalize } = await import('../src/state/store.js');
 
 const SEED = 0xC0FFEE;
 let _s = SEED >>> 0;
@@ -63,7 +70,12 @@ function genClient(dirty) {
   for (let i = 0, n = ri(0, 4); i < n; i++) c.dependents.push(M.newDependent({ age: ri(0, 25), educationGoalAge: ri(16, 22) }));
   if (rnd() < 0.4) c.business = M.newBusiness({ ownerId: m0.id, activeIncome: dirty && rnd() < 0.4 ? dirt() : rf(0, 3000000), passiveIncome: rf(0, 400000), retainedEarnings: rf(0, 3000000), corpInvestments: rf(0, 2000000) });
   c.goals = rnd() < 0.7 ? [M.newGoal({ type: pick(['retirement', 'education', 'purchase']), amount: rf(0, 500000), targetAge: ri(18, 80) })] : [];
-  return c;
+  // policies & products (unified ledger) — sometimes dirty
+  if (rnd() < 0.6) c.products.push(M.newProduct({ kind: pick(['life', 'disability', 'ci', 'ltc', 'investment', 'segfund', 'annuity', 'health']), insuredId: rnd() < 0.8 ? m0.id : null, faceAmount: dirty && rnd() < 0.4 ? dirt() : rf(0, 2e6), aum: dirty && rnd() < 0.4 ? dirt() : rf(0, 1e6), premium: dirty && rnd() < 0.3 ? dirt() : rf(0, 20000), frequency: pick(['monthly', 'annual', 'single']), status: pick(['inforce', 'pending', 'lapsed', 'cancelled']) }));
+  if (rnd() < 0.3) c.insurance.push(M.newInsurance({ type: pick(['life', 'di', 'ci', 'ltc']), insuredId: m0.id, coverage: dirty && rnd() < 0.4 ? dirt() : rf(0, 1e6), premium: rf(0, 5000) }));
+  if (dirty && rnd() < 0.3) c.assumptions = { preReturn: dirt(), inflation: dirt(), spendingLevel: dirt(), mcTrials: dirt(), rriffConvertAge: 70 };
+  if (dirty && rnd() < 0.3) c.household = { maritalStatus: pick(['married', 'single', 'common-law', dirt()]) };
+  return normalize(c);
 }
 
 // bounded, cycle-safe finite scanner; skips large static jurisdiction blocks and echoed input objects
@@ -112,6 +124,22 @@ for (let n = 0; n < N; n++) {
   run('inscompare', () => icmp.compareLifeProducts(rnd() < 0.5 ? { coverage: rf(1e5, 5e6), currentAge: ri(20, 70), horizonAge: ri(60, 100), termPremium: rf(100, 5e3), wholePremium: rf(1e3, 3e4), t100Premium: rf(1e3, 2e4), investReturn: rf(0.02, 0.1) } : { coverage: dirt(), currentAge: dirt(), horizonAge: dirt(), termPremium: dirt(), wholePremium: dirt() }));
   run('realestate', () => re.analyzeProperty(rnd() < 0.5 ? { price: rf(1e5, 3e6), downPct: rf(0.05, 1), rate: rf(0.02, 0.1), amortYears: ri(5, 30), grossRent: rf(0, 2e5), vacancyPct: rf(0, 0.2), opexPct: rf(0, 0.5), appreciation: rf(0, 0.08), holdYears: ri(1, 40) } : { price: dirt(), rate: dirt(), holdYears: dirt(), grossRent: dirt() }));
   run('philanthropy', () => phil.charitableGift(jur, rnd() < 0.5 ? { amount: rf(1e3, 1e6), costBasis: rf(0, 1e6), marginalRate: rf(0.2, 0.55), donationCredit: rf(0.2, 0.55) } : { amount: dirt(), costBasis: dirt(), marginalRate: dirt(), donationCredit: dirt() }));
+  // ---- new foundation ----
+  run('facts', () => { const F = facts.clientFacts(c, jur); return { gross: F.household.grossIncome, tax: F.household.tax, net: F.household.netIncome, marg: F.household.marginalRate, exp: F.household.expenses, surplus: F.household.surplus, inv: F.investable, prem: F.premiums, aum: F.aum, members: F.members.map(m => ({ marg: m.marginal, room: m.rrspRoom })), liabs: F.liabilities.map(l => ({ pm: Number.isFinite(l.payoffMonths) ? l.payoffMonths : 0, ti: Number.isFinite(l.totalInterest) ? l.totalInterest : 0 })) }; });
+  run('retirementFacts', () => { const R = facts.retirementFacts(c, jur); return { t: R.taxableIncome, m: R.marginalRate, s: R.spending, f: R.finalNetWorth }; });
+  run('integrity', () => { const I = integrity.integrityChecks(c, jur); if (!(I.score >= 0 && I.score <= 100)) fails.push('integrity score out of range'); return { score: I.score, n: I.findings.length }; });
+  run('grossUp', () => { const g = tax.grossUpForNet(jur, rnd() < 0.5 ? rf(0, 2e5) : dirt(), rnd() < 0.5 ? rf(0, 2e5) : dirt(), rnd() < 0.5 ? rf(0, 5e5) : Infinity, { age: ri(50, 95) }); if (g.gross < 0 || g.net > g.gross + 1e-6) fails.push('grossUp inconsistent'); return g; });
+  run('amortize', () => { const r = am.amortize(rnd() < 0.5 ? rf(0, 2e6) : dirt(), rnd() < 0.5 ? rf(0, 0.2) : dirt(), rnd() < 0.5 ? rf(0, 2e4) : dirt(), 0, pick(['monthly', 'semi-annual'])); return { m: Number.isFinite(r.months) ? r.months : 0, u: r.unpayable ? 1 : 0 }; });
+  run('monthlyPayment', () => ({ p: am.monthlyPayment(rnd() < 0.5 ? rf(0, 2e6) : dirt(), rnd() < 0.5 ? rf(0, 0.2) : dirt(), rnd() < 0.5 ? ri(1, 40) : dirt(), 'semi-annual') }));
+  run('irr', () => ({ r: am.irr([-rf(1, 1e6), rf(0, 1e5), rf(0, 1e5), rf(0, 2e6)]) }));
+  run('rrifFactor', () => ({ f: tax.rrifMinFactor(jur, rnd() < 0.5 ? ri(50, 100) : dirt(), pick(['rrsp', 'rrif'])) }));
+  if (jur.country === 'CA') {
+    run('selfEmployed', () => selfbiz.selfEmployedAnalysis(jur, rnd() < 0.5 ? { netSelfEmployment: rf(0, 5e5), revenue: rf(0, 1e6), age: ri(20, 75) } : { netSelfEmployment: dirt(), revenue: dirt(), age: dirt() }));
+    run('incorporation', () => selfbiz.incorporationAnalysis(jur, rnd() < 0.5 ? { businessIncome: rf(0, 1e6), personalNeed: rf(0, 3e5), adminCost: rf(0, 1e4) } : { businessIncome: dirt(), personalNeed: dirt(), adminCost: dirt() }));
+    run('claiming', () => benefits.claimingAnalysis(jur.pensions.cpp, [60, 65, 70, dirt()], rnd() < 0.5 ? ri(60, 105) : dirt(), { base: rnd() < 0.5 ? rf(0, 2e4) : dirt(), discountRate: rf(0, 0.05) }));
+    run('splitting', () => optimize.incomeSplitting(c, jur, { atRetirement: rnd() < 0.5 }));
+    run('rrspVsTfsa', () => optimize.rrspVsTfsa(c, jur));
+  }
 }
 
 console.log(`\n===== JC Planner fuzz (seed 0x${SEED.toString(16)}) =====`);

@@ -46,7 +46,9 @@ export function runMonteCarlo(client, { trials = null, assumptions = null, seed 
   const det = runProjection(client, assumptions ? { assumptions } : {});
   const rows = det.rows;
   const N = rows.length;
-  const start = Math.max(0, rows[0].investable);
+  // rows[0].investable is the END of year 0; unwind that year to get the opening balance,
+  // so replaying (return, flow) for y = 0..N−1 reproduces the deterministic path exactly.
+  const start = Math.max(0, (rows[0].investable - rows[0].netFlow) / (1 + (Number.isFinite(rows[0].detReturn) ? rows[0].detReturn : 0)));
   const flow = rows.map(r => r.netFlow);
   const rand = rng(seed != null ? (seed >>> 0) : hashStr(String(client.id || 'x') + '|' + T + '|' + N));
 

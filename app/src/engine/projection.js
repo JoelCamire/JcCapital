@@ -147,71 +147,105 @@ export function runProjection(client, opts = {}) {
     }
 
     // ---------- Taxes (per member, exact) ----------
-    const byMember = {};
-    let totalTax = 0, oasClawback = 0, grossOrdinary = 0, grossIncome = 0, employmentIncome = 0, pensionIncome = 0, oasIncome = 0;
-    const ordinaryOf = {};
-    for (const m of members) {
+    const memberInputs = (m) => {
       const b = inc[m.id]; const age = ages[m.id];
       const emp = b.employment + b.self;
       const eligiblePension = b.pension + (age >= 65 ? b.rrif : 0);
       const ordinary = Math.max(0, emp + b.pension + b.cpp + b.other + b.rrif - deferredContrib[m.id]);
-      ordinaryOf[m.id] = ordinary;
-      const t = computeTax(jur, {
-        ordinary, employmentIncome: emp, selfEmployed: b.self > b.employment, pensionIncome: eligiblePension, oasIncome: b.oas,
-        age, employment: emp > 0, withPayroll: true, filingStatus: client.filingStatus,
-      });
-      byMember[m.id] = { ordinary, oasIncome: b.oas, tax: t.total, incomeTax: t.incomeTax, payroll: t.payroll, clawback: t.clawback, marginalRate: t.marginalRate, averageRate: t.averageRate, netIncome: t.netIncome, buckets: { ...b } };
-      totalTax += t.total; oasClawback += t.clawback; grossOrdinary += ordinary;
-      grossIncome += emp + b.pension + b.cpp + b.oas + b.other + b.rrif + b.nontaxable;
-      employmentIncome += emp; pensionIncome += b.pension + b.cpp; oasIncome += b.oas;
-    }
-    const afterTaxIncome = grossIncome - totalTax;
+      return { b, age, emp, eligiblePension, ordinary };
+    };
+    const taxOf = (m, adj = 0) => {
+      const { b, age, emp, eligiblePension, ordinary } = memberInputs(m);
+      return computeTax(jur, { ordinary: Math.max(0, ordinary + adj), employmentIncome: emp, selfEmployed: b.self > b.employment, pensionIncome: Math.max(0, eligiblePension + adj), oasIncome: b.oas, age, employment: emp > 0, withPayroll: true, filingStatus: client.filingStatus });
+    };
+    // Optimal pension income splitting (couples): up to 50 % of the higher earner's eligible
+    // pension income (RPP/annuity income, RRIF income from 65) moves to the spouse when it lowers the household tax.
+    const bestSplit = () => {
+      if (A.pensionSplitting === false || client.filingStatus !== 'married' || members.length < 2) return { amount: 0, from: null, to: null };
+      const a0 = memberInputs(members[0]), a1 = memberInputs(members[1]);
+      const hiIdx = a0.ordinary >= a1.ordinary ? 0 : 1;
+      const hi = members[hiIdx], lo = members[1 - hiIdx], H = hiIdx === 0 ? a0 : a1, L = hiIdx === 0 ? a1 : a0;
+      const maxT = Math.min(0.5 * H.eligiblePension, Math.max(0, (H.ordinary - L.ordinary) / 2));
+      if (maxT <= 100) return { amount: 0, from: null, to: null };
+      const taxWith = (tr) => taxOf(hi, -tr).total + taxOf(lo, tr).total;
+      let best = 0, bestTax = taxWith(0);
+      for (let k = 1; k <= 8; k++) { const tr = maxT * k / 8; const tx = taxWith(tr); if (tx < bestTax - 0.5) { best = tr; bestTax = tx; } }
+      return { amount: best, from: hi.id, to: lo.id };
+    };
+    const tallyTaxes = (split) => {
+      const byMember = {}; let total = 0, claw = 0, ord = 0;
+      for (const m of members) {
+        const adj = m.id === split.from ? -split.amount : m.id === split.to ? split.amount : 0;
+        const t = taxOf(m, adj); const { b, ordinary } = memberInputs(m);
+        byMember[m.id] = { ordinary: Math.max(0, ordinary + adj), oasIncome: b.oas, pensionSplit: adj, tax: t.total, incomeTax: t.incomeTax, payroll: t.payroll, clawback: t.clawback, marginalRate: t.marginalRate, averageRate: t.averageRate, netIncome: t.netIncome, buckets: { ...b } };
+        total += t.total; claw += t.clawback; ord += Math.max(0, ordinary + adj);
+      }
+      return { byMember, total, clawback: claw, grossOrdinary: ord };
+    };
+
+    let grossIncome = 0, employmentIncome = 0, pensionIncome = 0, oasIncome = 0;
+    for (const m of members) { const { b, emp } = memberInputs(m); grossIncome += emp + b.pension + b.cpp + b.oas + b.other + b.rrif + b.nontaxable; employmentIncome += emp; pensionIncome += b.pension + b.cpp; oasIncome += b.oas; }
+    const ordinaryOf = {}; for (const m of members) ordinaryOf[m.id] = memberInputs(m).ordinary;
+    // provisional taxes on the income known so far (no split yet — withdrawals are sized conservatively)
+    const pre = tallyTaxes({ amount: 0, from: null, to: null });
+    const afterTaxIncome = grossIncome - pre.total;
 
     // ---------- Cash-flow gap & decumulation ----------
     const need = expenses + debtPayments;
     let gap = need + contributions - afterTaxIncome;     // >0 ⇒ must withdraw to balance
     const wd = { taxable: 0, deferred: 0, taxfree: 0 };
     let withdrawalTax = 0, shortfall = 0;
+    const taxOptsOf = (ownerId) => { const age = ages[ownerId]; const b = inc[ownerId]; return { age, pensionIncome: b.pension + (age >= 65 ? b.rrif : 0), oasIncome: b.oas, filingStatus: client.filingStatus }; };
 
     if (gap > 0.5) {
-      for (const bucket of ['taxable', 'deferred', 'taxfree']) {
+      // 1) taxable accounts — capital-gains tax only on the realised fraction, solved exactly
+      for (const a of assets.filter(x => x.treat === 'taxable' && x.bal > 0)) {
         if (gap <= 0.5) break;
-        for (const a of assets.filter(x => x.treat === bucket && x.bal > 0)) {
-          if (gap <= 0.5) break;
-          const ownerId = a.owner; const m = byId[ownerId] || primary; const age = ages[ownerId];
-          const b = inc[ownerId];
-          const taxOpts = { age, pensionIncome: b.pension + (age >= 65 ? b.rrif : 0), oasIncome: b.oas, filingStatus: client.filingStatus };
-          if (bucket === 'deferred') {
-            const g = grossUpForNet(jur, gap, ordinaryOf[ownerId], a.bal, taxOpts);
-            if (g.gross <= 0) continue;
-            a.bal -= g.gross; wd.deferred += g.gross; withdrawalTax += g.tax; gap -= g.net;
-            ordinaryOf[ownerId] += g.gross; inc[ownerId].rrif += g.gross;
-          } else if (bucket === 'taxable') {
-            const gainFrac = a.bal > 0 ? clamp((a.bal - a.basis) / a.bal, 0, 1) : 0;
-            // exact capital-gains tax on the realised fraction, solved in two passes
-            let gross = Math.min(a.bal, gap);
-            for (let k = 0; k < 3; k++) {
-              const tax = gainFrac > 0 ? incrementalTaxCap(jur, gross * gainFrac, ordinaryOf[ownerId], taxOpts) : 0;
-              const net = gross - tax;
-              if (net >= gap - 0.5 || gross >= a.bal) { gross = Math.min(a.bal, gross); break; }
-              gross = Math.min(a.bal, gross + (gap - net) / Math.max(0.3, 1 - (gross > 0 ? tax / gross : 0)));
-            }
-            const tax = gainFrac > 0 ? incrementalTaxCap(jur, gross * gainFrac, ordinaryOf[ownerId], taxOpts) : 0;
-            a.bal -= gross; a.basis = Math.max(0, a.basis - gross * (1 - gainFrac));
-            wd.taxable += gross; withdrawalTax += tax; gap -= gross - tax;
-          } else {
-            const gross = Math.min(a.bal, gap);
-            a.bal -= gross; wd.taxfree += gross; gap -= gross;
-          }
+        const ownerId = a.owner; const taxOpts = taxOptsOf(ownerId);
+        const gainFrac = a.bal > 0 ? clamp((a.bal - a.basis) / a.bal, 0, 1) : 0;
+        let gross = Math.min(a.bal, gap);
+        for (let k = 0; k < 3; k++) {
+          const tax = gainFrac > 0 ? incrementalTaxCap(jur, gross * gainFrac, ordinaryOf[ownerId], taxOpts) : 0;
+          const net = gross - tax;
+          if (net >= gap - 0.5 || gross >= a.bal) { gross = Math.min(a.bal, gross); break; }
+          gross = Math.min(a.bal, gross + (gap - net) / Math.max(0.3, 1 - (gross > 0 ? tax / gross : 0)));
         }
+        const tax = gainFrac > 0 ? incrementalTaxCap(jur, gross * gainFrac, ordinaryOf[ownerId], taxOpts) : 0;
+        a.bal -= gross; a.basis = Math.max(0, a.basis - gross * (1 - gainFrac));
+        wd.taxable += gross; withdrawalTax += tax; gap -= gross - tax;
+      }
+      // 2) deferred accounts — always from the spouse with the LOWER income first, in chunks, exact tax each time
+      let guard = 0;
+      while (gap > 0.5 && guard++ < 80) {
+        const pool = assets.filter(x => x.treat === 'deferred' && x.bal > 0.5);
+        if (!pool.length) break;
+        pool.sort((p, q) => (ordinaryOf[p.owner] - ordinaryOf[q.owner]) || (q.bal - p.bal));
+        const a = pool[0]; const ownerId = a.owner;
+        const other = pool.find(x => x.owner !== ownerId);
+        let chunkNet = gap;
+        if (other) { const diff = ordinaryOf[other.owner] - ordinaryOf[ownerId]; chunkNet = Math.min(gap, Math.max(5000, diff * 0.65)); }
+        const g = grossUpForNet(jur, chunkNet, ordinaryOf[ownerId], a.bal, taxOptsOf(ownerId));
+        if (!(g.gross > 0)) { a.bal = 0; continue; }
+        a.bal -= g.gross; wd.deferred += g.gross; withdrawalTax += g.tax; gap -= g.net;
+        ordinaryOf[ownerId] += g.gross; inc[ownerId].rrif += g.gross;
+      }
+      // 3) tax-free accounts last
+      for (const a of assets.filter(x => x.treat === 'taxfree' && x.bal > 0)) {
+        if (gap <= 0.5) break;
+        const gross = Math.min(a.bal, gap); a.bal -= gross; wd.taxfree += gross; gap -= gross;
       }
       if (gap > 0.5 && primaryRetired) { shortfall = gap; if (firstShortfallAge == null) firstShortfallAge = primaryAge; }
-    } else if (gap < -0.5) {
-      const surplus = -gap;
-      const sink = assets.find(a => a.treat === 'taxable') || assets.find(a => a.treat === 'taxfree');
-      if (sink) { sink.bal += surplus; sink.basis += surplus; }
     }
-    totalTax += withdrawalTax;
+    // Final taxes on the year's complete income WITH the optimal pension split. The saving versus the
+    // provisional figures is cash that did not need to be withdrawn: it is swept with any surplus.
+    const split = bestSplit();
+    const finalTax = tallyTaxes(split);
+    const saving = Math.max(0, pre.total + withdrawalTax - finalTax.total);
+    const totalTax = finalTax.total;
+    const byMember = finalTax.byMember, oasClawback = finalTax.clawback, grossOrdinary = finalTax.grossOrdinary;
+    const pensionSplit = split.amount;
+    const sweep = (gap < -0.5 ? -gap : 0) + saving;
+    if (sweep > 0.5) { const sink = assets.find(a => a.treat === 'taxable') || assets.find(a => a.treat === 'taxfree'); if (sink) { sink.bal += sweep; sink.basis += sweep; } }
 
     // ---------- Balances & net worth ----------
     const bal = { deferred: 0, taxfree: 0, taxable: 0, education: 0, realestate: 0, corporate: 0 };
@@ -225,17 +259,18 @@ export function runProjection(client, opts = {}) {
     const detReturn = startInvestable > 0 ? investableGrowth / startInvestable : (primaryRetired ? A.postReturn : A.preReturn);
 
     const blended = computeTax(jur, { ordinary: grossOrdinary, withPayroll: false, employment: false, filingStatus: client.filingStatus });
+    const deflator = Math.pow(1 + A.inflation, -y);        // today's-dollar factor
 
     rows.push({
-      year, primaryAge, ages, primaryRetired,
-      employmentIncome, pensionIncome, oasIncome, investmentIncome, forced,
+      year, primaryAge, ages, primaryRetired, deflator,
+      employmentIncome, pensionIncome, oasIncome, investmentIncome, forced, pensionSplit,
       grossIncome, contributions, employerMatch, expenses, debtPayments, debtInterest,
-      tax: totalTax, incomeTaxAndPayroll: totalTax - oasClawback - withdrawalTax, withdrawalTax, oasClawback,
+      tax: totalTax, incomeTaxAndPayroll: totalTax - oasClawback, withdrawalTax, oasClawback,
       afterTaxIncome, taxableIncome: grossOrdinary,
       withdrawals: wd, totalWithdrawals: wd.taxable + wd.deferred + wd.taxfree + forced,
       shortfall, need, netFlow, detReturn,
       balances: bal, basisTaxable: basis.taxable, assetsTotal, liabilitiesTotal, investable,
-      netWorth: assetsTotal - liabilitiesTotal,
+      netWorth: assetsTotal - liabilitiesTotal, realNetWorth: (assetsTotal - liabilitiesTotal) * deflator, realInvestable: investable * deflator,
       marginalRate: blended.marginalRate, averageRate: grossIncome > 0 ? totalTax / grossIncome : 0,
       byMember,
     });
@@ -266,6 +301,8 @@ export function runProjection(client, opts = {}) {
       avgTaxRateRetire: retRow ? retRow.averageRate : null,
       totalLifetimeTax: rows.reduce((s, r) => s + r.tax, 0),
       totalOasClawback: rows.reduce((s, r) => s + r.oasClawback, 0),
+      totalPensionSplit: rows.reduce((s, r) => s + r.pensionSplit, 0),
+      realFinalNetWorth: finalRow.realNetWorth,
       retirementRow: retRow,
     },
   };

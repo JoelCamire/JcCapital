@@ -65,9 +65,11 @@ export function syncDerived(c) {
     }
     if (p.assetId) { const a = c.assets.find(x => x.id === p.assetId); if (a) p.aum = +a.value || 0; }
   }
-  // assumptions: fill defaults, fix legacy key
-  const A = { ...defaultAssumptions(), ...(c.assumptions || {}) };
-  if (A.rriffConvertAge != null) { if (A.rrifConvertAge == null) A.rrifConvertAge = A.rriffConvertAge; delete A.rriffConvertAge; }
+  // assumptions: fill defaults, fix legacy key (the legacy value wins when the new key was never set)
+  const raw = c.assumptions || {};
+  const A = { ...defaultAssumptions(), ...raw };
+  if (raw.rriffConvertAge != null && raw.rrifConvertAge == null) A.rrifConvertAge = raw.rriffConvertAge;
+  delete A.rriffConvertAge;
   c.assumptions = A;
   c.calc = c.calc || {};
   return c;

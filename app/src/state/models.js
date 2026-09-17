@@ -24,13 +24,15 @@ export function defaultAssumptions() {
     finalExpenses: 25000,
     diReplaceRate: 0.65,     // disability income replacement
     mcTrials: 1000,          // Monte Carlo trajectories (one number for the whole app)
+    pensionSplitting: true,  // couples: optimise pension income splitting every retirement year
   };
 }
 
 /** Planning-policy assumptions merged with defaults (tolerates legacy keys). */
 export function assumptionsOf(client) {
-  const A = { ...defaultAssumptions(), ...((client && client.assumptions) || {}) };
-  if (A.rriffConvertAge != null && A.rrifConvertAge == null) A.rrifConvertAge = A.rriffConvertAge;
+  const raw = (client && client.assumptions) || {};
+  const A = { ...defaultAssumptions(), ...raw };
+  if (raw.rriffConvertAge != null && raw.rrifConvertAge == null) A.rrifConvertAge = raw.rriffConvertAge;
   delete A.rriffConvertAge;
   for (const k of Object.keys(A)) if (typeof defaultAssumptions()[k] === 'number' && !Number.isFinite(+A[k])) A[k] = defaultAssumptions()[k];
   return A;
