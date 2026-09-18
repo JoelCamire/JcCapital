@@ -15,7 +15,9 @@ export function render({ store, client, jur }) {
   // 0 is 0 — no phantom fallbacks.
   const bal = R.balances || F.buckets;
   const pensionPart = retRow ? Object.values(retRow.byMember).reduce((s, m) => s + (m.buckets?.pension || 0), 0) : F.household.pensionIncome - F.members.reduce((s, m) => s + m.cppIncome, 0);
-  const pens = (primary.id && F.pensions[primary.id]) || { oas: { annual: 0, startAge: 65 } };
+  const cppInRow = retRow ? Object.values(retRow.byMember).reduce((s, m) => s + (m.buckets?.cpp || 0), 0) : 0;
+  const pens = (primary.id && F.pensions[primary.id]) || { oas: { annual: 0, startAge: 65 }, cpp: { annual: 0, startAge: 65 } };
+  const cppHousehold = F.members.reduce((s, m) => s + ((F.pensions[m.id]?.cpp?.annual) || 0), 0);
   const hasRrif = (client.assets || []).some(a => a.type === 'rrif' || a.type === 'lif');
 
   const defaults = {
@@ -24,8 +26,9 @@ export function render({ store, client, jur }) {
     tfsa: Math.round(bal.taxfree || 0),
     nonreg: Math.round(bal.taxable || 0),
     nonregBasis: Math.round(R.balances ? R.basisTaxable : F.buckets.basisTaxable),
-    otherIncomeNow: Math.round(R.pensionIncome || 0),       // retirement-year pensions + CPP/QPP
+    otherIncomeNow: Math.round(Math.max(0, (R.pensionIncome || 0) - cppInRow)),   // retirement-year pensions (excl. CPP/QPP, handled with its own start age)
     pensionIncomeNow: Math.round(pensionPart || 0),          // eligible pension part (pension credit / splitting)
+    cppAnnual: Math.round(cppHousehold || 0), cppStartAge: (pens.cpp && pens.cpp.startAge) || 65,
     oasAnnual: Math.round(pens.oas.annual || 0), oasStartAge: pens.oas.startAge,
     spending: Math.round(R.spending || 0),
     inflation: F.assumptions.inflation, returnRate: F.assumptions.postReturn, distributionYield: F.assumptions.distributionYield,
@@ -116,7 +119,9 @@ export function render({ store, client, jur }) {
       slider({ label: 'CELI / TFSA', value: p.tfsa, min: 0, max: 1000000, step: 10000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { save({ tfsa: v }); draw(); } }),
       slider({ label: t('Non enregistré', 'Non-registered'), value: p.nonreg, min: 0, max: 3000000, step: 25000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { save({ nonreg: v, nonregBasis: Math.min(p.nonregBasis, v) }); draw(); } }),
       slider({ label: t('Dépenses annuelles (retraite)', 'Annual spending (retirement)'), value: p.spending, min: 0, max: 250000, step: 2500, format: v => money(v, { currency: cur, compact: true }), onInput: v => { save({ spending: v }); draw(); } }),
-      slider({ label: t('Autre revenu imposable (RRQ/rentes)', 'Other taxable income (CPP/pension)'), value: p.otherIncomeNow, min: 0, max: 150000, step: 1000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { save({ otherIncomeNow: v, pensionIncomeNow: Math.min(p.pensionIncomeNow, v) }); draw(); } }),
+      slider({ label: t('Autre revenu imposable (rentes, FERR existant)', 'Other taxable income (pensions, existing RRIF)'), value: p.otherIncomeNow, min: 0, max: 150000, step: 1000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { save({ otherIncomeNow: v, pensionIncomeNow: Math.min(p.pensionIncomeNow, v) }); draw(); } }),
+      slider({ label: t(`${jur.pensions?.cpp?.name || 'RRQ'} annuel (ménage)`, `Annual ${jur.pensions?.cpp?.name || 'CPP'} (household)`), value: p.cppAnnual, min: 0, max: 40000, step: 100, format: v => money(v, { currency: cur, compact: true }), onInput: v => { save({ cppAnnual: v }); draw(); } }),
+      slider({ label: t(`Âge de début du ${jur.pensions?.cpp?.name || 'RRQ'}`, `${jur.pensions?.cpp?.name || 'CPP'} start age`), value: p.cppStartAge, min: jur.pensions?.cpp?.minAge ?? 60, max: jur.pensions?.cpp?.maxAge ?? 70, step: 1, format: v => `${v} ${t('ans', 'yrs')}`, onInput: v => { save({ cppStartAge: v }); draw(); } }),
       slider({ label: t(`${jur.pensions?.oas?.name || 'PSV'} annuelle`, `Annual ${jur.pensions?.oas?.name || 'OAS'}`), value: p.oasAnnual, min: 0, max: 20000, step: 100, format: v => money(v, { currency: cur, compact: true }), onInput: v => { save({ oasAnnual: v }); draw(); } }),
       slider({ label: t('Âge de début de la PSV', 'OAS start age'), value: p.oasStartAge, min: jur.pensions?.oas?.minAge ?? 65, max: jur.pensions?.oas?.maxAge ?? 70, step: 1, format: v => `${v} ${t('ans', 'yrs')}`, onInput: v => { save({ oasStartAge: v }); draw(); } }),
       slider({ label: t('Cible de tranche (fonte)', 'Bracket target (meltdown)'), value: p.bracketTarget, min: 20000, max: 150000, step: 2500, format: v => money(v, { currency: cur, compact: true }), onInput: v => { save({ bracketTarget: v }); draw(); } }),

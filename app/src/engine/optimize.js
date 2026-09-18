@@ -25,18 +25,19 @@ function splitTax(jur, hi, lo, transfer, ageHi, ageLo) {
   return th.total + tl.total;
 }
 
+const NOT_APPLICABLE = (note) => ({ current: null, optimized: null, savings: 0, transfer: 0, maxTransfer: 0, eligiblePension: 0, applicable: false, note });
+
 export function incomeSplitting(client, jur, { atRetirement = false } = {}) {
   const married = client.filingStatus === 'married';
   const hasPair = (client.members || []).length >= 2;
   if (!married || !hasPair) {
-    return { current: null, optimized: null, savings: 0, transfer: 0, applicable: false,
-      note: t('Le fractionnement s\'applique uniquement aux couples (conjoints) avec deux membres au dossier.', 'Income splitting applies only to couples with two members on file.') };
+    return NOT_APPLICABLE(t('Le fractionnement s\'applique uniquement aux couples (conjoints) avec deux membres au dossier.', 'Income splitting applies only to couples with two members on file.'));
   }
   let mem;
   if (atRetirement) {
     const R = retirementFacts(client, jur);
     const row = R.projection.summary.retirementRow;
-    if (!row) return { applicable: false, note: t('Aucune année de retraite dans l’horizon.', 'No retirement year within the horizon.') };
+    if (!row) return NOT_APPLICABLE(t('Aucune année de retraite dans l’horizon.', 'No retirement year within the horizon.'));
     mem = client.members.slice(0, 2).map(m => { const b = row.byMember[m.id]; const bk = b?.buckets || {}; const age = row.ages[m.id];
       return { id: m.id, name: m.name, age, ordinary: b?.ordinary || 0, pension: (bk.pension || 0) + (age >= 65 ? (bk.rrif || 0) : 0) + 0.5 * (bk.cpp || 0), oas: bk.oas || 0, tax: b?.tax || 0 }; });
   } else {

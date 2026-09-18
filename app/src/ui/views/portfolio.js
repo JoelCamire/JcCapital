@@ -1,11 +1,16 @@
 // ============================================================
 // Portfolio & Asset Allocation view
+// Expected return/vol computed once; fee model shared with the
+// Fee-compare view (same LOW_MER, same contributions model); the
+// allocation's expected return can be pushed to the file assumptions.
 // ============================================================
 import { h, money, pct, icon, toast, modal, t } from '../dom.js';
 import { kpi, card, dataTable, legend, statList } from '../widgets.js';
 import { donutChart, barChart, PALETTE } from '../charts.js';
 import { formModal } from '../editor.js';
-import { store } from '../../state/store.js';
+import { store as appStore } from '../../state/store.js';
+import { clientFacts } from '../../engine/facts.js';
+import { LOW_MER, growWithFees } from './feecompare.js';
 import {
   ASSET_CLASSES,
   TARGET_MODELS,
@@ -14,7 +19,6 @@ import {
   computeAllocation,
   expectedReturnVol,
   weightedMER,
-  feeDrag,
   rebalanceActions,
   riskQuestionnaire,
   scoreToProfile,
@@ -40,20 +44,13 @@ function assetClassOpts() {
   return ASSET_CLASSES.map(ac => ({ value: ac.key, label: ac.label() }));
 }
 
-function assetClassLabel(key) {
-  const ac = ASSET_CLASSES.find(a => a.key === key);
-  return ac ? ac.label() : key;
-}
-
-function assetClassColor(key) {
-  const ac = ASSET_CLASSES.find(a => a.key === key);
-  return ac ? ac.color : PALETTE[0];
-}
-
 // ---- main render ------------------------------------------------------------
 
-export function render({ client, jur }) {
+export function render({ store, client, jur }) {
+  store = store || appStore;
   const cur = jur.currency;
+  const F = clientFacts(client, jur);
+  const HORIZON = 25;
 
   // Local portfolio state — do NOT persist here
   const pf = (client.portfolio && client.portfolio.holdings && client.portfolio.holdings.length)
@@ -62,19 +59,26 @@ export function render({ client, jur }) {
 
   const holdings = pf.holdings;
 
-  // Derived computations
+  // Derived computations (once)
   const alloc   = computeAllocation(holdings);
   const total    = alloc.total;
   const mer      = weightedMER(holdings);
   const annualFee = total * mer;
-  const { expectedReturn } = expectedReturnVol(alloc.byClass
-    ? Object.fromEntries(ASSET_CLASSES.map(ac => [ac.key, alloc.byClass[ac.key]?.weight || 0]))
-    : {});
-  const drag25   = feeDrag(total, mer, 25, expectedReturn || 0.06);
+  const weights = Object.fromEntries(ASSET_CLASSES.map(ac => [ac.key, alloc.byClass[ac.key]?.weight || 0]));
+  const { expectedReturn: portRet, volatility: portVol } = expectedReturnVol(weights);
+  const grossReturn = portRet > 0 ? portRet : F.assumptions.preReturn;
+  const contrib = F.household.contributions;
 
   const riskProfile = client.riskProfile || 'balanced';
   const targetModel = targetModelFor(riskProfile);
   const rebalActions = rebalanceActions(holdings, targetModel, total);
+
+  // Fee model shared with the Fee-compare view (with the file's actual contributions)
+  const fee = (m) => growWithFees({ start: total, contrib, years: HORIZON, grossReturn, mer: m });
+  const feeGross = fee(0), feeCurrent = fee(mer), feeLow = fee(LOW_MER);
+  const drag25 = feeGross.final - feeCurrent.final;
+  const dragLow = feeGross.final - feeLow.final;
+  const dragSaved = drag25 - dragLow;
 
   // ---- KPI row ---------------------------------------------------------------
   const kpiRow = h('div', { class: 'grid cols-4 span-full' },
@@ -96,10 +100,11 @@ export function render({ client, jur }) {
       accent: 'var(--neg)',
     }),
     kpi({
-      label: t('Coût des frais sur 25 ans', '25-yr fee drag'),
+      label: t(`Coût des frais sur ${HORIZON} ans`, `${HORIZON}-yr fee drag`),
       value: money(drag25, { currency: cur, compact: true }),
       iconName: 'warning',
       accent: 'var(--neg)',
+      sub: t(`avec ${money(contrib, { currency: cur, compact: true })}/an de cotisations`, `with ${money(contrib, { currency: cur, compact: true })}/yr contributions`),
     }),
   );
 
@@ -165,25 +170,45 @@ export function render({ client, jur }) {
   );
 
   // ---- Capital market assumptions card --------------------------------------
-  const weights = Object.fromEntries(
-    ASSET_CLASSES.map(ac => [ac.key, alloc.byClass[ac.key]?.weight || 0])
-  );
-  const { expectedReturn: portRet, volatility: portVol } = expectedReturnVol(weights);
-
+  const gap = portRet - F.assumptions.preReturn;
   const cmaCard = card(
     t('Hypothèses de marché', 'Capital market assumptions'),
-    { sub: t('Rendements et volatilités attendus par classe', 'Expected returns and volatility by class') },
-    h('div', { class: 'grid cols-2 span-full', style: { gap: '16px' } },
+    { sub: t('Rendements et volatilités attendus par classe — comparés au rendement des hypothèses du dossier', 'Expected returns and volatility by class — compared with the file’s return assumption'),
+      right: h('button', {
+        class: 'btn sm',
+        html: icon('refresh', 14) + ' ' + t('Utiliser comme rendement des hypothèses', 'Use as the assumptions return'),
+        onClick: () => {
+          if (!(portRet > 0)) { toast(t('Aucune répartition à appliquer', 'No allocation to apply'), 'warn'); return; }
+          const v = Math.round(portRet * 10000) / 10000;
+          store.update(c => { c.assumptions = c.assumptions || {}; c.assumptions.preReturn = v; });
+          toast(t(`Rendement d’accumulation réglé à ${pct(v)} ✓`, `Accumulation return set to ${pct(v)} ✓`));
+        },
+      }) },
+    h('div', { class: 'grid cols-4 span-full', style: { gap: '16px' } },
       kpi({
-        label: t('Rendement espéré du portefeuille', 'Portfolio expected return'),
+        label: t('Rendement espéré de la répartition', 'Allocation expected return'),
         value: pct(portRet, 1),
         iconName: 'up',
         accent: 'var(--pos)',
       }),
       kpi({
+        label: t('Rendement pondéré des comptes (dossier)', 'Asset-weighted return (file)'),
+        value: pct(F.expectedReturn, 1),
+        iconName: 'networth',
+        sub: t('croissance saisie sur chaque compte', 'growth entered on each account'),
+      }),
+      kpi({
+        label: t('Hypothèse du dossier (accumulation)', 'File assumption (accumulation)'),
+        value: pct(F.assumptions.preReturn, 1),
+        iconName: 'settings',
+        sub: t(`écart ${gap >= 0 ? '+' : ''}${pct(gap, 1)} vs répartition`, `gap ${gap >= 0 ? '+' : ''}${pct(gap, 1)} vs allocation`),
+        accent: Math.abs(gap) > 0.01 ? 'var(--warn)' : undefined,
+      }),
+      kpi({
         label: t('Volatilité estimée', 'Estimated volatility'),
         value: pct(portVol, 1),
         iconName: 'monte',
+        sub: t(`Monte Carlo du dossier : ${pct(F.assumptions.returnStdev, 1)}`, `File Monte Carlo: ${pct(F.assumptions.returnStdev, 1)}`),
       }),
     ),
     h('div', { class: 'sep' }),
@@ -235,10 +260,9 @@ export function render({ client, jur }) {
           // Safe: rebalance by proportionally adjusting per-class totals, keeping names
           store.update(c => {
             c.portfolio = c.portfolio || {};
-            const actions = rebalanceActions(holdings, targetModel, total);
             const newHoldings = JSON.parse(JSON.stringify(holdings));
             // Scale each holding within its class to match target value
-            for (const act of actions) {
+            for (const act of rebalActions) {
               const classHoldings = newHoldings.filter(h => h.assetClass === act.assetClass);
               if (!classHoldings.length) continue;
               const classCurrent = classHoldings.reduce((s, h) => s + (h.value || 0), 0);
@@ -302,19 +326,13 @@ export function render({ client, jur }) {
     ),
   );
 
-  // ---- Fees card ------------------------------------------------------------
-  const LOW_MER   = 0.0025;
-  const fvLow     = total * Math.pow(1 + (expectedReturn || 0.06) - LOW_MER, 25);
-  const fvCurrent = total * Math.pow(1 + (expectedReturn || 0.06) - mer, 25);
-  const dragLow    = feeDrag(total, LOW_MER, 25, expectedReturn || 0.06);
-  const dragSaved  = drag25 - dragLow;
-
+  // ---- Fees card (shared model with Fee compare) ------------------------------
   const feesCard = card(
     t('Frais de gestion (RFG)', 'Management fees (MER)'),
-    { sub: t('Impact sur 25 ans au taux de rendement actuel', 'Impact over 25 years at current expected return') },
+    { sub: t(`Impact sur ${HORIZON} ans au rendement espéré de la répartition (${pct(grossReturn, 1)}), avec les cotisations du dossier — même modèle que « Comparer les frais »`, `Impact over ${HORIZON} years at the allocation's expected return (${pct(grossReturn, 1)}), with the file's contributions — same model as “Compare fees”`) },
     h('div', { class: 'grid cols-2 span-full', style: { gap: '16px' } },
       kpi({
-        label: t('Coût à faible RFG (0,25 %)', 'Low-MER cost (0.25%)'),
+        label: t(`Coût à faible RFG (${pct(LOW_MER, 2)})`, `Low-MER cost (${pct(LOW_MER, 2)})`),
         value: money(dragLow, { currency: cur, compact: true }),
         iconName: 'check',
         accent: 'var(--pos)',
@@ -329,26 +347,27 @@ export function render({ client, jur }) {
     dragSaved > 0
       ? h('div', { class: 'tiny muted', style: { margin: '8px 0 4px' } },
           t(
-            `En passant à des FNB à faible coût (RFG 0,25 %), vous pourriez économiser ${money(dragSaved, { currency: cur, compact: true })} en frais cumulés sur 25 ans.`,
-            `By switching to low-cost ETFs (MER 0.25%), you could save ${money(dragSaved, { currency: cur, compact: true })} in cumulative fees over 25 years.`,
+            `En passant à des FNB à faible coût (RFG ${pct(LOW_MER, 2)}), vous pourriez économiser ${money(dragSaved, { currency: cur, compact: true })} en frais cumulés sur ${HORIZON} ans.`,
+            `By switching to low-cost ETFs (MER ${pct(LOW_MER, 2)}), you could save ${money(dragSaved, { currency: cur, compact: true })} in cumulative fees over ${HORIZON} years.`,
           ),
         )
       : null,
     h('div', { class: 'sep' }),
     h('div', { html: barChart({
-      xLabels: [t('Faible RFG (0,25 %)', 'Low MER (0.25%)'), t('RFG actuel', 'Current MER')],
+      xLabels: [t(`Faible RFG (${pct(LOW_MER, 2)})`, `Low MER (${pct(LOW_MER, 2)})`), t('RFG actuel', 'Current MER')],
       series: [
         {
           color: PALETTE[1],
-          values: [Math.round(fvLow), Math.round(fvCurrent)],
+          values: [Math.round(feeLow.final), Math.round(feeCurrent.final)],
         },
       ],
       height: 220,
     }) }),
     h('div', { class: 'sep' }),
     statList([
-      [t('Valeur future (faible RFG)', 'Future value (low MER)'),  money(fvLow,     { currency: cur, compact: true }), 'pos'],
-      [t('Valeur future (RFG actuel)', 'Future value (current MER)'), money(fvCurrent, { currency: cur, compact: true })],
+      [t('Valeur future (faible RFG)', 'Future value (low MER)'),  money(feeLow.final,     { currency: cur, compact: true }), 'pos'],
+      [t('Valeur future (RFG actuel)', 'Future value (current MER)'), money(feeCurrent.final, { currency: cur, compact: true })],
+      [t('Frais payés (RFG actuel)', 'Fees paid (current MER)'), money(feeCurrent.feesPaid, { currency: cur, compact: true }), 'neg'],
       [t('Coût cumulatif des frais (actuel)', 'Cumulative fee cost (current)'), money(drag25,    { currency: cur, compact: true }), 'neg'],
       [t('RFG pondéré actuel', 'Current weighted MER'), pct(mer, 2)],
     ]),

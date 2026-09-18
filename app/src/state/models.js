@@ -109,7 +109,8 @@ export function annualPremium(p) {
 export function isActiveProduct(p) { return !p?.status || ACTIVE_STATUSES.includes(p.status); }
 
 // ===================== CRM =====================
-export const todayISO = () => new Date().toISOString().slice(0, 10);
+/** Today's date as a LOCAL y-m-d (never UTC-shifted). */
+export const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
 // Pipeline stages for sales opportunities (ordered).
 export const PIPELINE_STAGES = ['new', 'contacted', 'meeting', 'proposal', 'won', 'lost'];
@@ -124,8 +125,7 @@ export function defaultCRM(over = {}) {
     tags: [],                   // free-form labels
     rating: '',                 // A | B | C — relationship value
     nextActionDate: '',         // next planned touch
-    lastContactAt: null,        // stamp of most recent activity
-    ...over,
+    ...over,                    // (last contact is DERIVED from activities — never stored)
   };
 }
 export function newOpportunity(over = {}) {
@@ -274,7 +274,7 @@ export function seedClients() {
       sale: { proceeds: 1300000, acb: 100000, owners: 2 },
     }),
     crm: defaultCRM({ lifecycle: 'client', source: 'referral', referredBy: 'Pierre Gagnon, CPA',
-      tags: ['VIP', 'Entreprise'], rating: 'A', nextActionDate: '2026-07-08', lastContactAt: Date.now() }),
+      tags: ['VIP', 'Entreprise'], rating: 'A', nextActionDate: '2026-07-08' }),
     opportunities: [
       newOpportunity({ title: "Assurance invalidité — Julie", type: 'disability', stage: 'proposal',
         value: 2100, valueKind: 'premium', probability: 70, expectedClose: '2026-07-20',

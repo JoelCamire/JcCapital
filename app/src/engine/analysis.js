@@ -95,16 +95,18 @@ export function educationFunding(client, goal, opts = {}) {
   const grantsUsed = fin(opts.grantsUsed, 0);
   const target = fin(goal.amount);
 
-  // simulate: annual contribution c, grants credited yearly, growth at r
+  // simulate: annual contribution c, grants credited yearly, growth at r (returns the yearly path)
   const simulate = (c) => {
     let v = existing, fed = grantsUsed, pr = 0, gTot = 0;
+    const series = [{ year: 0, value: v, contrib: 0, grant: 0 }];
     for (let y = 0; y < years; y++) {
       const g1 = Math.min(grantMax || Infinity, c * grantRate, Math.max(0, grantLifetime - fed));
       const g2 = Math.min(provMax || Infinity, c * provRate, Math.max(0, provLifetime - pr));
       fed += g1; pr += g2; gTot += g1 + g2;
       v = v * (1 + r) + c + g1 + g2;
+      series.push({ year: y + 1, value: v, contrib: c, grant: g1 + g2, fedGrant: g1, provGrant: g2 });
     }
-    return { value: v, grants: gTot };
+    return { value: v, grants: gTot, series };
   };
   let annual = 0;
   if (simulate(0).value < target) {
@@ -113,7 +115,7 @@ export function educationFunding(client, goal, opts = {}) {
     annual = hi;
   }
   const sim = simulate(annual);
-  return { target, years, dependent: dep, annual, monthly: annual / 12, grantRate, provRate, existing, projectedGrants: sim.grants, projectedValue: sim.value, returnRate: r };
+  return { target, years, dependent: dep, annual, monthly: annual / 12, grantRate, provRate, existing, projectedGrants: sim.grants, projectedValue: sim.value, series: sim.series, returnRate: r };
 }
 
 /** Disability income-protection quick check (coverage stored as ANNUAL benefit). */

@@ -36,7 +36,9 @@ export function defaultBracketTarget(jur) { return fin(jur?.fed?.brackets?.[0]?.
 /**
  * params = {
  *   startAge, endAge, deferred, tfsa, nonreg, nonregBasis, deferredType ('rrsp'|'rrif'),
- *   otherIncomeNow (taxable pensions excl. OAS, today's $), pensionIncomeNow (eligible pension part),
+ *   otherIncomeNow (taxable pensions excl. CPP/OAS, today's $), otherIncomeStartAge,
+ *   pensionIncomeNow (eligible pension part of otherIncomeNow),
+ *   cppAnnual, cppStartAge (CPP/QPP, today's $ at that age),
  *   oasAnnual, oasStartAge, spending (today's $), inflation, returnRate, distributionYield,
  *   bracketTarget (meltdown/tfsaPreserve target taxable income, today's $)
  * }
@@ -53,11 +55,15 @@ export function simulateDecumulation(jur, params, strategy) {
   const _sA = Number.isFinite(+params.startAge) ? Math.max(0, Math.min(120, +params.startAge)) : 65;
   const _eA = Number.isFinite(+params.endAge) ? Math.max(_sA, Math.min(120, +params.endAge)) : 90;
   const oasStart = fin(params.oasStartAge, fin(jur?.pensions?.oas?.startAge, 65));
+  const cppStart = fin(params.cppStartAge, fin(jur?.pensions?.cpp?.startAge, 65));
+  const otherStart = fin(params.otherIncomeStartAge, _sA);
 
   for (let i = 0, age = _sA; age <= _eA; age++, i++) {
     const infl = Math.pow(1 + inflation, i);
-    const otherIncome = fin(params.otherIncomeNow) * infl;
-    const pensionPart = Math.min(otherIncome, fin(params.pensionIncomeNow, params.otherIncomeNow) * infl);
+    const other = age >= otherStart ? fin(params.otherIncomeNow) * infl : 0;
+    const cpp = age >= cppStart ? fin(params.cppAnnual) * infl : 0;
+    const otherIncome = other + cpp;
+    const pensionPart = age >= otherStart ? Math.min(other, fin(params.pensionIncomeNow, params.otherIncomeNow) * infl) : 0;
     const oas = age >= oasStart ? fin(params.oasAnnual) * infl : 0;
     const spending = fin(params.spending) * infl;
 
@@ -129,7 +135,7 @@ export function simulateDecumulation(jur, params, strategy) {
     const estateTaxGains = gainLatent > 0 ? Math.max(0, computeTax(jur, { ordinary: 0, capGains: gainLatent, withPayroll: false, employment: false, age }).total) : 0;
     const estate = deferred - estateTaxDeferred + tfsa + nonreg - estateTaxGains;
 
-    rows.push({ age, deferred, tfsa, nonreg, taxable: ordinaryTaxable, oas, tax: yearTax + claw, incomeTax: yearTax, clawback: claw, estate, estateTax: estateTaxDeferred + estateTaxGains, shortfall: Math.max(0, gap), withdrawals: { deferred: deferredW, nonreg: wNonreg, tfsa: wTfsa } });
+    rows.push({ age, deferred, tfsa, nonreg, taxable: ordinaryTaxable, oas, cpp, otherIncome: other, tax: yearTax + claw, incomeTax: yearTax, clawback: claw, estate, estateTax: estateTaxDeferred + estateTaxGains, shortfall: Math.max(0, gap), withdrawals: { deferred: deferredW, nonreg: wNonreg, tfsa: wTfsa } });
   }
 
   const last = rows[rows.length - 1];

@@ -4,7 +4,7 @@ import { store } from '../../state/store.js';
 import { sync } from '../../sync.js';
 import { getJurisdiction, JURISDICTIONS, COUNTRY_LIST } from '../../jurisdictions/index.js';
 import { clientFacts } from '../../engine/facts.js';
-import { lifecycleOf, LIFECYCLE_META, contactName, normalizeStage, OPEN_STAGES } from '../../engine/crm.js';
+import { lifecycleOf, LIFECYCLE_META, contactName, normalizeStage, OPEN_STAGES, todayLocalISO } from '../../engine/crm.js';
 
 function syncErr(e) {
   const m = (e && e.message) || '';
@@ -203,7 +203,7 @@ export function render({ client, jur, navigate }) {
   function exportAll() {
     const blob = new Blob([store.exportJSON()], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = h('a', { href: url, download: `jc-clients-${new Date().toISOString().slice(0, 10)}.json` }); a.click();
+    const a = h('a', { href: url, download: `jc-clients-${todayLocalISO()}.json` }); a.click();
     URL.revokeObjectURL(url); toast(t('Sauvegarde téléchargée ✓', 'Backup downloaded ✓'));
   }
   function importAll() {
