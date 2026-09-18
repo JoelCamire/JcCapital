@@ -1,19 +1,16 @@
 // ============================================================
 // Crypto & alternative assets view
+// Holdings persisted in client.crypto.holdings (no fake defaults —
+// empty state instead); disposition tax uses the primary member's
+// derived marginal rates.
 // ============================================================
 import { h, money, pct, num, icon, toast, t } from '../dom.js';
 import { kpi, card, slider, statList, legend, dataTable } from '../widgets.js';
 import { donutChart, PALETTE } from '../charts.js';
 import { formModal } from '../editor.js';
-import { store } from '../../state/store.js';
+import { store as appStore } from '../../state/store.js';
 import { portfolioSummary, dispositionTax, typeLabel } from '../../engine/crypto.js';
-
-// ---- default holdings shown before any user edits ----
-const DEFAULT_HOLDINGS = [
-  { id: 'btc_1', name: 'Bitcoin',          symbol: 'BTC', quantity: 0.25,  priceNow: 90000,  costBasis: 15000, type: 'crypto'  },
-  { id: 'eth_1', name: 'Ethereum',          symbol: 'ETH', quantity: 2.0,   priceNow: 3200,   costBasis: 4800,  type: 'crypto'  },
-  { id: 'prv_1', name: 'Fonds privé tech',  symbol: '',    quantity: 1,     priceNow: 25000,  costBasis: 20000, type: 'private' },
-];
+import { clientFacts, whatIf, saveWhatIf } from '../../engine/facts.js';
 
 // ---- type selector options ----
 function typeOpts() {
@@ -36,27 +33,24 @@ const TYPE_COLORS = {
 };
 function typeColor(type) { return TYPE_COLORS[type] || PALETTE[8]; }
 
-export function render({ store: storeArg, client, jur }) {
+export function render({ store, client, jur }) {
+  store = store || appStore;
   const cur = jur.currency;
+  const F = clientFacts(client, jur);
+  const prim = F.primary || { marginal: { ordinary: 0.4, capgains: 0.2 } };
 
-  // Load local state — never mutate during render
-  const cr = (client.crypto && Array.isArray(client.crypto.holdings) && client.crypto.holdings.length)
-    ? client.crypto
-    : { holdings: DEFAULT_HOLDINGS.map(h => ({ ...h })) };
-
-  const holdings = cr.holdings;
+  // Holdings live in client.crypto.holdings — never invented
+  const holdings = (client.crypto && Array.isArray(client.crypto.holdings)) ? client.crypto.holdings : [];
   const summary  = portfolioSummary(holdings);
 
-  // Total net worth: existing assets + alt assets (defensive sum)
-  const assetsTotal = Array.isArray(client.assets)
-    ? client.assets.reduce((s, a) => s + (a.value || 0), 0)
-    : 0;
-  const networthTotal = assetsTotal + summary.total;
+  // Total net worth: existing assets + alt assets
+  const networthTotal = F.netWorth.assets + summary.total;
   const networthPct = networthTotal > 0 ? summary.total / networthTotal : 0;
 
-  // Estimated tax at disposition (use first member marginal rate, default 40%)
-  const marginalRate = (client.taxProfile && client.taxProfile.marginalRate != null)
-    ? client.taxProfile.marginalRate : 0.40;
+  // Marginal rate: the engine applies the inclusion rate itself, so it needs the ORDINARY marginal
+  // (primary member, derived). The effective rate on a capital gain is marginal.capgains.
+  const marginalRate = prim.marginal.ordinary;
+  const capGainsRate = prim.marginal.capgains;
   const dispEst = dispositionTax(jur, {
     proceeds: summary.total,
     costBasis: summary.totalCost,
@@ -87,6 +81,7 @@ export function render({ store: storeArg, client, jur }) {
       value: money(dispEst.tax, { currency: cur, compact: true }),
       iconName: 'tax',
       accent: 'var(--neg)',
+      sub: t(`taux effectif sur le gain ${pct(capGainsRate, 1)} (dossier)`, `effective rate on the gain ${pct(capGainsRate, 1)} (file)`),
     }),
   );
 
@@ -125,7 +120,7 @@ export function render({ store: storeArg, client, jur }) {
     h('div', { class: 'sep' }),
     dataTable({
       rows: holdings,
-      empty: t('Aucune position', 'No positions'),
+      empty: t('Aucune position — ajoutez vos cryptomonnaies, placements privés ou objets de collection avec le bouton « Ajouter ».', 'No positions — add your crypto, private investments or collectibles with the “Add” button.'),
       cols: [
         { key: 'name',   label: t('Nom', 'Name') },
         { key: 'symbol', label: t('Symbole', 'Symbol') },
@@ -149,61 +144,63 @@ export function render({ store: storeArg, client, jur }) {
       onDelete: (row) => {
         store.update(c => {
           c.crypto = c.crypto || {};
-          c.crypto.holdings = holdings.filter(x => x.id !== row.id);
+          c.crypto.holdings = (c.crypto.holdings || []).filter(x => x.id !== row.id);
         });
         toast(t('Position supprimée', 'Position removed'));
       },
     }),
   );
 
-  // ---- Disposition & tax card ----
-  let dispProceeds  = summary.total;
-  let dispCostBasis = summary.totalCost;
-  let dispBusiness  = false;
+  // ---- Disposition & tax card (what-ifs persisted; default to the portfolio totals) ----
+  const P = whatIf(client, 'crypto', { dispProceeds: Math.round(summary.total), dispCostBasis: Math.round(summary.totalCost), dispBusiness: false });
+  const setP = (k, v) => { P[k] = v; saveWhatIf(store, 'crypto', { [k]: v }); };
   const dispOut = h('div', {});
 
   function redrawDisp() {
+    const business = P.dispBusiness && jur.country === 'CA';
     const d = dispositionTax(jur, {
-      proceeds: dispProceeds,
-      costBasis: dispCostBasis,
+      proceeds: P.dispProceeds,
+      costBasis: P.dispCostBasis,
       marginalRate,
-      asBusinessIncome: dispBusiness && jur.country === 'CA',
+      asBusinessIncome: business,
     });
     dispOut.replaceChildren(
       statList([
-        [t('Produit de cession', 'Proceeds'),                money(dispProceeds, { currency: cur })],
-        [t('Prix de base rajusté', 'Cost basis'),             money(dispCostBasis, { currency: cur })],
+        [t('Produit de cession', 'Proceeds'),                money(P.dispProceeds, { currency: cur })],
+        [t('Prix de base rajusté', 'Cost basis'),             money(P.dispCostBasis, { currency: cur })],
         [t('Gain ou perte', 'Gain / loss'),                   money(d.gain, { currency: cur }), d.gain >= 0 ? 'pos' : 'neg'],
         [t('Traitement fiscal', 'Tax treatment'),             d.treatment],
         [t('Portion imposable', 'Taxable portion'),           money(d.taxableGain, { currency: cur })],
-        [t('Taux marginal appliqué', 'Marginal rate applied'), pct(marginalRate)],
+        [t('Taux marginal ordinaire (dossier)', 'Ordinary marginal rate (file)'), pct(marginalRate)],
+        [t('Taux effectif sur le gain', 'Effective rate on the gain'), pct(business ? marginalRate : capGainsRate)],
         [t('Impôt estimé', 'Estimated tax'),                  money(d.tax, { currency: cur }), 'neg'],
         [t('Produit net après impôt', 'Net after tax'),       money(d.net, { currency: cur }), 'pos'],
       ])
     );
   }
 
+  const dispMax = Math.max(summary.total * 3, 100000);
   const dispCard = card(
     t('Disposition et impôt', 'Disposition & tax'),
-    { sub: t('Simulateur de cession — gain ou perte', 'Disposition simulator — gain or loss') },
+    { sub: t(`Simulateur de cession — gain ou perte, imposé sur les autres revenus du titulaire (${money(prim.ordinary || 0, { currency: cur, compact: true })})`, `Disposition simulator — gain or loss, stacked on the holder's other income (${money(prim.ordinary || 0, { currency: cur, compact: true })})`) },
     h('div', { class: 'grid cols-2' },
       slider({
         label: t('Produit de cession', 'Proceeds'),
-        value: dispProceeds,
+        value: P.dispProceeds,
         min: 0,
-        max: Math.max(summary.total * 3, 100000),
+        max: dispMax,
         step: 500,
         format: v => money(v, { currency: cur, compact: true }),
-        onInput: v => { dispProceeds = v; redrawDisp(); },
+        onInput: v => { setP('dispProceeds', v); redrawDisp(); },
       }),
       slider({
         label: t('Prix de base rajusté (PBR)', 'Adjusted cost base (ACB)'),
-        value: dispCostBasis,
+        value: P.dispCostBasis,
         min: 0,
-        max: Math.max(summary.total * 3, 100000),
+        max: dispMax,
         step: 500,
         format: v => money(v, { currency: cur, compact: true }),
-        onInput: v => { dispCostBasis = v; redrawDisp(); },
+        onInput: v => { setP('dispCostBasis', v); redrawDisp(); },
       }),
     ),
     jur.country === 'CA'
@@ -211,8 +208,9 @@ export function render({ store: storeArg, client, jur }) {
           h('label', { class: 'inline', style: { gap: '8px', display: 'flex', alignItems: 'center' } },
             h('input', {
               type: 'checkbox',
+              checked: !!P.dispBusiness,
               style: { width: 'auto' },
-              onChange: e => { dispBusiness = e.target.checked; redrawDisp(); },
+              onChange: e => { setP('dispBusiness', !!e.target.checked); redrawDisp(); },
             }),
             h('span', { class: 'tiny muted' },
               t('Négociation active — revenu d’entreprise (100 % imposable)', 'Active trading — business income (100% taxable)'),
@@ -237,7 +235,7 @@ export function render({ store: storeArg, client, jur }) {
         statList([
           [
             t('Traitement par défaut', 'Default treatment'),
-            t('Gain en capital (50 % inclusion)', 'Capital gain (50% inclusion)'),
+            t(`Gain en capital (${pct(jur.country === 'CA' ? jur.capGainsInclusion : 0.5, 0)} inclusion)`, `Capital gain (${pct(jur.country === 'CA' ? jur.capGainsInclusion : 0.5, 0)} inclusion)`),
           ],
           [
             t('Négociation active', 'Active trading'),
@@ -330,7 +328,7 @@ export function render({ store: storeArg, client, jur }) {
       onSave: (d) => {
         store.update(c => {
           c.crypto = c.crypto || {};
-          const base = (c.crypto.holdings && c.crypto.holdings.length) ? c.crypto.holdings : holdings.slice();
+          const base = Array.isArray(c.crypto.holdings) ? c.crypto.holdings : [];
           c.crypto.holdings = isNew ? [...base, d] : base.map(x => x.id === d.id ? d : x);
         });
         toast(isNew ? t('Position ajoutée', 'Position added') : t('Position mise à jour', 'Position updated'));

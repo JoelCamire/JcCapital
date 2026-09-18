@@ -333,6 +333,40 @@ const QC = getJurisdiction('CA', 'QC'), ON = getJurisdiction('CA', 'ON'), BC = g
   ok('no eligible pension income today → zero saving (employment income cannot be split)', splitNow.savings === 0);
 }
 
+// ---------------- 8. CRM engine ----------------
+{
+  const CRM = await import('../src/engine/crm.js');
+  const clients = store.state.clients;
+  const seed = clients[0];
+  const rep = CRM.revenueReport(clients, 2026);
+  ok('revenue: Σ monthly recurring reconciles with the recurring total', rep.reconciles && Math.abs(rep.monthSum - rep.recurring) < 0.01);
+  ok('revenue: commissions with a renewal date in another year are spread, not dropped', rep.byMonth.every(m => m.spread > 0));
+  ok('revenue: top client value uses the single clientValue helper', rep.perClient.length && Math.abs(rep.perClient[0].value - CRM.clientValue(clients.find(c => c.id === rep.perClient[0].id))) < 1e-9);
+  near('CRM AUM = linked asset balance (one ledger)', CRM.clientAum(seed), seed.assets.find(a => a.label === 'REER — Marc').value, 0.01);
+  near('CRM annual premium = Σ annualised active premiums', CRM.clientAnnualPremium(seed), 720 + 540 + 1850, 0.01);
+  const ps = CRM.pipelineSummary(clients);
+  near('pipeline: weighted premium = Σ premium opps × probability', ps.weightedPremium, 2100 * 0.7 + 6500 * 0.4, 0.01);
+  near('pipeline: weighted AUM kept apart from premium', ps.weightedAum, 145000 * 0.5, 0.01);
+  ok('pipeline: stage totals never mix premium and AUM', ps.stages.every(s => 'premium' in s && 'aum' in s && s.premium >= 0 && s.aum >= 0));
+  ok('pipeline: unknown stage normalises to new', CRM.normalizeStage('bogus') === 'new');
+  const o = CRM.applyStage({ stage: 'new', probability: 20 }, 'won');
+  ok('applyStage sets probability and closedAt', o.probability === 100 && typeof o.closedAt === 'number');
+  const ks = CRM.complianceStatus(seed);
+  ok('KYC: beneficiary and risk profile derived from the file', ks.items.find(i => i.key === 'beneficiary').derived && ks.items.find(i => i.key === 'riskprofile').derived);
+  const na = CRM.complianceStatus({ compliance: Object.fromEntries(CRM.KYC_ITEMS.map(i => [i.key, { status: 'na' }])), beneficiaries: [], riskProfile: '' });
+  ok('KYC: nothing applicable → 100 % (not 0 %)', na.pct === 1);
+  const rr = CRM.resolveReferrer(clients, 'Marc Tremblay');
+  ok('referrer resolves a member name to the client file', rr && rr.client.name === 'Famille Tremblay' && rr.via === 'member');
+  ok('local ISO date has no UTC shift', CRM.localISO(new Date(2026, 1, 28, 23, 30)) === '2026-02-28');
+  const fakeC = (over) => ({ id: 'x', name: 'X', members: [{ name: 'P', role: 'primary' }], products: [], tasks: [], opportunities: [], ...over });
+  const past = (days) => { const d = new Date(); d.setDate(d.getDate() + days); return CRM.localISO(d); };
+  ok('reminders: review 30 days past due is listed as overdue', CRM.reminders([fakeC({ household: { reviewDate: past(-30) }, crm: {} })]).some(r => r.type === 'review' && r.overdue));
+  ok('reminders: review 200 days past due is NOT listed', !CRM.reminders([fakeC({ household: { reviewDate: past(-200) }, crm: {} })]).some(r => r.type === 'review'));
+  const ev = CRM.monthEvents([fakeC({ members: [{ name: 'Leap', role: 'primary', dob: '2000-02-29' }], household: {}, crm: {} })], 2026, 1);
+  ok('Feb-29 birthday clamps to Feb-28 in a non-leap year', !!ev['2026-02-28'] && ev['2026-02-28'].some(e => e.type === 'birthday'));
+  ok('emails include every member (spouse too)', CRM.emailsOf(seed).length === 2);
+}
+
 console.log(`\n===== JC Planner correctness suite =====`);
 console.log(`Checks: ${pass + fail}   ✓ ${pass}   ✗ ${fail}`);
 if (fail) { console.log('\n--- FAILURES ---'); fails.forEach(f => console.log('  ✗ ' + f)); }
