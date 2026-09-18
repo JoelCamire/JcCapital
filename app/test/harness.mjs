@@ -142,6 +142,15 @@ for (const sc of scenarios) {
     try {
       const node = viewMods[v].render({ store, client: c, jur, navigate: () => {} });
       if (!node || !node.nodeType) throw new Error('no node returned');
+      // A rendered view must never leak a broken number into the DOM: "NaN" in an
+      // SVG attribute makes the browser drop the element (and log an error), and
+      // "undefined"/"[object Object]" in text is always a bug.
+      const html = node.innerHTML || '';
+      const bad = html.match(/(?:x|y|cx|cy|r|width|height|points|d|offset)="[^"]*(?:NaN|Infinity|undefined)[^"]*"/);
+      if (bad) throw new Error('broken SVG/DOM attribute: ' + bad[0].slice(0, 90));
+      const txt = (node.textContent || '');
+      const badTxt = txt.match(/NaN|\[object Object\]|undefined/);
+      if (badTxt) throw new Error('rendered text contains ' + badTxt[0]);
       viewRenders++;
     } catch (e) { fails.push(`${sc.name} [${lang}] view ${v}: ${e.message}`); }
   }

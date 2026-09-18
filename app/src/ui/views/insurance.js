@@ -3,7 +3,7 @@
 // client.products[] is the ONLY source of truth for policies
 // (client.insurance[] is a read-only mirror rebuilt by the store).
 // ============================================================
-import { h, money, pct, icon, toast, fmtDate, t } from '../dom.js';
+import { h, money, pct, cssPct, icon, toast, fmtDate, t } from '../dom.js';
 import { kpi, card, dataTable, statList } from '../widgets.js';
 import { formModal } from '../editor.js';
 import { store } from '../../state/store.js';
@@ -42,7 +42,7 @@ export function render({ client, jur }) {
         h('span', { class: 'tiny muted' }, t('Couverture vie vs besoin', 'Life coverage vs need')),
         n.gap > 0 ? h('span', { class: 'chip neg' }, t(`Manque ${money(n.gap, { currency: cur, compact: true })}`, `Gap ${money(n.gap, { currency: cur, compact: true })}`))
           : h('span', { class: 'chip pos' }, t('Couvert ✓', 'Covered ✓'))),
-      h('div', { class: 'bar', style: { marginBottom: '14px' } }, h('span', { style: { width: pct(covered, 0), background: n.gap > 0 ? 'linear-gradient(90deg,var(--warn),var(--accent-2))' : 'linear-gradient(90deg,var(--brand-500),var(--accent))' } })),
+      h('div', { class: 'bar', style: { marginBottom: '14px' } }, h('span', { style: { width: cssPct(covered), background: n.gap > 0 ? 'linear-gradient(90deg,var(--warn),var(--accent-2))' : 'linear-gradient(90deg,var(--brand-500),var(--accent))' } })),
       statList([
         [t('Remplacement de revenu', 'Income replacement'), money(n.incomeReplacement, { currency: cur, compact: true })],
         [t('Remboursement des dettes', 'Debt repayment'), money(n.debt, { currency: cur, compact: true })],

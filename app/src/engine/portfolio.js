@@ -63,6 +63,13 @@ export function targetModelFor(riskProfile) {
 
 // ---- Infer holdings from client.assets when none saved --------------------
 
+/**
+ * Build a portfolio from the client's INVESTABLE accounts.
+ * Real estate is deliberately excluded: every target model holds 0 % real
+ * estate, so including the principal residence made the rebalancer instruct
+ * the client to "sell" their home, and inflated the portfolio's total, its
+ * weighted MER and its expected return.
+ */
 export function defaultHoldingsFromAssets(client) {
   const rp = client.riskProfile || 'balanced';
   const model = targetModelFor(rp);
@@ -74,20 +81,14 @@ export function defaultHoldingsFromAssets(client) {
     const value = asset.value || 0;
     const label = asset.label || t('Placement', 'Investment');
 
+    if (type === 'realestate') continue;          // not a portfolio holding
+
     // Determine asset class from account type
     if (type === 'cash') {
       holdings.push({
         id: asset.id || ('h' + (counter++)),
         name: label,
         assetClass: 'cash',
-        value,
-        mer: 0,
-      });
-    } else if (type === 'realestate') {
-      holdings.push({
-        id: asset.id || ('h' + (counter++)),
-        name: label,
-        assetClass: 'realestate',
         value,
         mer: 0,
       });

@@ -4,7 +4,7 @@
 // grants, RESP balance and dependents come from the facts layer and
 // the required saving from educationFunding() (respects lifetime caps).
 // ============================================================
-import { h, money, pct, icon, t } from '../dom.js';
+import { h, money, pct, cssPct, icon, t } from '../dom.js';
 import { kpi, card, slider, legend, statList } from '../widgets.js';
 import { lineChart, PALETTE } from '../charts.js';
 import { educationFunding } from '../../engine/analysis.js';
@@ -129,7 +129,7 @@ export function render({ store, client, jur, navigate }) {
               h('div', { class: 'flex between', style: { marginBottom: '4px' } },
                 h('span', { class: 'tiny muted' }, t('Financement (épargne actuelle, sans nouvelle cotisation)', 'Funding (current savings, no new contributions)')),
                 h('b', { style: { color: `var(--${progCls})` } }, pct(progress, 0))),
-              h('div', { class: 'bar' }, h('span', { style: { width: pct(Math.min(1, progress), 0), background: progCls === 'neg' ? 'var(--neg)' : progCls === 'warn' ? 'linear-gradient(90deg,var(--warn),var(--accent-2))' : 'linear-gradient(90deg,var(--brand-500),var(--accent))' } })),
+              h('div', { class: 'bar' }, h('span', { style: { width: cssPct(progress), background: progCls === 'neg' ? 'var(--neg)' : progCls === 'warn' ? 'linear-gradient(90deg,var(--warn),var(--accent-2))' : 'linear-gradient(90deg,var(--brand-500),var(--accent))' } })),
             ),
           ),
           chartSvg

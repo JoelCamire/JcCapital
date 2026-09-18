@@ -15,9 +15,9 @@ export function render({ store, client, jur }) {
 
     out.replaceChildren(
       h('div', { class: 'grid cols-4 span-full' },
-        kpi({ label: t('Probabilité de succès', 'Probability of success'), value: pct(mc.successRate, 0), iconName: 'monte',
-          accent: mc.successRate >= 0.85 ? 'var(--pos)' : mc.successRate >= 0.6 ? 'var(--warn)' : 'var(--neg)',
-          sub: t(`${mc.trials} trajectoires`, `${mc.trials} paths`) }),
+        kpi({ label: t('Probabilité de succès', 'Probability of success'), value: mc.applicable ? pct(mc.successRate, 0) : '—', iconName: 'monte',
+          accent: !mc.applicable ? '' : mc.successRate >= 0.85 ? 'var(--pos)' : mc.successRate >= 0.6 ? 'var(--warn)' : 'var(--neg)',
+          sub: mc.applicable ? t(`${mc.trials} trajectoires`, `${mc.trials} paths`) : t('Rien à projeter', 'Nothing to project') }),
         kpi({ label: t('Capital médian (P50)', 'Median capital (P50)'), value: money(mc.medianFinal, { currency: cur, compact: true }), iconName: 'networth' }),
         kpi({ label: t('Pessimiste (P10)', 'Pessimistic (P10)'), value: money(mc.p10Final, { currency: cur, compact: true }), accent: mc.p10Final <= 0 ? 'var(--neg)' : '' }),
         kpi({ label: t('Optimiste (P90)', 'Optimistic (P90)'), value: money(mc.p90Final, { currency: cur, compact: true }), accent: 'var(--pos)' }),
@@ -27,9 +27,10 @@ export function render({ store, client, jur }) {
         right: legend([{ color: 'var(--brand-400)', label: 'P10–P90' }, { color: 'var(--brand-600)', label: t('Médiane', 'Median') }]) },
         h('div', { html: fanChart({ bands: mc.bands }) })),
       card(t('Verdict', 'Verdict'), {},
-        h('div', { style: { textAlign: 'center' } }, h('div', { html: gauge({ value: mc.successRate, label: pct(mc.successRate, 0), sub: t('succès', 'success') }) })),
-        h('div', { class: 'flex center', style: { justifyContent: 'center', margin: '4px 0 10px' } }, badgeScore(mc.successRate)),
-        h('p', { class: 'tiny muted' }, interpret(mc.successRate)),
+        h('div', { style: { textAlign: 'center' } }, h('div', { html: gauge({ value: mc.applicable ? mc.successRate : 0, label: mc.applicable ? pct(mc.successRate, 0) : '—', sub: mc.applicable ? t('succès', 'success') : t('à évaluer', 'to assess') }) })),
+        mc.applicable ? h('div', { class: 'flex center', style: { justifyContent: 'center', margin: '4px 0 10px' } }, badgeScore(mc.successRate)) : null,
+        h('p', { class: 'tiny muted' }, mc.applicable ? interpret(mc.successRate)
+          : t('Le dossier ne contient ni dépenses ni capital : il n’y a aucun plan à simuler.', 'The file has neither expenses nor capital: there is no plan to simulate.')),
         h('div', { class: 'sep' }),
         statList([
           [t('Capital initial investissable', 'Initial investable capital'), money(det.rows[0].investable, { currency: cur, compact: true })],

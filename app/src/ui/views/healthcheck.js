@@ -18,7 +18,7 @@ export function render({ client, jur, navigate }) {
         h('div', { class: 'muted', style: { marginBottom: '12px' } }, t(`Pointage global de ${r.overallScore}/100 — généré à partir de l’ensemble du dossier`, `Overall score ${r.overallScore}/100 — generated from the full client file`)),
         h('div', { class: 'grid cols-3' },
           kpi({ label: t('Valeur nette', 'Net worth'), value: money(r.netWorth, { currency: cur, compact: true }) }),
-          kpi({ label: t('Probabilité de succès', 'Success probability'), value: pct(r.successRate, 0), accent: gradeColor }),
+          kpi({ label: t('Probabilité de succès', 'Success probability'), value: r.mcApplicable === false ? '—' : pct(r.successRate, 0), accent: r.mcApplicable === false ? '' : gradeColor }),
           kpi({ label: t('Actions prioritaires', 'Priority actions'), value: r.actions.length, accent: r.actions.length > 4 ? 'var(--warn)' : 'var(--pos)' }),
         ))));
 

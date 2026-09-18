@@ -1,4 +1,4 @@
-import { h, money, pct, icon, toast, t } from '../dom.js';
+import { h, money, pct, cssPct, icon, toast, t } from '../dom.js';
 import { card } from '../widgets.js';
 import { formModal } from '../editor.js';
 import { store } from '../../state/store.js';
@@ -20,16 +20,26 @@ export function goalFunding(client, jur, goal) {
   const R = retirementFacts(client, jur);
   const amount = Math.max(0, +goal.amount || 0);
   if (goal.type === 'retirement') {
-    const inc = R.grossIncome || 0;
+    // Income available in the first retirement year = income received PLUS what the
+    // plan draws from capital. `grossIncome` alone excludes every withdrawal, so a
+    // retirement funded from savings would otherwise read as badly underfunded.
+    const row = R.projection.summary.retirementRow;
+    const inc = (R.grossIncome || 0) + (row ? row.totalWithdrawals : 0);
     const funded = amount > 0 ? Math.min(1, inc / amount) : (inc > 0 ? 1 : 0);
     const ok = funded >= 1 && R.success;
-    return { funded, note: t(`Revenu projeté la 1re année de retraite (${R.retirementAge} ans) : ${money(inc, { currency: cur, compact: true })}/an`, `Projected first-retirement-year income (age ${R.retirementAge}): ${money(inc, { currency: cur, compact: true })}/yr`),
+    return { funded, note: t(`Revenu disponible la 1re année de retraite (${R.retirementAge} ans) : ${money(inc, { currency: cur, compact: true })}/an, dont ${money(row ? row.totalWithdrawals : 0, { currency: cur, compact: true })} puisés dans le capital`, `Income available in the first retirement year (age ${R.retirementAge}): ${money(inc, { currency: cur, compact: true })}/yr, of which ${money(row ? row.totalWithdrawals : 0, { currency: cur, compact: true })} drawn from capital`),
       detail: ok ? t('Sur la bonne voie', 'On track') : R.depletionAge ? t(`Capital épuisé à ${R.depletionAge} ans`, `Capital depleted at ${R.depletionAge}`) : t('Sous-financé', 'Underfunded') };
   }
   if (goal.type === 'education') {
     const ef = educationFunding(client, goal);
-    const fvExisting = ef.existing * Math.pow(1 + ef.returnRate, ef.years);
-    const funded = ef.target > 0 ? Math.min(1, fvExisting / ef.target) : 1;
+    // Count the balance already saved AND the contributions already committed
+    // (with their grants) — `projectedValue` is exactly that simulation.
+    const committed = F.education.dependents.length ? F.education.respContrib / F.education.dependents.length : F.education.respContrib;
+    const onTrack = educationFunding(client, goal, { });
+    const fv = ef.annual <= 0 ? onTrack.projectedValue
+      : ef.existing * Math.pow(1 + ef.returnRate, ef.years)
+        + (committed > 0 && ef.returnRate > 0 ? committed * (Math.pow(1 + ef.returnRate, ef.years) - 1) / ef.returnRate : committed * ef.years);
+    const funded = ef.target > 0 ? Math.min(1, fv / ef.target) : 1;
     return { funded, note: t(`${money(ef.monthly, { currency: cur })}/mois requis sur ${ef.years} ans (subventions ${money(ef.projectedGrants, { currency: cur, compact: true })})`, `${money(ef.monthly, { currency: cur })}/mo required over ${ef.years} yrs (grants ${money(ef.projectedGrants, { currency: cur, compact: true })})`),
       detail: ef.annual <= 0 ? t('Financé par l’épargne actuelle', 'Funded by current savings') : t('Cotisation requise', 'Contribution required') };
   }
@@ -68,7 +78,7 @@ export function render({ client, jur }) {
       h('div', { class: 'flex between', style: { marginTop: '14px', marginBottom: '5px' } },
         h('span', { class: 'tiny muted' }, f.note),
         h('b', { style: { color: `var(--${cls})` } }, pct(f.funded, 0) + ' ' + t('financé', 'funded'))),
-      h('div', { class: 'bar' }, h('span', { style: { width: pct(Math.min(1, f.funded), 0), background: cls === 'neg' ? 'var(--neg)' : cls === 'warn' ? 'linear-gradient(90deg,var(--warn),var(--accent-2))' : 'linear-gradient(90deg,var(--brand-500),var(--accent))' } })),
+      h('div', { class: 'bar' }, h('span', { style: { width: cssPct(f.funded), background: cls === 'neg' ? 'var(--neg)' : cls === 'warn' ? 'linear-gradient(90deg,var(--warn),var(--accent-2))' : 'linear-gradient(90deg,var(--brand-500),var(--accent))' } })),
       h('div', { class: 'tiny muted', style: { marginTop: '5px' } }, f.detail),
     );
   });

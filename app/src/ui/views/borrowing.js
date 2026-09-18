@@ -18,8 +18,11 @@ export function render({ store, client, jur }) {
   const FB = F.business;
 
   // EBITDA: valuation EBITDA on file, else active income, else household gross income
-  const ebitdaDef = Math.round((FB && (FB.valuation.ebitda > 0 ? FB.valuation.ebitda : FB.activeIncome)) || F.household.grossIncome) || 300000;
-  const ebitdaSource = FB && FB.valuation.ebitda > 0 ? t('BAIIA de l’évaluation', 'valuation EBITDA')
+  // F.business.valuation is the OUTPUT of businessValuation(); the EBITDA entered by
+  // the advisor lives on client.business.valuation.ebitda.
+  const rawEbitda = Number.isFinite(+client.business?.valuation?.ebitda) ? +client.business.valuation.ebitda : 0;
+  const ebitdaDef = Math.round((FB && (rawEbitda > 0 ? rawEbitda : FB.activeIncome)) || F.household.grossIncome) || 300000;
+  const ebitdaSource = FB && rawEbitda > 0 ? t('BAIIA de l’évaluation', 'valuation EBITDA')
     : FB ? t('revenu actif de l’entreprise', 'business active income') : t('revenu brut du ménage', 'household gross income');
   const rateDef = F.weightedRate > 0 ? F.weightedRate : (F.mortgage ? F.mortgage.rate : 0.065);
 

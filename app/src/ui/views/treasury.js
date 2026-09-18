@@ -20,7 +20,7 @@ export function render({ store, client, jur }) {
   const expensesDef = hasBiz
     ? Math.round(revenueDef * 0.75)                                            // business file: operating margin assumption (override & persist)
     : Math.round(F.household.expensesMonthly + F.household.debtServiceMonthly); // personal file: what the household actually spends
-  const reserveMonths = F.assumptions.emergencyMonths || 3;
+  const reserveMonths = (Number.isFinite(+F.assumptions.emergencyMonths) ? +F.assumptions.emergencyMonths : 3);
 
   const P = whatIf(client, 'treasury', {
     revenue: revenueDef,

@@ -24,9 +24,12 @@ const CAT_LABEL = {
 };
 
 // ---- Date helpers ----
-/** Return the next occurrence of MM-DD at or after today. */
+/** Local midnight today — deadlines are dates, never timestamps. */
+function startOfToday() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+
+/** Return the next occurrence of MM-DD at or after today (today itself counts). */
 function nextOccurrence(month, day) {
-  const today = new Date();
+  const today = startOfToday();
   const thisYear = today.getFullYear();
   const candidate = new Date(thisYear, month - 1, day);
   if (candidate >= today) return candidate;
@@ -43,7 +46,7 @@ function parseFYE(s) {
 
 /** Next occurrence of (fiscal year-end + `months` months), at or after today. */
 function nextAfterFYE(fye, months) {
-  const today = new Date();
+  const today = startOfToday();
   for (let y = today.getFullYear() - 1; y <= today.getFullYear() + 1; y++) {
     const d = new Date(y, fye.month - 1 + months, fye.day);
     if (d >= today) return d;
@@ -268,7 +271,7 @@ function buildDeadlines(country, biz) {
       {
         key: 'uk_corp_tax',
         title: t(`Paiement impôt société — 9 mois + 1 jour après la fin d’exercice ${fyeLabel}`, `Corporation tax payment — 9 months + 1 day after year-end ${fyeLabel}`),
-        date: nextAfterFYE({ month: fye.month, day: fye.day + 1 }, 9),
+        date: (() => { const d = nextAfterFYE(fye, 9); d.setDate(d.getDate() + 1); return d; })(),   // 9 months + 1 day after the year-end
         category: 'corporate',
         forBusinessOnly: true,
       },

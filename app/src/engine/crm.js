@@ -444,17 +444,24 @@ export const KYC_ITEMS = [
   { key: 'disclosure',  label: () => t('Information sur la relation (divulgation)', 'Relationship disclosure') },
   { key: 'agreement',   label: () => t('Convention de service signée', 'Signed service agreement') },
 ];
-/** Items whose completion is derived from the file itself (shown as locked in the UI). */
+/**
+ * Items whose completion is genuinely derived from the file (shown as locked in the UI).
+ * `riskprofile` is deliberately NOT here: every new client is created with a default
+ * risk profile, so deriving it would mark a regulated questionnaire as completed on a
+ * file nobody has touched.
+ */
 const KYC_DERIVED = {
   beneficiary: (c) => (c.beneficiaries || []).length > 0,
-  riskprofile: (c) => !!(c.riskProfile),
 };
 export function complianceStatus(c) {
   const store = c.compliance || {};
   const items = KYC_ITEMS.map(it => {
     const s = store[it.key] || {};
-    const derived = !!(KYC_DERIVED[it.key] && KYC_DERIVED[it.key](c));
-    return { key: it.key, label: it.label(), status: derived ? 'done' : (s.status || 'todo'), date: s.date || '', derived };
+    // An explicit "not applicable" always wins: a derived rule must never re-open or
+    // auto-complete an item the advisor deliberately set aside.
+    const explicit = s.status;
+    const derived = explicit !== 'na' && !!(KYC_DERIVED[it.key] && KYC_DERIVED[it.key](c));
+    return { key: it.key, label: it.label(), status: explicit === 'na' ? 'na' : (derived ? 'done' : (explicit || 'todo')), date: s.date || '', derived };
   });
   const applicable = items.filter(i => i.status !== 'na');
   const done = applicable.filter(i => i.status === 'done').length;

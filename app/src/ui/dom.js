@@ -55,6 +55,17 @@ export function money(v, { currency = 'CAD', dp = 0, sign = false, compact = fal
   return sign ? `+${out}` : out;
 }
 
+/**
+ * A CSS length percentage ("85%"), clamped to 0–100.
+ * NEVER use pct() for a style value: it renders "85 %" (with a space, and a
+ * comma in French), which is not valid CSS and is silently dropped — leaving
+ * progress bars permanently full.
+ */
+export function cssPct(fraction) {
+  const v = Number.isFinite(+fraction) ? +fraction : 0;
+  return (Math.max(0, Math.min(1, v)) * 100).toFixed(1) + '%';
+}
+
 export function pct(v, dp = 1) {
   if (v == null || isNaN(v)) return '—';
   const s = `${(v * 100).toFixed(dp)} %`;

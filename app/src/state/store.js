@@ -37,33 +37,71 @@ export function syncDerived(c) {
   if (ms) c.filingStatus = (ms === 'married' || ms === 'common-law' || ms === 'commonlaw') ? 'married' : 'single';
   // jurisdiction is the geographic source of truth
   if (c.jurisdiction && c.household) { c.household.country = c.jurisdiction.country; c.household.region = c.jurisdiction.region; }
-  // policies: products[] is the source of truth; migrate any legacy insurance[] rows not yet represented
+  // policies: products[] is the source of truth; migrate any legacy insurance[] rows not yet represented.
+  // Each product may absorb AT MOST ONE legacy row, otherwise two identical policies on the
+  // same life collapse into one (halving the coverage). Matching prefers the policy number.
   c.products = c.products || [];
+  const claimed = new Set(c.products.filter(p => p.migratedFrom).map(p => p.migratedFrom));
+  const usedProducts = new Set(c.products.filter(p => p.migratedFrom));
   for (const ins of (c.insurance || [])) {
     if (!ins || ins._mirror) continue;                       // rows we generated ourselves
+    if (claimed.has(ins.id)) continue;                       // already migrated in a previous pass
     const kind = INSURANCE_TO_KIND[ins.type] || ins.type;
-    const dup = c.products.find(p => p.migratedFrom === ins.id || (p.kind === kind && p.insuredId === ins.insuredId && Math.abs((+p.faceAmount || 0) - (+ins.coverage || 0)) < 1));
-    if (dup) { if (!dup.migratedFrom) dup.migratedFrom = ins.id; continue; }
-    c.products.push(newProduct({ kind, insuredId: ins.insuredId ?? null, faceAmount: +ins.coverage || 0, premium: +ins.premium || 0, frequency: ins.frequency || 'annual', status: 'inforce', carrier: ins.carrier || '', policyNumber: ins.policyNumber || '', migratedFrom: ins.id, notes: ins.notes || '' }));
+    const already = c.products.find(p => p.migratedFrom === ins.id);
+    if (already) { claimed.add(ins.id); usedProducts.add(already); continue; }
+    const byPolicy = ins.policyNumber
+      ? c.products.find(p => !usedProducts.has(p) && p.kind === kind && p.policyNumber && p.policyNumber === ins.policyNumber)
+      : null;
+    const byFace = byPolicy || c.products.find(p => !usedProducts.has(p) && !p.migratedFrom && p.kind === kind && p.insuredId === ins.insuredId && Math.abs((+p.faceAmount || 0) - (+ins.coverage || 0)) < 1);
+    if (byFace) { byFace.migratedFrom = ins.id; claimed.add(ins.id); usedProducts.add(byFace); continue; }
+    const created = newProduct({ kind, insuredId: ins.insuredId ?? null, faceAmount: +ins.coverage || 0, premium: +ins.premium || 0, frequency: ins.frequency || 'annual', status: 'inforce', carrier: ins.carrier || '', policyNumber: ins.policyNumber || '', migratedFrom: ins.id, notes: ins.notes || '' });
+    c.products.push(created); claimed.add(ins.id); usedProducts.add(created);
   }
   // rebuild the read-only mirror (same ids as the products so editors can round-trip)
   c.insurance = c.products.filter(p => INSURANCE_KINDS.includes(p.kind) && isActiveProduct(p) && KIND_TO_INSURANCE[p.kind])
     .map(p => ({ id: p.id, type: KIND_TO_INSURANCE[p.kind], insuredId: p.insuredId, coverage: +p.faceAmount || 0, premium: annualPremium(p), carrier: p.carrier, policyNumber: p.policyNumber, _mirror: true }));
-  // investment products ⇔ assets: link by owner + equal value, else create the asset once; AUM mirrors the asset
+  // Investment products ⇔ assets. The ASSET is the balance ledger; a product's `aum`
+  // mirrors it. Rules, in order:
+  //   • a dangling assetId (asset deleted by the advisor) clears the AUM too — otherwise
+  //     the deleted account is recreated on the next save;
+  //   • only ONE product may own an asset (duplicates would double-count the AUM);
+  //   • an asset is created only for an ACTIVE product, and only when the owner has no
+  //     unlinked investable account that could be the same money (importing an older
+  //     file would otherwise create a second account and double net worth);
+  //   • a manual edit of `aum` is written THROUGH to the asset instead of being discarded.
   c.assets = c.assets || [];
+  const linkedAssets = new Set();
   for (const p of c.products) {
     if (!INVESTMENT_KINDS.includes(p.kind)) continue;
-    if (p.assetId && !c.assets.find(a => a.id === p.assetId)) p.assetId = null;
-    if (!p.assetId) {
+    if (p.assetId && !c.assets.find(a => a.id === p.assetId)) { p.assetId = null; p.aum = 0; }
+    let dupLink = false;
+    // Two products pointing at one account: the money is already counted once. Unlink the
+    // duplicate and zero its AUM — never invent a second account for it.
+    if (p.assetId && linkedAssets.has(p.assetId)) { p.assetId = null; p.aum = 0; dupLink = true; }
+    if (!isActiveProduct(p)) { if (p.assetId) linkedAssets.add(p.assetId); continue; }
+    if (!p.assetId && !dupLink) {
       const owner = p.insuredId ?? c.members?.[0]?.id ?? null;
-      const match = c.assets.find(a => !c.products.some(q => q !== p && q.assetId === a.id) && (a.ownerId ?? c.members?.[0]?.id) === owner && Math.abs((+a.value || 0) - (+p.aum || 0)) < 1 && (+p.aum || 0) > 0);
-      if (match) p.assetId = match.id;
+      const free = (a) => !linkedAssets.has(a.id) && !c.products.some(q => q !== p && q.assetId === a.id);
+      const sameOwner = (a) => (a.ownerId ?? c.members?.[0]?.id) === owner;
+      const investable = (a) => a.type !== 'realestate';
+      const exact = c.assets.find(a => free(a) && sameOwner(a) && investable(a) && (+p.aum || 0) > 0 && Math.abs((+a.value || 0) - (+p.aum || 0)) < 1);
+      const loose = exact || c.assets.find(a => free(a) && sameOwner(a) && investable(a) && (+a.value || 0) > 0);
+      if (loose) p.assetId = loose.id;
       else if ((+p.aum || 0) > 0) {
         const a = newAsset({ ownerId: owner, label: [p.carrier, p.policyNumber].filter(Boolean).join(' ') || 'Placement', type: 'nonreg', value: +p.aum, costBasis: +p.aum, annualContribution: 0 });
         c.assets.push(a); p.assetId = a.id;
       }
     }
-    if (p.assetId) { const a = c.assets.find(x => x.id === p.assetId); if (a) p.aum = +a.value || 0; }
+    if (p.assetId) {
+      linkedAssets.add(p.assetId);
+      const a = c.assets.find(x => x.id === p.assetId);
+      if (a) {
+        const edited = Number.isFinite(+p.aum) && Math.abs((+p.aum) - (+a.value || 0)) > 0.5 && p._aumEdited;
+        if (edited) { a.value = +p.aum; if (!(+a.costBasis > 0)) a.costBasis = +p.aum; }
+        p.aum = +a.value || 0;
+      }
+      delete p._aumEdited;
+    }
   }
   // assumptions: fill defaults, fix legacy key (the legacy value wins when the new key was never set)
   const raw = c.assumptions || {};

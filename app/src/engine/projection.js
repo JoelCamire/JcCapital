@@ -154,9 +154,12 @@ export function runProjection(client, opts = {}) {
       const ordinary = Math.max(0, emp + b.pension + b.cpp + b.other + b.rrif - deferredContrib[m.id]);
       return { b, age, emp, eligiblePension, ordinary };
     };
-    const taxOf = (m, adj = 0) => {
+    // Québec's combined senior credit is reduced on FAMILY net income, so couples need a
+    // first pass to know the household total before the credits can be computed.
+    const needsFamilyIncome = members.length > 1 && !!(jur.regionData && jur.regionData.seniorReduction);
+    const taxOf = (m, adj = 0, familyNet = null) => {
       const { b, age, emp, eligiblePension, ordinary } = memberInputs(m);
-      return computeTax(jur, { ordinary: Math.max(0, ordinary + adj), employmentIncome: emp, selfEmployed: b.self > b.employment, pensionIncome: Math.max(0, eligiblePension + adj), oasIncome: b.oas, age, employment: emp > 0, withPayroll: true, filingStatus: client.filingStatus });
+      return computeTax(jur, { ordinary: Math.max(0, ordinary + adj), employmentIncome: emp, selfEmployed: b.self > b.employment, pensionIncome: Math.max(0, eligiblePension + adj), oasIncome: b.oas, age, employment: emp > 0, withPayroll: true, filingStatus: client.filingStatus, familyNetIncome: familyNet });
     };
     // Optimal pension income splitting (couples): up to 50 % of the higher earner's eligible
     // pension income (RPP/annuity income, RRIF income from 65) moves to the spouse when it lowers the household tax.
@@ -173,10 +176,13 @@ export function runProjection(client, opts = {}) {
       return { amount: best, from: hi.id, to: lo.id };
     };
     const tallyTaxes = (split) => {
+      const adjOf = (m) => m.id === split.from ? -split.amount : m.id === split.to ? split.amount : 0;
+      let familyNet = null;
+      if (needsFamilyIncome) { familyNet = 0; for (const m of members) familyNet += taxOf(m, adjOf(m)).netIncome; }
       const byMember = {}; let total = 0, claw = 0, ord = 0;
       for (const m of members) {
-        const adj = m.id === split.from ? -split.amount : m.id === split.to ? split.amount : 0;
-        const t = taxOf(m, adj); const { b, ordinary } = memberInputs(m);
+        const adj = adjOf(m);
+        const t = taxOf(m, adj, familyNet); const { b, ordinary } = memberInputs(m);
         byMember[m.id] = { ordinary: Math.max(0, ordinary + adj), oasIncome: b.oas, pensionSplit: adj, tax: t.total, incomeTax: t.incomeTax, payroll: t.payroll, clawback: t.clawback, marginalRate: t.marginalRate, averageRate: t.averageRate, netIncome: t.netIncome, buckets: { ...b } };
         total += t.total; claw += t.clawback; ord += Math.max(0, ordinary + adj);
       }
@@ -194,7 +200,11 @@ export function runProjection(client, opts = {}) {
     const need = expenses + debtPayments;
     let gap = need + contributions - afterTaxIncome;     // >0 ⇒ must withdraw to balance
     const wd = { taxable: 0, deferred: 0, taxfree: 0 };
-    let withdrawalTax = 0, shortfall = 0;
+    // Capital-gains tax on taxable withdrawals is NOT part of the per-member income tax
+    // recomputed below (that one only sees ordinary income), so it is tracked separately
+    // and added to the year's total — never netted against it.
+    let capGainsTax = 0, deferredTax = 0, shortfall = 0;
+    const skipDeferred = new Set();
     const taxOptsOf = (ownerId) => { const age = ages[ownerId]; const b = inc[ownerId]; return { age, pensionIncome: b.pension + (age >= 65 ? b.rrif : 0), oasIncome: b.oas, filingStatus: client.filingStatus }; };
 
     if (gap > 0.5) {
@@ -212,22 +222,36 @@ export function runProjection(client, opts = {}) {
         }
         const tax = gainFrac > 0 ? incrementalTaxCap(jur, gross * gainFrac, ordinaryOf[ownerId], taxOpts) : 0;
         a.bal -= gross; a.basis = Math.max(0, a.basis - gross * (1 - gainFrac));
-        wd.taxable += gross; withdrawalTax += tax; gap -= gross - tax;
+        wd.taxable += gross; capGainsTax += tax; gap -= gross - tax;
       }
       // 2) deferred accounts — always from the spouse with the LOWER income first, in chunks, exact tax each time
       let guard = 0;
-      while (gap > 0.5 && guard++ < 80) {
-        const pool = assets.filter(x => x.treat === 'deferred' && x.bal > 0.5);
+      while (gap > 0.5 && guard++ < 200) {
+        const pool = assets.filter(x => x.treat === 'deferred' && x.bal > 0.5 && !skipDeferred.has(x));
         if (!pool.length) break;
         pool.sort((p, q) => (ordinaryOf[p.owner] - ordinaryOf[q.owner]) || (q.bal - p.bal));
         const a = pool[0]; const ownerId = a.owner;
         const other = pool.find(x => x.owner !== ownerId);
+        // Chunking equalises the spouses' incomes, but each chunk must still be a real
+        // fraction of the gap: a fixed $5,000 floor made a large one-off need (a home
+        // purchase, long-term care) hit the loop guard and report a phantom shortfall.
         let chunkNet = gap;
-        if (other) { const diff = ordinaryOf[other.owner] - ordinaryOf[ownerId]; chunkNet = Math.min(gap, Math.max(5000, diff * 0.65)); }
+        if (other) {
+          const diff = ordinaryOf[other.owner] - ordinaryOf[ownerId];
+          chunkNet = Math.min(gap, Math.max(gap / 20, 5000, Number.isFinite(diff) ? diff * 0.65 : 0));
+        }
+        if (!Number.isFinite(chunkNet) || chunkNet <= 0) chunkNet = gap;
         const g = grossUpForNet(jur, chunkNet, ordinaryOf[ownerId], a.bal, taxOptsOf(ownerId));
-        if (!(g.gross > 0)) { a.bal = 0; continue; }
-        a.bal -= g.gross; wd.deferred += g.gross; withdrawalTax += g.tax; gap -= g.net;
-        ordinaryOf[ownerId] += g.gross; inc[ownerId].rrif += g.gross;
+        // Cannot draw from this account (non-finite inputs, or tax ≥ balance): skip it,
+        // never zero it — wiping the balance would silently destroy the client's capital.
+        if (!(g.gross > 0)) { skipDeferred.add(a); continue; }
+        a.bal -= g.gross; wd.deferred += g.gross; deferredTax += g.tax; gap -= g.net;
+        ordinaryOf[ownerId] += g.gross;
+        // Only RRIF/LIF income is ELIGIBLE pension income (and only from 65); a plain
+        // RRSP withdrawal is ordinary income and must not attract the pension credit
+        // or become splittable.
+        const eligibleNow = (a.type === 'rrif' || a.type === 'lif') && (ages[ownerId] ?? primaryAge) >= 65;
+        if (eligibleNow) inc[ownerId].rrif += g.gross; else inc[ownerId].other += g.gross;
       }
       // 3) tax-free accounts last
       for (const a of assets.filter(x => x.treat === 'taxfree' && x.bal > 0)) {
@@ -236,16 +260,30 @@ export function runProjection(client, opts = {}) {
       }
       if (gap > 0.5 && primaryRetired) { shortfall = gap; if (firstShortfallAge == null) firstShortfallAge = primaryAge; }
     }
-    // Final taxes on the year's complete income WITH the optimal pension split. The saving versus the
-    // provisional figures is cash that did not need to be withdrawn: it is swept with any surplus.
+    // Final taxes on the year's complete income (withdrawals included) WITH the optimal
+    // pension split. The split saving is compared against the SAME income without the
+    // split — that difference is real cash freed, and is swept with any surplus.
     const split = bestSplit();
-    const finalTax = tallyTaxes(split);
-    const saving = Math.max(0, pre.total + withdrawalTax - finalTax.total);
-    const totalTax = finalTax.total;
+    const noSplit = tallyTaxes({ amount: 0, from: null, to: null });
+    const finalTax = split.amount > 0 ? tallyTaxes(split) : noSplit;
+    const splitSaving = Math.max(0, noSplit.total - finalTax.total);
+    const withdrawalTax = capGainsTax + deferredTax;
+    const totalTax = finalTax.total + capGainsTax;   // ordinary tax (incl. deferred draws) + capital-gains tax
     const byMember = finalTax.byMember, oasClawback = finalTax.clawback, grossOrdinary = finalTax.grossOrdinary;
+    if (capGainsTax > 0) { const first = members[0]; if (byMember[first.id]) byMember[first.id].tax += capGainsTax; }
     const pensionSplit = split.amount;
-    const sweep = (gap < -0.5 ? -gap : 0) + saving;
-    if (sweep > 0.5) { const sink = assets.find(a => a.treat === 'taxable') || assets.find(a => a.treat === 'taxfree'); if (sink) { sink.bal += sweep; sink.basis += sweep; } }
+    const sweep = (gap < -0.5 ? -gap : 0) + splitSaving;
+    if (sweep > 0.5) {
+      let sink = assets.find(a => a.treat === 'taxable') || assets.find(a => a.treat === 'taxfree');
+      // A saver with only registered accounts and a house had no sink at all, so every
+      // surplus dollar was silently discarded. Open a non-registered account instead.
+      if (!sink) {
+        sink = { id: '_sweep', label: 'Comptant / non enregistré', type: 'nonreg', treat: 'taxable', owner: primary.id,
+          bal: 0, basis: 0, growth: A.preReturn, annualContribution: 0, employerMatch: 0 };
+        assets.push(sink);
+      }
+      sink.bal += sweep; sink.basis += sweep;
+    }
 
     // ---------- Balances & net worth ----------
     const bal = { deferred: 0, taxfree: 0, taxable: 0, education: 0, realestate: 0, corporate: 0 };

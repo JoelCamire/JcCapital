@@ -24,7 +24,12 @@ export function render({ store, client, jur, navigate }) {
   const cur = jur.currency;
   const F = clientFacts(client, jur);
   const FB = F.business;                                   // derived business facts (null when no business on file)
-  const B = client.business || newBusiness({ ownerId: client.members[0]?.id });
+  // No business on file → an EMPTY shell, never the demo figures from newBusiness():
+  // showing 250 000 $ of "active income" for a client who has no company reads as data.
+  const B = client.business || newBusiness({ ownerId: client.members[0]?.id, name: '',
+    activeIncome: 0, passiveIncome: 0, retainedEarnings: 0, corpInvestments: 0, otherPersonalIncome: 0,
+    valuation: { ebitda: 0, ebitdaMultiple: 5, revenue: 0, revenueMultiple: 1 }, sale: { proceeds: 0, acb: 0, owners: 1 } });
+  const hasBusiness = !!client.business;
   const owner = (FB && FB.owner) || F.primary || { age: 45, ordinary: 0, marginal: { ordinary: 0.45, noneligible: 0.4, eligible: 0.3, capgains: 0.25 } };
   const ownerName = client.members.find(m => m.id === B.ownerId)?.name || client.members[0]?.name || t('Propriétaire', 'Owner');
   const ownerOther = FB ? FB.ownerOtherIncome : (B.otherPersonalIncome || owner.ordinary || 0);
@@ -126,7 +131,11 @@ export function render({ store, client, jur, navigate }) {
   // ---------- Salary vs Dividend (flagship, interactive) ----------
   const svdBox = h('div', {});
   function drawSVD() {
-    const r = salaryVsDividend(jur, P.svdProfit, P.svdOther, { otherActiveIncome: 0, passiveIncome: B.passiveIncome, age: owner.age });
+    // The profit being remunerated sits ON TOP of the corporation's other active
+    // income: passing 0 here would price every dollar at the small-business rate
+    // even when the business limit is already used up.
+    const otherActive = Math.max(0, (+B.activeIncome || 0) - P.svdProfit);
+    const r = salaryVsDividend(jur, P.svdProfit, P.svdOther, { otherActiveIncome: otherActive, passiveIncome: B.passiveIncome, age: owner.age });
     if (!r.applicable) { svdBox.replaceChildren(h('div', { class: 'empty' }, t('Non disponible', 'Not available'))); return; }
     const aLabel = r.salary.label || t('Salaire', 'Salary');
     const bLabel = r.dividend.label || t('Dividende', 'Dividend');
@@ -278,6 +287,11 @@ export function render({ store, client, jur, navigate }) {
         h('div', {}, h('b', {}, s.title), h('div', { class: 'tiny muted' }, s.text))))));
 
   return h('div', { class: 'grid' },
+    hasBusiness ? null : h('div', { class: 'card span-full', style: { borderColor: 'var(--warn)' } },
+      h('div', { class: 'inline', style: { gap: '10px' } }, h('span', { html: icon('warning', 18) }),
+        h('div', {}, h('b', {}, t('Aucune entreprise au dossier', 'No business on file')),
+          h('div', { class: 'tiny muted' }, t('Les montants ci-dessous sont à zéro. Renseignez le profil de l’entreprise pour obtenir une analyse.', 'The figures below are zero. Fill in the business profile to get an analysis.')))),
+      h('div', { style: { marginTop: '10px' } }, h('button', { class: 'btn primary sm', html: icon('plus', 14) + ' ' + t('Créer le profil d’entreprise', 'Create the business profile'), onClick: editProfile }))),
     kpis,
     h('div', { class: 'grid cols-2 span-full' }, profileCard, corpCard),
     svdCard, rvCard,

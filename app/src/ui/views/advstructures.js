@@ -47,7 +47,7 @@ export function render({ store, client, jur, navigate }) {
   }
   drawPR();
   const prCard = card(t('Prêt au taux prescrit (fractionnement)', 'Prescribed-rate loan (income splitting)'), { class: 'span-full',
-    sub: t(`Déplacer le revenu de placement vers un conjoint/enfant à faible taux — taux prescrit ${pct(jur.prescribedRate ?? 0, 1)} (${jur.taxYear}), taux marginaux des membres du dossier`, `Shift investment income to a lower-rate spouse/child — prescribed rate ${pct(jur.prescribedRate ?? 0, 1)} (${jur.taxYear}), members' marginal rates from the file`) },
+    sub: t(`Déplacer le revenu de placement vers un conjoint/enfant à faible taux — taux prescrit ${pct(P.prRate, 1)} (${jur.taxYear}), taux marginaux des membres du dossier`, `Shift investment income to a lower-rate spouse/child — prescribed rate ${pct(P.prRate, 1)} (${jur.taxYear}), members' marginal rates from the file`) },
     h('div', { class: 'grid cols-3' },
       slider({ label: t('Montant du prêt (placements imposables du dossier)', 'Loan amount (taxable investments on file)'), value: P.prLoan, min: 100000, max: 5000000, step: 100000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('prLoan', v); drawPR(); } }),
       slider({ label: t('Rendement du portefeuille', 'Portfolio return'), value: P.prRet, min: 0.03, max: 0.12, step: 0.005, format: v => pct(v), onInput: v => { setP('prRet', v); drawPR(); } }),

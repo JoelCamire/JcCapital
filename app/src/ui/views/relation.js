@@ -302,6 +302,9 @@ export function openProduct(store, clientId, seed = {}, { existingId = null, tit
     footer: [h('button', { class: 'btn ghost', onClick: () => m.close() }, t('Annuler', 'Cancel')),
       h('button', { class: 'btn primary', onClick: () => {
         if (!isInv()) { draft.assetId = null; draft.aum = 0; }
+        // A typed AUM must reach the linked ASSET (the balance ledger); otherwise the
+        // store mirrors the old asset value straight back and the edit appears to vanish.
+        else if (Math.abs(num0(draft.aum) - num0(item.aum)) > 0.5) draft._aumEdited = true;
         store.updateClient(clientId, c => {
           c.products = c.products || [];
           const i = existingId ? c.products.findIndex(q => q.id === existingId) : -1;

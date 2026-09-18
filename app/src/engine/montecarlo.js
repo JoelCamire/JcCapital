@@ -74,7 +74,9 @@ export function runMonteCarlo(client, { trials = null, assumptions = null, seed 
       matrix[y][t] = bal;
     }
     finals[t] = bal;
-    if (!ruined && bal > 0) successes++;
+    // Success = the money never ran out while retired. Ending at exactly zero after
+    // funding every year is a success (a perfectly efficient plan), not a failure.
+    if (!ruined) successes++;
   }
 
   const bands = rows.map((r, y) => {
@@ -87,8 +89,11 @@ export function runMonteCarlo(client, { trials = null, assumptions = null, seed 
   });
 
   const sortedFinals = Array.from(finals).sort((a, b) => a - b);
+  // Nothing to test when the file has no capital AND never needs to draw on one:
+  // reporting "0 % success" for an empty file would be alarming and meaningless.
+  const applicable = start > 0 || flow.some(f => f < -0.5);
   const result = {
-    det, bands, trials: T,
+    det, bands, trials: T, applicable,
     successRate: successes / T,
     medianFinal: pctile(sortedFinals, 0.5),
     p10Final: pctile(sortedFinals, 0.10),

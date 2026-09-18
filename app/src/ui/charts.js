@@ -27,18 +27,44 @@ const fmtK = (v) => {
   if (a >= 1e3) return Math.round(v / 1e3) + 'k';
   return Math.round(v).toString();
 };
+/** Axis label with enough precision for the tick STEP, so ticks never repeat. */
+const fmtAxis = (v, step) => {
+  const s = Math.abs(step) || 1;
+  if (s >= 1e6) return (v / 1e6).toFixed(s >= 1e7 ? 0 : 1) + 'M';
+  if (s >= 1e3) return Math.round(v / 1e3) + 'k';
+  if (s >= 1) return Math.round(v).toString();
+  return v.toFixed(Math.min(3, Math.ceil(-Math.log10(s))));
+};
 
 const W = 760, H = 320, P = { t: 16, r: 18, b: 34, l: 50 };
+
+// ---- Input hardening -------------------------------------------------------
+// A chart must NEVER emit "NaN" into an SVG attribute: the browser drops the
+// element and logs an error. Every entry point coerces its series to exactly
+// the expected length with finite numbers (missing / NaN / Infinity -> 0).
+const finNum = (v, d = 0) => { const x = +v; return Number.isFinite(x) ? x : d; };
+const finArr = (vals, n) => Array.from({ length: n }, (_, i) => finNum(Array.isArray(vals) ? vals[i] : undefined));
+/** Normalise [{name,color,values,colors}] to `n` finite values per series. */
+function cleanSeries(series, n) {
+  const list = Array.isArray(series) ? series.filter(Boolean) : [];
+  if (!list.length) return [{ values: finArr([], n) }];
+  return list.map(s => ({ ...s, values: finArr(s.values, n) }));
+}
+/** Number of points a chart should draw. */
+const pointCount = (series, xLabels) => Math.max(1,
+  Array.isArray(xLabels) && xLabels.length ? xLabels.length
+    : Math.max(0, ...(Array.isArray(series) ? series : []).map(s => (Array.isArray(s?.values) ? s.values.length : 0))));
 
 function gridAndAxes(maxY, minY, xs, xLabels) {
   const iw = W - P.l - P.r, ih = H - P.t - P.b;
   let g = '';
   const ticks = 5;
+  const tickStep = (maxY - minY) / ticks;
   for (let i = 0; i <= ticks; i++) {
     const v = minY + (maxY - minY) * (i / ticks);
     const y = P.t + ih - (ih * (i / ticks));
     g += `<line x1="${P.l}" y1="${y.toFixed(1)}" x2="${W - P.r}" y2="${y.toFixed(1)}" stroke="var(--border)" stroke-width="1"/>`;
-    g += `<text x="${P.l - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end" font-size="10.5" fill="var(--text-3)">${fmtK(v)}</text>`;
+    g += `<text x="${P.l - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end" font-size="10.5" fill="var(--text-3)">${fmtAxis(v, tickStep)}</text>`;
   }
   // x labels (thin out)
   const step = Math.ceil(xLabels.length / 8);
@@ -53,10 +79,12 @@ function gridAndAxes(maxY, minY, xs, xLabels) {
 /** Multi-series line / area chart. series:[{name,color,values:[]}] */
 export function lineChart({ series, xLabels, area = false, height = H }) {
   const ih = height - P.t - P.b, iw = W - P.l - P.r;
+  const n = pointCount(series, xLabels);
+  series = cleanSeries(series, n);
+  xLabels = Array.from({ length: n }, (_, i) => (Array.isArray(xLabels) ? xLabels[i] : undefined) ?? '');
   const all = series.flatMap(s => s.values);
   let maxY = niceMax(Math.max(...all, 1));
   let minY = Math.min(0, ...all); if (minY < 0) minY = -niceMax(-minY);
-  const n = series[0].values.length;
   const xs = (i) => P.l + (n <= 1 ? iw / 2 : iw * i / (n - 1));
   const ysc = (v) => P.t + ih - ih * (v - minY) / (maxY - minY);
 
@@ -81,7 +109,9 @@ export function lineChart({ series, xLabels, area = false, height = H }) {
 /** Stacked area chart. series:[{name,color,values:[]}] */
 export function stackedAreaChart({ series, xLabels, height = H }) {
   const ih = height - P.t - P.b, iw = W - P.l - P.r;
-  const n = series[0].values.length;
+  const n = pointCount(series, xLabels);
+  series = cleanSeries(series, n);
+  xLabels = Array.from({ length: n }, (_, i) => (Array.isArray(xLabels) ? xLabels[i] : undefined) ?? '');
   const totals = Array.from({ length: n }, (_, i) => series.reduce((s, sr) => s + sr.values[i], 0));
   const maxY = niceMax(Math.max(...totals, 1));
   const xs = (i) => P.l + (n <= 1 ? iw / 2 : iw * i / (n - 1));
@@ -100,10 +130,16 @@ export function stackedAreaChart({ series, xLabels, height = H }) {
     ${gridAndAxes(maxY, 0, xs, xLabels)}${paths}</svg>`;
 }
 
-/** Grouped or stacked bars. series:[{name,color,values:[]}] */
+/**
+ * Grouped or stacked bars. series:[{name,color,values:[],colors?:[]}]
+ * `colors` (per-bar) wins over `color` (per-series) — use it for a single
+ * series whose bars are different categories.
+ */
 export function barChart({ series, xLabels, stacked = false, height = H }) {
   const ih = height - P.t - P.b, iw = W - P.l - P.r;
-  const n = xLabels.length;
+  const n = pointCount(series, xLabels);
+  series = cleanSeries(series, n);
+  xLabels = Array.from({ length: n }, (_, i) => (Array.isArray(xLabels) ? xLabels[i] : undefined) ?? '');
   let maxY;
   if (stacked) maxY = niceMax(Math.max(...Array.from({ length: n }, (_, i) => series.reduce((s, sr) => s + Math.max(0, sr.values[i]), 0)), 1));
   else maxY = niceMax(Math.max(...series.flatMap(s => s.values), 1));
@@ -126,7 +162,8 @@ export function barChart({ series, xLabels, stacked = false, height = H }) {
     xLabels.forEach((_, i) => {
       series.forEach((s, si) => {
         const v = s.values[i]; const y0 = ysc(0); const y1 = ysc(v);
-        bars += `<rect x="${(P.l + groupW * i + pad + bw * si).toFixed(1)}" y="${Math.min(y0, y1).toFixed(1)}" width="${(bw * 0.86).toFixed(1)}" height="${Math.abs(y1 - y0).toFixed(1)}" fill="${s.color || PALETTE[si % PALETTE.length]}" rx="2"/>`;
+        const fill = (Array.isArray(s.colors) && s.colors[i]) || s.color || PALETTE[si % PALETTE.length];
+        bars += `<rect x="${(P.l + groupW * i + pad + bw * si).toFixed(1)}" y="${Math.min(y0, y1).toFixed(1)}" width="${(bw * 0.86).toFixed(1)}" height="${Math.abs(y1 - y0).toFixed(1)}" fill="${fill}" rx="2"/>`;
       });
     });
   }
@@ -137,6 +174,7 @@ export function barChart({ series, xLabels, stacked = false, height = H }) {
 /** Donut chart. segments:[{label,value,color}] */
 export function donutChart({ segments, size = 220, thickness = 30, centerLabel, centerSub }) {
   const r = size / 2, ir = r - thickness, cx = r, cy = r;
+  segments = (Array.isArray(segments) ? segments : []).filter(Boolean).map(s => ({ ...s, value: Math.max(0, finNum(s.value)) }));
   const total = segments.reduce((s, x) => s + x.value, 0) || 1;
   let a0 = -Math.PI / 2, arcs = '';
   segments.forEach((seg, i) => {
@@ -158,9 +196,11 @@ export function donutChart({ segments, size = 220, thickness = 30, centerLabel, 
 /** Monte Carlo fan chart. bands:[{age,p10,p25,p50,p75,p90,retired}] */
 export function fanChart({ bands, height = 340 }) {
   const w = W, ih = height - P.t - P.b, iw = w - P.l - P.r;
+  bands = (Array.isArray(bands) && bands.length ? bands : [{ age: 0 }])
+    .map(b => ({ ...b, p10: finNum(b.p10), p25: finNum(b.p25), p50: finNum(b.p50), p75: finNum(b.p75), p90: finNum(b.p90) }));
   const n = bands.length;
   const maxY = niceMax(Math.max(...bands.map(b => b.p90), 1));
-  const xs = (i) => P.l + iw * i / (n - 1);
+  const xs = (i) => P.l + (n <= 1 ? iw / 2 : iw * i / (n - 1));
   const ysc = (v) => P.t + ih - ih * v / maxY;
   const xLabels = bands.map(b => b.age);
   const areaBetween = (hi, lo, col, op) => {
@@ -187,6 +227,7 @@ export function fanChart({ bands, height = 340 }) {
 /** Radial gauge 0..1. */
 export function gauge({ value, size = 180, label, sub }) {
   const r = size / 2 - 10, cx = size / 2, cy = size / 2;
+  value = Math.max(0, Math.min(1, finNum(value)));
   const a0 = Math.PI * 0.75, a1 = Math.PI * 2.25;
   const ang = a0 + (a1 - a0) * Math.min(1, Math.max(0, value));
   const pt = (a, rr = r) => `${(cx + rr * Math.cos(a)).toFixed(1)},${(cy + rr * Math.sin(a)).toFixed(1)}`;
@@ -203,7 +244,9 @@ export function gauge({ value, size = 180, label, sub }) {
 }
 
 export function sparkline(values, color = 'var(--accent)', w = 90, hgt = 30) {
-  if (!values.length) return '';
+  if (!Array.isArray(values) || !values.length) return '';
+  values = values.map(v => finNum(v));
+  if (values.length === 1) values = [values[0], values[0]];
   const mn = Math.min(...values), mx = Math.max(...values);
   const rng = mx - mn || 1;
   const pts = values.map((v, i) => `${(i / (values.length - 1) * w).toFixed(1)},${(hgt - (v - mn) / rng * hgt).toFixed(1)}`);

@@ -71,7 +71,7 @@ export function render({ client, jur }) {
     h('div', { class: 'grid cols-4 span-full' },
       kpi({ label: t('Valeur nette', 'Net Worth'), value: money(nw.netWorth, { currency: cur, compact: true }), iconName: 'networth',
         sub: t(`${money(nw.assets, { currency: cur, compact: true })} actifs · ${money(nw.liabilities, { currency: cur, compact: true })} dettes`, `${money(nw.assets, { currency: cur, compact: true })} assets · ${money(nw.liabilities, { currency: cur, compact: true })} debt`) }),
-      kpi({ label: t('Probabilité de succès', 'Success Probability'), value: pct(mc.successRate, 0), iconName: 'monte',
+      kpi({ label: t('Probabilité de succès', 'Success Probability'), value: mc.applicable ? pct(mc.successRate, 0) : '—', iconName: 'monte',
         sub: t(`${mc.trials} simulations Monte Carlo`, `${mc.trials} Monte Carlo simulations`),
         accent: mc.successRate >= 0.85 ? 'var(--pos)' : mc.successRate >= 0.6 ? 'var(--warn)' : 'var(--neg)' }),
       kpi({ label: t('Âge de retraite', 'Retirement Age'), value: sum.retirementAge ? `${sum.retirementAge} ${t('ans', 'yrs')}` : '—', iconName: 'retire', sub: primary.name || '—' }),

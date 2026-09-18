@@ -62,7 +62,10 @@ export function render({ store, client, jur }) {
     margRate: Math.round(prim.marginal.ordinary * 100) / 100,
   });
   const setP = (k, v) => { P[k] = v; saveWhatIf(store, 'empbenefits', { [k]: v }); };
-  const ctx = { cur, jur, F, P, setP, isCA, isQC, isIncorp, prim };
+  // Sections share `salary` and `matchPct`; each registers its redraw so a shared
+  // slider refreshes every section instead of leaving the others stale.
+  const redraws = [];
+  const ctx = { cur, jur, F, P, setP, isCA, isQC, isIncorp, prim, redraws, redrawAll: () => redraws.forEach(fn => fn()) };
 
   // ── Section 1: Total cost of an employee ──────────────────
   const empCostSection = buildEmpCostSection(ctx);
@@ -87,7 +90,7 @@ export function render({ store, client, jur }) {
 // ──────────────────────────────────────────────────────────────
 // SECTION 1 — Total cost of an employee
 // ──────────────────────────────────────────────────────────────
-function buildEmpCostSection({ cur, jur, P, setP, prim }) {
+function buildEmpCostSection({ cur, jur, P, setP, prim, redraws, redrawAll }) {
   const box = h('div', {});
 
   function draw() {
@@ -130,6 +133,7 @@ function buildEmpCostSection({ cur, jur, P, setP, prim }) {
     );
   }
 
+  redraws.push(draw);
   draw();
 
   return card(
@@ -143,7 +147,7 @@ function buildEmpCostSection({ cur, jur, P, setP, prim }) {
         label: t('Salaire de base (partagé avec le régime collectif)', 'Base salary (shared with the group plan)'),
         value: P.salary, min: 30000, max: 300000, step: 5000,
         format: v => money(v, { currency: cur, compact: true }),
-        onInput: v => { setP('salary', v); draw(); },
+        onInput: v => { setP('salary', v); redrawAll(); },
       }),
       slider({
         label: t('Charge avantages sociaux %', 'Benefits load %'),
@@ -155,7 +159,7 @@ function buildEmpCostSection({ cur, jur, P, setP, prim }) {
         label: t('Cotisation retraite employeur %', 'Employer retirement match %'),
         value: P.matchPct, min: 0, max: 0.12, step: 0.005,
         format: v => pct(v),
-        onInput: v => { setP('matchPct', v); draw(); },
+        onInput: v => { setP('matchPct', v); redrawAll(); },
       }),
       slider({
         label: t('Charges patronales % (RPC/AE/RQAP + FSS/CNESST)', 'Payroll taxes % (CPP/EI/QPIP + health-tax/WCB)'),
@@ -177,7 +181,7 @@ function buildEmpCostSection({ cur, jur, P, setP, prim }) {
 // ──────────────────────────────────────────────────────────────
 // SECTION 2 — Group retirement: RRSP+DPSP vs DC pension
 // ──────────────────────────────────────────────────────────────
-function buildGroupRetSection({ cur, P, setP, isCA }) {
+function buildGroupRetSection({ cur, P, setP, isCA, redraws, redrawAll }) {
   const retBox = h('div', {});
 
   function drawRet() {
@@ -218,6 +222,7 @@ function buildGroupRetSection({ cur, P, setP, isCA }) {
     );
   }
 
+  redraws.push(drawRet);
   drawRet();
 
   const prosConsCA = h('div', { class: 'grid cols-2', style: { marginTop: '12px' } },
@@ -254,13 +259,13 @@ function buildGroupRetSection({ cur, P, setP, isCA }) {
         label: t('Salaire de référence (partagé)', 'Reference salary (shared)'),
         value: P.salary, min: 30000, max: 300000, step: 5000,
         format: v => money(v, { currency: cur, compact: true }),
-        onInput: v => { setP('salary', v); drawRet(); },
+        onInput: v => { setP('salary', v); redrawAll(); },
       }),
       slider({
         label: t('Cotisation employeur %', 'Employer match %'),
-        value: P.matchPct, min: 0, max: 0.15, step: 0.005,
+        value: P.matchPct, min: 0, max: 0.12, step: 0.005,
         format: v => pct(v),
-        onInput: v => { setP('matchPct', v); drawRet(); },
+        onInput: v => { setP('matchPct', v); redrawAll(); },
       }),
       slider({
         label: t('Horizon (ans)', 'Horizon (yrs)'),
@@ -308,7 +313,7 @@ function buildHSASection({ cur, jur, F, P, setP, isCA, isQC, isIncorp, prim }) {
         [altLabel,                                          money(saving,       { currency: cur }), 'pos'],
         [t('Taux d’impôt corporatif utilisé', 'Corporate tax rate used'),  pct(P.corpTaxRate)],
         [t('Taux marginal personnel', 'Personal marginal rate'),       pct(P.margRate)],
-        isCA ? [t(`Crédit médical personnel (seuil 3 % du revenu net : ${money(threshold, { currency: cur })}, taux ${pct(creditRate)})`, `Personal medical credit (3 % net-income threshold: ${money(threshold, { currency: cur })}, rate ${pct(creditRate)})`), money(personalCredit, { currency: cur })] : null,
+        isCA ? [t(`Crédit médical personnel (seuil : le moindre de ${pct(medT ? medT.rate : 0.03, 0)} du revenu net et ${money(medT && medT.cap ? medT.cap : 0, { currency: cur })} → ${money(threshold, { currency: cur })}, taux ${pct(creditRate)})`, `Personal medical credit (threshold: lesser of ${pct(medT ? medT.rate : 0.03, 0)} of net income and ${money(medT && medT.cap ? medT.cap : 0, { currency: cur })} → ${money(threshold, { currency: cur })}, rate ${pct(creditRate)})`), money(personalCredit, { currency: cur })] : null,
         [
           t('Économie nette vs crédit personnel (env.)', 'Net saving vs personal credit (approx.)'),
           money(isIncorp ? (corpDeduction - personalCredit) : 0, { currency: cur }),

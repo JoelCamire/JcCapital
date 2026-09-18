@@ -57,7 +57,9 @@ export function render({ store, client, jur }) {
     ? client.portfolio
     : { holdings: defaultHoldingsFromAssets(client) };
 
-  const holdings = pf.holdings;
+  // A residence is not a portfolio holding: every target model is 0 % real estate,
+  // so leaving it in made the rebalancer say "sell 720 000 $ of real estate".
+  const holdings = pf.holdings.filter(hd => hd.assetClass !== 'realestate');
 
   // Derived computations (once)
   const alloc   = computeAllocation(holdings);

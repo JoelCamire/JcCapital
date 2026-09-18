@@ -12,7 +12,8 @@ export function render({ client, jur }) {
   const inflow = card(t('Flux de trésorerie — composition des revenus', 'Cash flow — income composition'), { class: 'span-full',
     sub: t('Emploi, prestations publiques, revenus de placement et décaissements', 'Employment, public benefits, investment income and withdrawals'),
     right: legend([
-      { color: PALETTE[0], label: t('Emploi', 'Employment') }, { color: PALETTE[1], label: t('Prestations', 'Benefits') },
+      { color: PALETTE[0], label: t('Emploi', 'Employment') }, { color: PALETTE[1], label: t('Rentes (RRQ, régimes)', 'Pensions (CPP, plans)') },
+      { color: PALETTE[6], label: jur.pensions?.oas?.name || t('PSV', 'OAS') },
       { color: PALETTE[2], label: t('Placements', 'Investments') }, { color: PALETTE[3], label: t('Décaissements', 'Withdrawals') },
     ]) },
     h('div', { html: stackedAreaChart({
@@ -20,6 +21,9 @@ export function render({ client, jur }) {
       series: [
         { color: PALETTE[0], values: rows.map(r => Math.round(r.employmentIncome)) },
         { color: PALETTE[1], values: rows.map(r => Math.round(r.pensionIncome)) },
+        // OAS is tracked separately by the projection — without it the chart hides
+        // roughly $9k/yr per person from every retirement year.
+        { color: PALETTE[6], values: rows.map(r => Math.round(r.oasIncome)) },
         { color: PALETTE[2], values: rows.map(r => Math.round(r.investmentIncome)) },
         { color: PALETTE[3], values: rows.map(r => Math.round(r.totalWithdrawals)) },
       ],

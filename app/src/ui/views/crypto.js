@@ -174,7 +174,8 @@ export function render({ store, client, jur }) {
         [t('Taux marginal ordinaire (dossier)', 'Ordinary marginal rate (file)'), pct(marginalRate)],
         [t('Taux effectif sur le gain', 'Effective rate on the gain'), pct(business ? marginalRate : capGainsRate)],
         [t('Impôt estimé', 'Estimated tax'),                  money(d.tax, { currency: cur }), 'neg'],
-        [t('Produit net après impôt', 'Net after tax'),       money(d.net, { currency: cur }), 'pos'],
+        [t('Gain net après impôt', 'Net gain after tax'),     money(d.net, { currency: cur }), 'pos'],
+        [t('Produit net encaissé', 'Net cash proceeds'),      money(Math.max(0, (P.dispProceeds || 0) - d.tax), { currency: cur }), 'pos'],
       ])
     );
   }

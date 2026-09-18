@@ -96,6 +96,7 @@ function caCore(jur, inc) {
     age = 45, employment = true, withPayroll = true,
     employmentIncome = null, pensionIncome = 0, oasIncome = 0,
     selfEmployed = false, ownerEiExempt = false, otherDeductions = 0, livingAlone = false,
+    familyNetIncome = null,
   } = inc;
   const F = jur.fed;
   const rd = jur.regionData || {};
@@ -144,7 +145,9 @@ function caCore(jur, inc) {
     if (age >= 65) amt += rd.ageAmount;
     if (pensionIncome > 0) amt += Math.min(rd.retirementAmount || 0, fin(pensionIncome));
     if (livingAlone) amt += rd.livingAloneAmount || 0;
-    if (amt > 0 && rd.seniorReduction) amt = Math.max(0, amt - Math.max(0, netIncome - rd.seniorReduction.threshold) * rd.seniorReduction.rate);
+    // The reduction is tested on FAMILY net income (both spouses), not the individual's.
+    const testedIncome = familyNetIncome != null && Number.isFinite(+familyNetIncome) ? Math.max(netIncome, +familyNetIncome) : netIncome;
+    if (amt > 0 && rd.seniorReduction) amt = Math.max(0, amt - Math.max(0, testedIncome - rd.seniorReduction.threshold) * rd.seniorReduction.rate);
     provCredits.senior = amt;
   }
   prov -= Object.values(provCredits).reduce((s, v) => s + v, 0) * pcr;
@@ -263,8 +266,12 @@ export function computeTax(jur, inc = {}) {
   const incomeTax = core.federal + core.regional;
   const total = incomeTax + core.payroll + clawback;
   const base = Math.max(0, fin(inc.ordinary)) + Math.max(0, fin(inc.capGains)) + Math.max(0, fin(inc.eligibleDiv)) + Math.max(0, fin(inc.nonEligibleDiv)) + Math.max(0, fin(inc.oasIncome));
-  // Numerical marginal rate on the next $1,000 of ordinary income (same employment status)
-  const bump = totalTax(jur, { ...inc, ordinary: Math.max(0, fin(inc.ordinary)) + 1000, employmentIncome: inc.employmentIncome != null ? fin(inc.employmentIncome) + 1000 : inc.employmentIncome });
+  // Numerical marginal rate on the next $1,000 of ordinary income.
+  // The extra dollars are only EMPLOYMENT income when the taxpayer already has some:
+  // adding $1,000 of salary to a retiree would hand them the employment amount and the
+  // Québec worker deduction, understating the true marginal rate by several points.
+  const hasEmployment = fin(inc.employmentIncome) > 0;
+  const bump = totalTax(jur, { ...inc, ordinary: Math.max(0, fin(inc.ordinary)) + 1000, employmentIncome: hasEmployment ? fin(inc.employmentIncome) + 1000 : inc.employmentIncome });
   const marginalRate = Math.max(0, (bump - total) / 1000);
   return {
     federal: core.federal,

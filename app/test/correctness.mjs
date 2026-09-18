@@ -213,6 +213,17 @@ const QC = getJurisdiction('CA', 'QC'), ON = getJurisdiction('CA', 'ON'), BC = g
   const c2 = normalize(JSON.parse(JSON.stringify(seed))); c2.assumptions.returnStdev = 0.001;
   const lowVol = MC.runMonteCarlo(c2);
   within('near-zero volatility → median ≈ deterministic (±2 %)', lowVol.medianFinal, lowVol.det.summary.finalInvestable, 0.02);
+  ok('a funded plan is flagged as applicable', a.applicable === true);
+  // An empty file has no plan to simulate: it must NOT report a scary 0 % (nor a smug 100 %).
+  const bare = normalize(M.newClient('Vide', 'CA', 'QC'));
+  bare.incomes = []; bare.expenses = []; bare.assets = []; bare.liabilities = []; bare.products = []; normalize(bare);
+  const mcBare = MC.runMonteCarlo(bare);
+  ok('empty file: Monte Carlo reports "not applicable" instead of a success rate', mcBare.applicable === false);
+  const HC = await import('../src/engine/healthcheck.js');
+  ok('empty file: health check gives a neutral retirement score, not 0', (() => { const H = HC.healthCheck(bare, QC); const r = H.categories.find(c => c.key === 'retirement'); return H.mcApplicable === false && r.score === 50; })());
+  // Ending at exactly zero after funding every year is a SUCCESS, not a failure.
+  const tight = normalize(JSON.parse(JSON.stringify(seed)));
+  ok('success = never ran out (not "money left over")', MC.runMonteCarlo(tight).successRate >= a.successRate - 1e-9);
 }
 
 // ---------------- 5. Facts layer identities ----------------
@@ -352,7 +363,9 @@ const QC = getJurisdiction('CA', 'QC'), ON = getJurisdiction('CA', 'ON'), BC = g
   const o = CRM.applyStage({ stage: 'new', probability: 20 }, 'won');
   ok('applyStage sets probability and closedAt', o.probability === 100 && typeof o.closedAt === 'number');
   const ks = CRM.complianceStatus(seed);
-  ok('KYC: beneficiary and risk profile derived from the file', ks.items.find(i => i.key === 'beneficiary').derived && ks.items.find(i => i.key === 'riskprofile').derived);
+  // Only the beneficiary item is genuinely derived; the investor profile must stay manual
+  // (every new client carries a default risk profile — see the regression section).
+  ok('KYC: the beneficiary item is derived from the file', ks.items.find(i => i.key === 'beneficiary').derived && !ks.items.find(i => i.key === 'riskprofile').derived);
   const na = CRM.complianceStatus({ compliance: Object.fromEntries(CRM.KYC_ITEMS.map(i => [i.key, { status: 'na' }])), beneficiaries: [], riskProfile: '' });
   ok('KYC: nothing applicable → 100 % (not 0 %)', na.pct === 1);
   const rr = CRM.resolveReferrer(clients, 'Marc Tremblay');
@@ -365,6 +378,132 @@ const QC = getJurisdiction('CA', 'QC'), ON = getJurisdiction('CA', 'ON'), BC = g
   const ev = CRM.monthEvents([fakeC({ members: [{ name: 'Leap', role: 'primary', dob: '2000-02-29' }], household: {}, crm: {} })], 2026, 1);
   ok('Feb-29 birthday clamps to Feb-28 in a non-leap year', !!ev['2026-02-28'] && ev['2026-02-28'].some(e => e.type === 'birthday'));
   ok('emails include every member (spouse too)', CRM.emailsOf(seed).length === 2);
+}
+
+// ---------------- 9. Chart hardening (no broken SVG attribute, ever) ----------------
+{
+  const C = await import('../src/ui/charts.js');
+  const leaks = (s) => /NaN|undefined|Infinity/.test(String(s));
+  const cases = {
+    'bars: fewer values than labels': () => C.barChart({ series: [{ values: [1] }], xLabels: ['a', 'b', 'c'] }),
+    'bars: one 1-value series per label (the Debt-view bug)': () => C.barChart({ series: [{ values: [1] }, { values: [2] }, { values: [3] }], xLabels: ['a', 'b', 'c'] }),
+    'bars: per-bar colours honoured': () => C.barChart({ series: [{ values: [1, 2, 3], colors: ['#111', '#222', '#333'] }], xLabels: ['a', 'b', 'c'] }),
+    'bars: no labels': () => C.barChart({ series: [{ values: [1, 2] }], xLabels: [] }),
+    'bars: stacked ragged': () => C.barChart({ series: [{ values: [1, 2] }, { values: [3] }], xLabels: ['a', 'b'], stacked: true }),
+    'line: NaN and Infinity values': () => C.lineChart({ series: [{ values: [NaN, 1, Infinity] }], xLabels: ['a', 'b', 'c'] }),
+    'line: empty series': () => C.lineChart({ series: [], xLabels: ['a', 'b'] }),
+    'line: single point': () => C.lineChart({ series: [{ values: [5] }], xLabels: ['a'] }),
+    'line: single point with area fill': () => C.lineChart({ series: [{ values: [5] }], xLabels: ['a'], area: true }),
+    'stacked area: ragged': () => C.stackedAreaChart({ series: [{ values: [1] }, { values: [2, 3] }], xLabels: ['a', 'b'] }),
+    'stacked area: single point': () => C.stackedAreaChart({ series: [{ values: [1] }], xLabels: ['a'] }),
+    'donut: NaN segment': () => C.donutChart({ segments: [{ label: 'x', value: NaN }, { label: 'y', value: 5 }] }),
+    'donut: empty': () => C.donutChart({ segments: [] }),
+    'fan: empty bands': () => C.fanChart({ bands: [] }),
+    'fan: single band with holes': () => C.fanChart({ bands: [{ age: 1, p10: NaN, p50: 2, p90: undefined }] }),
+    'gauge: NaN value': () => C.gauge({ value: NaN, label: 'x' }),
+    'sparkline: single point': () => C.sparkline([5]),
+    'sparkline: NaN inside': () => C.sparkline([1, NaN, 3]),
+    'sparkline: flat series': () => C.sparkline([2, 2, 2]),
+  };
+  for (const [name, fn] of Object.entries(cases)) {
+    let out = null, threw = null;
+    try { out = fn(); } catch (e) { threw = e.message; }
+    ok(`chart — ${name}`, threw == null && !leaks(out), threw ? 'threw: ' + threw : 'leaked: ' + String(out).slice(0, 80));
+  }
+  const colored = C.barChart({ series: [{ values: [1, 2, 3], colors: ['#111', '#222', '#333'] }], xLabels: ['a', 'b', 'c'] });
+  ok('chart — three bars drawn with their three colours', ['#111', '#222', '#333'].every(c => colored.includes(c)) && (colored.match(/<rect/g) || []).length === 3);
+}
+
+// ---------------- 10. Regression: defects found in code review ----------------
+{
+  const CRM = await import('../src/engine/crm.js');
+  const { syncDerived } = await import('../src/state/store.js');
+  const bare = () => { const c = M.newClient('T', 'CA', 'QC'); c.insurance = []; c.products = []; c.assets = []; c.liabilities = []; return c; };
+
+  // — tax engine —
+  const ret = { ordinary: 60000, employmentIncome: 0, pensionIncome: 20000, oasIncome: 8975, age: 70, employment: false, withPayroll: false };
+  const trueMarg = (T.computeTax(QC, { ...ret, ordinary: 61000 }).total - T.computeTax(QC, ret).total) / 1000;
+  near('marginal-rate probe does not grant phantom employment credits to a retiree', T.computeTax(QC, ret).marginalRate, trueMarg, 0.002);
+  const solo = T.computeTax(QC, { ordinary: 45000, age: 70, employment: false, withPayroll: false, pensionIncome: 20000 });
+  const fam = T.computeTax(QC, { ordinary: 45000, age: 70, employment: false, withPayroll: false, pensionIncome: 20000, familyNetIncome: 90000 });
+  ok('Québec senior credit is reduced on FAMILY net income', solo.detail.provCredits.senior > 0 && fam.detail.provCredits.senior === 0 && fam.total > solo.total);
+
+  // — projection —
+  const cg = bare(); const cgm = cg.members[0];
+  cgm.currentAge = 66; cgm.retirementAge = 60; cgm.lifeExpectancy = 68;
+  cg.incomes = []; cg.expenses = [M.newExpense({ amount: 200000, growth: 0, retirementFactor: 1 })];
+  cg.assets = [M.newAsset({ ownerId: cgm.id, type: 'nonreg', value: 3000000, costBasis: 300000, growth: 0, annualContribution: 0 })];
+  normalize(cg);
+  const cgRow = P.runProjection(cg).rows[0];
+  ok('capital-gains tax on a taxable withdrawal is charged, not refunded', cgRow.tax > 20000 && Math.abs(cgRow.tax - cgRow.withdrawalTax) < 1);
+  near('the portfolio really pays that tax', cgRow.investable, 3000000 - cgRow.withdrawals.taxable, 1);
+
+  const sv = bare(); const svm = sv.members[0];
+  svm.currentAge = 40; svm.retirementAge = 65; svm.lifeExpectancy = 70;
+  sv.incomes = [M.newIncome({ memberId: svm.id, type: 'employment', amount: 200000, growth: 0 })];
+  sv.expenses = [M.newExpense({ amount: 40000, growth: 0, retirementFactor: 1 })];
+  sv.assets = [M.newAsset({ ownerId: svm.id, type: 'rrsp', value: 100000, costBasis: 100000, growth: 0, annualContribution: 0 }),
+    M.newAsset({ ownerId: svm.id, type: 'realestate', value: 500000, costBasis: 500000, growth: 0 })];
+  normalize(sv);
+  const svRows = P.runProjection(sv).rows;
+  ok('surplus is never discarded when the file has no taxable account', svRows[1].investable > svRows[0].investable && svRows[5].investable > 400000);
+
+  const big = bare(); const bm = big.members[0];
+  bm.currentAge = 70; bm.retirementAge = 65; bm.lifeExpectancy = 71;
+  big.filingStatus = 'married'; big.household.maritalStatus = 'married';
+  big.members.push(M.newMember({ name: 'Sp', role: 'spouse', currentAge: 70, retirementAge: 65, lifeExpectancy: 71 }));
+  big.incomes = []; big.expenses = [M.newExpense({ amount: 900000, growth: 0, retirementFactor: 1 })];
+  big.assets = [M.newAsset({ ownerId: bm.id, type: 'rrsp', value: 3000000, costBasis: 3000000, growth: 0 }),
+    M.newAsset({ ownerId: big.members[1].id, type: 'rrsp', value: 3000000, costBasis: 3000000, growth: 0 })];
+  normalize(big);
+  const bigProj = P.runProjection(big);
+  ok('a large one-off need does not fabricate a shortfall while capital remains', bigProj.rows[0].shortfall === 0 && bigProj.rows[0].balances.deferred > 1000000 && bigProj.summary.success);
+
+  // — store / model integrity —
+  let c = bare(); c.products = [M.newProduct({ kind: 'investment', aum: 285000, insuredId: c.members[0].id })]; normalize(c);
+  const aid = c.products[0].assetId;
+  c.assets = c.assets.filter(a => a.id !== aid); syncDerived(c);
+  ok('deleting a linked account does not resurrect it', c.assets.length === 0 && c.products[0].aum === 0);
+
+  c = bare(); const cm = c.members[0];
+  c.assets = [M.newAsset({ ownerId: cm.id, type: 'nonreg', value: 300000, costBasis: 300000 })];
+  c.products = [M.newProduct({ kind: 'investment', aum: 285000, insuredId: cm.id })]; normalize(c);
+  ok('importing a file with a drifted product AUM does not double net worth', c.assets.length === 1 && FX.clientFacts(c).netWorth.assets === 300000);
+
+  c = bare(); c.insurance = [M.newInsurance({ type: 'life', insuredId: cm.id, coverage: 250000, premium: 300 }), M.newInsurance({ type: 'life', insuredId: cm.id, coverage: 250000, premium: 300 })];
+  c.members = [cm]; normalize(c);
+  near('two identical legacy policies both migrate (coverage not halved)', FX.clientFacts(c).coverage[cm.id].life, 500000, 0.01);
+
+  c = bare(); c.members = [cm];
+  c.products = [M.newProduct({ kind: 'life', insuredId: cm.id, faceAmount: 520000, premium: 720, policyNumber: 'P1' })];
+  c.insurance = [M.newInsurance({ type: 'life', insuredId: cm.id, coverage: 500000, premium: 720, policyNumber: 'P1' })];
+  normalize(c);
+  ok('the same policy in both arrays is matched by policy number, not doubled', FX.clientFacts(c).coverage[cm.id].life === 520000 && FX.clientFacts(c).premiums === 720);
+
+  c = bare(); c.members = [cm]; c.products = [M.newProduct({ kind: 'investment', aum: 200000, status: 'cancelled', insuredId: cm.id })]; normalize(c);
+  ok('a cancelled product creates no balance-sheet asset', c.assets.length === 0 && CRM.clientAum(c) === 0 && FX.clientFacts(c).netWorth.assets === 0);
+
+  c = bare(); c.members = [cm]; c.assets = [M.newAsset({ ownerId: cm.id, type: 'nonreg', value: 100000, costBasis: 100000 })];
+  const one = c.assets[0].id;
+  c.products = [M.newProduct({ kind: 'investment', aum: 100000, assetId: one, insuredId: cm.id }), M.newProduct({ kind: 'investment', aum: 100000, assetId: one, insuredId: cm.id })];
+  normalize(c);
+  ok('two products on one account do not double the AUM', CRM.clientAum(c) === 100000 && c.assets.length === 1);
+
+  c = bare(); c.members = [cm]; c.assets = [M.newAsset({ ownerId: cm.id, type: 'nonreg', value: 100000, costBasis: 100000 })];
+  c.products = [M.newProduct({ kind: 'investment', aum: 100000, assetId: c.assets[0].id, insuredId: cm.id })]; normalize(c);
+  c.products[0].aum = 175000; c.products[0]._aumEdited = true; syncDerived(c);
+  ok('a manual AUM edit is written through to the account', c.products[0].aum === 175000 && c.assets[0].value === 175000);
+
+  // — compliance —
+  const fresh = normalize(M.newClient('N', 'CA', 'QC'));
+  ok('a brand-new file is NOT auto-compliant on the investor profile', CRM.complianceStatus(fresh).items.find(i => i.key === 'riskprofile').status === 'todo');
+  fresh.compliance = { fatca: { status: 'na' } }; fresh.beneficiaries = [{ id: 'b', name: 'X' }];
+  const cs = CRM.complianceStatus(fresh);
+  ok('an explicit "not applicable" is never overridden by a derived rule', cs.items.find(i => i.key === 'fatca').status === 'na' && cs.items.find(i => i.key === 'beneficiary').status === 'done');
+
+  // — charts / UI contracts —
+  const { cssPct } = await import('../src/ui/dom.js');
+  ok('cssPct emits a valid CSS length (pct() would produce "85 %" and be dropped)', cssPct(0.85) === '85.0%' && cssPct(2) === '100.0%' && cssPct(NaN) === '0.0%');
 }
 
 console.log(`\n===== JC Planner correctness suite =====`);

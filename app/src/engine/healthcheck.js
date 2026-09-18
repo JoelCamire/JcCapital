@@ -38,8 +38,10 @@ export function healthCheck(client, jur) {
   // ---- Retirement ----
   {
     const f = [];
-    const score = clamp(mc.successRate * 100);
-    if (mc.successRate < 0.75) add(f, t('Plan de retraite fragile', 'Fragile retirement plan'), t(`Probabilité de succès de ${Math.round(mc.successRate * 100)} %. Reporter la retraite, épargner plus ou réduire les dépenses cibles.`, `Success probability ${Math.round(mc.successRate * 100)}%. Delay retirement, save more, or lower target spending.`), 'risk');
+    // Nothing to simulate (no capital, no spending) → neutral score, not a verdict.
+    const score = mc.applicable ? clamp(mc.successRate * 100) : 50;
+    if (!mc.applicable) add(f, t('Plan à documenter', 'Plan not yet documented'), t('Le dossier ne contient ni dépenses ni capital : ajoutez le coût de vie et les comptes pour obtenir une probabilité de succès.', 'The file has neither expenses nor capital: add living costs and accounts to get a success probability.'), 'warn');
+    else if (mc.successRate < 0.75) add(f, t('Plan de retraite fragile', 'Fragile retirement plan'), t(`Probabilité de succès de ${Math.round(mc.successRate * 100)} %. Reporter la retraite, épargner plus ou réduire les dépenses cibles.`, `Success probability ${Math.round(mc.successRate * 100)}%. Delay retirement, save more, or lower target spending.`), 'risk');
     else if (mc.successRate < 0.85) add(f, t('Marge de sécurité limitée', 'Limited safety margin'), t('Le plan tient mais reste sensible aux marchés défavorables.', 'The plan holds but is sensitive to poor markets.'), 'warn');
     else add(f, t('Retraite bien financée', 'Well-funded retirement'), t('Possibilité de devancer la retraite ou d’optimiser la fiscalité.', 'Room to retire earlier or optimize taxes.'), 'good');
     if (proj.summary.depletionAge) add(f, t('Épuisement du capital', 'Capital depletion'), t(`Le capital s’épuise vers ${proj.summary.depletionAge} ans.`, `Capital is depleted around age ${proj.summary.depletionAge}.`), 'risk');
@@ -89,7 +91,9 @@ export function healthCheck(client, jur) {
     // liquidity at death: exact tax on the deemed disposition of registered assets at the end of the plan
     const last = proj.rows[proj.rows.length - 1];
     const estTax = computeTax(jur, { ordinary: last.balances.deferred || 0, withPayroll: false, employment: false, age: last.primaryAge }).total;
-    const liquid = (last.balances.taxfree || 0) + (last.balances.taxable || 0) + F.coverage[client.members[0]?.id]?.life || 0;
+    // NOTE the parentheses: `a + b + c || 0` would collapse the whole sum to 0
+    // whenever the coverage lookup is undefined, firing the warning permanently.
+    const liquid = (last.balances.taxfree || 0) + (last.balances.taxable || 0) + ((F.coverage[client.members[0]?.id] || {}).life || 0);
     if (estTax > liquid) add(f, t('Liquidité au décès insuffisante', 'Insufficient liquidity at death'), t(`L’impôt au décès (~${M(estTax)}) pourrait dépasser les actifs liquides et l’assurance — l’assurance vie (personnelle ou corporative via le CDC) peut combler ce besoin.`, `Tax at death (~${M(estTax)}) may exceed liquid assets and insurance — life insurance (personal or corporate via the CDA) can fill the gap.`), 'warn');
     if (!f.length) add(f, t('Succession bien organisée', 'Estate well organized'), t('Documents et bénéficiaires à jour.', 'Documents and beneficiaries up to date.'), 'good');
     score = clamp(score);
@@ -137,5 +141,5 @@ export function healthCheck(client, jur) {
   const actions = categories.flatMap(c => c.findings.filter(x => x.severity !== 'good').map(x => ({ ...x, category: c.label })))
     .sort((a, b) => rank[a.severity] - rank[b.severity]);
 
-  return { overallScore: overall, grade, categories, actions, successRate: mc.successRate, netWorth: nw.netWorth };
+  return { overallScore: overall, grade, categories, actions, successRate: mc.successRate, mcApplicable: mc.applicable, netWorth: nw.netWorth };
 }

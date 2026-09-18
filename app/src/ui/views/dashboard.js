@@ -31,8 +31,9 @@ export function render({ client, jur, navigate }) {
       sub: t(`${money(nw.assets, { currency: cur, compact: true })} actifs · ${money(nw.liabilities, { currency: cur, compact: true })} dettes`,
         `${money(nw.assets, { currency: cur, compact: true })} assets · ${money(nw.liabilities, { currency: cur, compact: true })} debt`),
       spark: nwSeries.filter((_, i) => i % 3 === 0) }),
-    kpi({ label: t('Probabilité de succès', 'Probability of success'), value: pct(mc.successRate, 0), iconName: 'monte',
-      sub: t(`${mc.trials} simulations Monte Carlo`, `${mc.trials} Monte Carlo simulations`), accent: mc.successRate >= 0.85 ? 'var(--pos)' : mc.successRate >= 0.6 ? 'var(--warn)' : 'var(--neg)' }),
+    kpi({ label: t('Probabilité de succès', 'Probability of success'), value: mc.applicable ? pct(mc.successRate, 0) : '—', iconName: 'monte',
+      sub: mc.applicable ? t(`${mc.trials} simulations Monte Carlo`, `${mc.trials} Monte Carlo simulations`) : t('Ajoutez des dépenses et des actifs', 'Add expenses and assets'),
+      accent: !mc.applicable ? '' : mc.successRate >= 0.85 ? 'var(--pos)' : mc.successRate >= 0.6 ? 'var(--warn)' : 'var(--neg)' }),
     kpi({ label: t("Taux d'épargne", 'Savings rate'), value: pct(savingsRate, 0), iconName: 'cashflow',
       accent: savingsRate >= target ? 'var(--pos)' : savingsRate >= target / 2 ? 'var(--warn)' : 'var(--neg)',
       sub: t(`${money(annualSavings, { currency: cur, compact: true })} / an investis · cible ${pct(target, 0)}`, `${money(annualSavings, { currency: cur, compact: true })} / yr invested · target ${pct(target, 0)}`) }),
@@ -55,8 +56,9 @@ export function render({ client, jur, navigate }) {
 
   wrap.appendChild(h('div', { class: 'grid cols-2 span-full' },
     card(t('Préparation à la retraite', 'Retirement readiness'), { sub: t(`Retraite à ${R.retirementAge} ans`, `Retirement at ${R.retirementAge}`) },
-      h('div', { style: { textAlign: 'center' } }, h('div', { html: gauge({ value: mc.successRate, label: pct(mc.successRate, 0), sub: t('succès', 'success') }) })),
-      h('div', { class: 'flex center', style: { justifyContent: 'center', gap: '8px', marginTop: '4px' } }, badgeScore(mc.successRate)),
+      h('div', { style: { textAlign: 'center' } }, h('div', { html: gauge({ value: mc.applicable ? mc.successRate : 0, label: mc.applicable ? pct(mc.successRate, 0) : '—', sub: mc.applicable ? t('succès', 'success') : t('à évaluer', 'to assess') }) })),
+      mc.applicable ? h('div', { class: 'flex center', style: { justifyContent: 'center', gap: '8px', marginTop: '4px' } }, badgeScore(mc.successRate))
+        : h('div', { class: 'tiny muted', style: { textAlign: 'center', marginTop: '4px' } }, t('Aucune dépense ni actif : rien à projeter.', 'No expenses or assets: nothing to project.')),
       h('div', { class: 'sep' }),
       statList([
         [t('Capital au décès (médian)', 'Capital at death (median)'), money(mc.medianFinal, { currency: cur, compact: true })],
@@ -102,7 +104,10 @@ function buildAlerts(client, F, R, mc, jur) {
   const nw = F.netWorth;
   const savingsRate = F.household.savingsRate;
   const target = F.assumptions.savingsTarget;
-  if (mc.successRate < 0.75) a.push({ kind: 'neg', title: t('Plan de retraite à risque', 'Retirement plan at risk'),
+  if (!mc.applicable) a.push({ kind: 'warn', title: t('Dossier à compléter', 'File to complete'),
+    text: t('Aucune dépense ni actif au dossier : ajoutez le coût de vie, les comptes et les dettes pour obtenir une projection et une probabilité de succès.',
+      'No expenses or assets on file: add living costs, accounts and debts to get a projection and a success probability.') });
+  if (mc.applicable && mc.successRate < 0.75) a.push({ kind: 'neg', title: t('Plan de retraite à risque', 'Retirement plan at risk'),
     text: t(`La probabilité de succès est de ${pct(mc.successRate, 0)}. Envisagez de reporter la retraite, d'augmenter l'épargne ou de réduire les dépenses cibles.`,
       `Probability of success is ${pct(mc.successRate, 0)}. Consider delaying retirement, saving more, or lowering target spending.`) });
   if (R.depletionAge) a.push({ kind: 'neg', title: t('Épuisement du capital projeté', 'Projected capital depletion'),
@@ -120,7 +125,7 @@ function buildAlerts(client, F, R, mc, jur) {
   if (F.household.surplus < 0) a.push({ kind: 'warn', title: t('Budget déficitaire', 'Budget deficit'),
     text: t(`Dépenses, dettes et cotisations dépassent le revenu net de ${money(-F.household.surplus, { currency: jur.currency, compact: true })}/an.`,
       `Expenses, debt and contributions exceed net income by ${money(-F.household.surplus, { currency: jur.currency, compact: true })}/yr.`) });
-  if (mc.successRate >= 0.85 && !R.depletionAge) a.push({ kind: 'pos', title: t('Trajectoire solide', 'Solid trajectory'),
+  if (mc.applicable && mc.successRate >= 0.85 && !R.depletionAge) a.push({ kind: 'pos', title: t('Trajectoire solide', 'Solid trajectory'),
     text: t(`Le plan atteint ${pct(mc.successRate, 0)} de succès. Opportunité d'optimisation fiscale ou de devancement de la retraite.`,
       `The plan reaches ${pct(mc.successRate, 0)} success. Opportunity for tax optimization or earlier retirement.`) });
   return a;

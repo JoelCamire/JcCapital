@@ -152,7 +152,9 @@ export function render({ store, client, jur }) {
           [t('Ordre de remboursement', 'Payoff order'), (sel.order || []).join(' → ')],
         ]);
 
-    const barEl = h('div', { html: barChart({ series: chartColors.map((color, i) => ({ color, values: [chartValues[i]] })), xLabels: chartLabels, stacked: false, height: 200 }) });
+    // ONE series of three bars, one colour per bar (three 1-value series would
+    // leave two thirds of the grid undefined).
+    const barEl = h('div', { html: barChart({ series: [{ values: chartValues, colors: chartColors }], xLabels: chartLabels, stacked: false, height: 200 }) });
     const lgnd = legend(chartColors.map((color, i) => ({ color, label: chartLabels[i] })));
     strategyContainer.replaceChildren(statsEl, h('div', { class: 'sep' }), lgnd, barEl);
   }

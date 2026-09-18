@@ -96,7 +96,7 @@ function memberClaimingCard(member, pension, entitlement, pensionName, cur, disc
 // OAS Clawback card — income prefilled from the projection, persisted
 // ---------------------------------------------------------------------------
 
-function oasClawbackCard(store, jur, W, oasAnnual, cur) {
+function oasClawbackCard(store, jur, W, oasAnnual, cur, pensionerName = '') {
   const oas = jur && jur.pensions && jur.pensions.oas;
   const hasClawback = oas && oas.clawbackStart && oas.clawbackRate;
 
@@ -114,7 +114,7 @@ function oasClawbackCard(store, jur, W, oasAnnual, cur) {
     const cb = oasClawback(jur, W.income, oasAnnual);
     if (!cb) { result.replaceChildren(); return; }
     const pairs = [
-      [t('Revenu net de retraite (projeté)', 'Projected retirement net income'), money(Math.round(W.income), { currency: cur })],
+      [t(`Revenu net de retraite${pensionerName ? ' de ' + pensionerName : ''} (projeté, individuel)`, `Projected retirement net income${pensionerName ? ' — ' + pensionerName : ''} (individual)`), money(Math.round(W.income), { currency: cur })],
       [t('Seuil de récupération', 'Clawback threshold'), money(Math.round(cb.threshold), { currency: cur })],
       [t(`Récupération (${pct(cb.rate, 0)} au-delà du seuil)`, `Clawback (${pct(cb.rate, 0)} above threshold)`), cb.clawback > 0 ? money(Math.round(cb.clawback), { currency: cur }) : t('Aucune', 'None'), cb.clawback > 0 ? 'neg' : 'pos'],
       [t('PSV nette reçue', 'Net OAS received'), money(Math.round(cb.net), { currency: cur }), cb.clawback > 0 ? 'warn' : 'pos'],
@@ -214,7 +214,14 @@ export function render({ store, client, jur }) {
   const discountRate = F.assumptions.lifeDiscount;   // real discount rate of the file
 
   // Retirement net income prefilled from the projection's first retirement year (persisted what-if)
-  const W = whatIf(client, 'benefits', { income: Math.round(R.taxableIncome || 0) });
+  // The OAS recovery tax is assessed on EACH pensioner's own net income, not on the
+  // household total: defaulting to the couple's combined income wiped out the OAS of
+  // every couple. Use the primary member's own projected net income (incl. their OAS).
+  const retRow = R.projection.summary.retirementRow;
+  const ownIncome = (primary && retRow && retRow.byMember[primary.id])
+    ? (retRow.byMember[primary.id].ordinary || 0) + (retRow.byMember[primary.id].oasIncome || 0)
+    : (R.taxableIncome || 0);
+  const W = whatIf(client, 'benefits', { income: Math.round(ownIncome) });
   const oasAnnual = primary ? F.pensions[primary.id].oas.annual : (oas ? oas.maxAnnual : 0);
 
   const pEnt = primary ? F.pensions[primary.id] : null;
@@ -254,7 +261,7 @@ export function render({ store, client, jur }) {
     kpiRow,
     ...memberCppCards,
     ...oasMemberCards,
-    h('div', { class: 'span-full' }, oasClawbackCard(store, jur, W, oasAnnual, cur)),
+    h('div', { class: 'span-full' }, oasClawbackCard(store, jur, W, oasAnnual, cur, primary ? primary.name : '')),
     h('div', { class: 'span-full' }, strategyCard(jur, cur, breakEven)),
   );
 }

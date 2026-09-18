@@ -5,7 +5,7 @@ import { incorporationAnalysis, incorporationBreakeven } from '../../engine/self
 import { clientFacts, whatIf, saveWhatIf } from '../../engine/facts.js';
 import { store as appStore } from '../../state/store.js';
 
-export function render({ store, client, jur }) {
+export function render({ store, client, jur, navigate }) {
   store = store || appStore;
   const cur = jur.currency;
   const isCA = jur.country === 'CA';
@@ -19,6 +19,16 @@ export function render({ store, client, jur }) {
   const P = whatIf(client, 'incorporation', { businessIncome: Math.round(incomeGuess), personalNeed: needGuess, adminCost: 2500 });
   const setP = (k, v) => { P[k] = v; saveWhatIf(store, 'incorporation', { [k]: v }); };
   const params = () => ({ ...P, age: owner.age });
+
+  // The model is built on the Canadian small-business deduction and integration; for
+  // other countries corporateTaxCA() has no rates and every figure comes back NaN.
+  if (!isCA) {
+    return h('div', { class: 'grid' }, card(t('Décision d’incorporation', 'Incorporation decision'), { class: 'span-full' },
+      h('div', { class: 'empty' }, h('div', { class: 'big' }, '🇨🇦'),
+        h('p', { class: 'muted' }, t(`Ce module modélise la déduction pour petite entreprise et l’intégration canadiennes. Pour ${jur.name}, utilisez le module « Entreprise & société », qui applique les taux locaux.`,
+          `This module models the Canadian small-business deduction and integration. For ${jur.name}, use the “Business & corporation” module, which applies local rates.`)),
+        h('button', { class: 'btn sm', style: { marginTop: '10px' }, onClick: () => navigate && navigate('business') }, t('Ouvrir Entreprise & société', 'Open Business & corporation')))));
+  }
 
   const out = h('div', {});
   function draw() {
