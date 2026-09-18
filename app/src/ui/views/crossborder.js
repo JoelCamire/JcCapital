@@ -1,27 +1,31 @@
 // ============================================================
 // Cross-Border / Snowbird Planning — View
 // Canada–US focus: SPT, estate tax, key issues, disclaimer
+// Day counts are yearly facts persisted in client.calc.crossborder;
+// the US estate exemption/rate come from the US jurisdiction table.
 // render({ store, client, jur, navigate }) → HTMLElement
 // ============================================================
-import { h, money, num, icon, t } from '../dom.js';
+import { h, money, num, pct, icon, t } from '../dom.js';
 import { kpi, card, slider, statList, legend } from '../widgets.js';
 import { barChart, PALETTE } from '../charts.js';
+import { JURISDICTIONS } from '../../jurisdictions/index.js';
+import { clientFacts, whatIf, saveWhatIf } from '../../engine/facts.js';
+import { store as appStore } from '../../state/store.js';
 
 // ---------------------------------------------------------------------------
 // Section 1 — Substantial Presence Test (SPT)
 // ---------------------------------------------------------------------------
 
-function sptSection() {
-  let daysThis = 120;
-  let daysLast = 90;
-  let days2Ago = 60;
-
+function sptSection(P, setP) {
   const result = h('div', {});
 
   function sptRedraw() {
+    const daysThis = P.daysThis, daysLast = P.daysLast, days2Ago = P.days2Ago;
     const spt = daysThis + daysLast / 3 + days2Ago / 6;
     const deemed = daysThis >= 31 && spt >= 183;
-    const closerConn = !deemed && daysThis < 183;
+    // Form 8840 (closer connection) is only relevant when the weighted test IS met
+    // but the person spent fewer than 183 days in the US this year.
+    const closerConn = deemed && daysThis < 183;
     const healthRisk = daysThis > 182;
 
     const sptRounded = Math.round(spt * 10) / 10;
@@ -69,7 +73,7 @@ function sptSection() {
       chips.push(
         h('span', {
           class: 'chip warn',
-          html: icon('doc', 13) + ' ' + t('Exception: Formulaire 8840 disponible', 'Exception: Form 8840 available'),
+          html: icon('doc', 13) + ' ' + t('Exception : formulaire 8840 (lien plus étroit) disponible', 'Exception: Form 8840 (closer connection) available'),
           style: { display: 'inline-flex', alignItems: 'center', gap: '5px', marginRight: '8px' },
         }),
       );
@@ -90,21 +94,21 @@ function sptSection() {
       statList(pairs),
       deemed
         ? h('p', { class: 'tiny muted', style: { marginTop: '10px', lineHeight: '1.6' } },
-            t(
-              'Vous êtes présumé résident fiscal américain. Vous devez produire une déclaration US (Form 1040) sur votre revenu mondial, sauf exception applicable (ex. : Convention fiscale Canada-États-Unis, Form 8840 si < 183 jours cette année).',
-              'You are deemed a US tax resident. You must file a US return (Form 1040) on worldwide income unless an exception applies (e.g., Canada-US Tax Treaty, Form 8840 if < 183 days this year).',
-            ),
-          )
-        : h('p', { class: 'tiny muted', style: { marginTop: '10px', lineHeight: '1.6' } },
             closerConn
               ? t(
-                  "Le test SPT n’est pas déclenché. Si vous avez passé >= 31 jours cette année et que le total atteint 183, mais que vous avez moins de 183 jours cette année, vous pouvez déposer le formulaire 8840 (Closer Connection Exception) pour ne pas être considéré résident fiscal américain.",
-                  'The SPT is not triggered. If you had >= 31 days this year and the weighted total reaches 183, but you spent fewer than 183 days this year, you may file Form 8840 (Closer Connection Exception) to avoid US tax residency.',
+                  'Le test pondéré est atteint mais vous avez passé moins de 183 jours aux États-Unis cette année : vous pouvez déposer le formulaire 8840 (Closer Connection Exception) pour ne pas être considéré résident fiscal américain, à condition de démontrer un lien plus étroit avec le Canada.',
+                  'The weighted test is met but you spent fewer than 183 days in the US this year: you may file Form 8840 (Closer Connection Exception) to avoid US tax residency, provided you can show a closer connection to Canada.',
                 )
               : t(
-                  "Le test de présence substantielle n’est pas déclenché pour cette année. Continuez à surveiller vos jours chaque année.",
-                  'The Substantial Presence Test is not triggered this year. Continue tracking your days annually.',
+                  'Vous êtes présumé résident fiscal américain et le formulaire 8840 n’est pas disponible (183 jours ou plus cette année). Vous devez produire une déclaration US (Form 1040) sur votre revenu mondial, sauf recours à la Convention fiscale Canada-États-Unis (Form 8833).',
+                  'You are deemed a US tax resident and Form 8840 is not available (183 days or more this year). You must file a US return (Form 1040) on worldwide income unless you claim the Canada-US Tax Treaty tie-breaker (Form 8833).',
                 ),
+          )
+        : h('p', { class: 'tiny muted', style: { marginTop: '10px', lineHeight: '1.6' } },
+            t(
+              "Le test de présence substantielle n’est pas déclenché pour cette année. Continuez à surveiller vos jours chaque année — les compteurs sont conservés dans le dossier.",
+              'The Substantial Presence Test is not triggered this year. Continue tracking your days annually — the counters are kept in the file.',
+            ),
           ),
     );
   }
@@ -115,37 +119,37 @@ function sptSection() {
     t('Test de présence substantielle (SPT)', 'Substantial Presence Test (SPT)'),
     {
       sub: t(
-        'SPT = jours cette année + jours an passé / 3 + jours il y a 2 ans / 6 — seuil : 183',
-        'SPT = days this year + days last year / 3 + days 2 yrs ago / 6 — threshold: 183',
+        'SPT = jours cette année + jours an passé / 3 + jours il y a 2 ans / 6 — seuil : 183 (jours enregistrés dans le dossier)',
+        'SPT = days this year + days last year / 3 + days 2 yrs ago / 6 — threshold: 183 (day counts saved in the file)',
       ),
     },
     h('div', { class: 'grid cols-3' },
       slider({
         label: t('Jours aux États-Unis cette année', 'Days in US this year'),
-        value: daysThis,
+        value: P.daysThis,
         min: 0,
         max: 365,
         step: 1,
         format: (v) => num(v) + ' ' + t('j', 'd'),
-        onInput: (v) => { daysThis = v; sptRedraw(); },
+        onInput: (v) => { setP('daysThis', v); sptRedraw(); },
       }),
       slider({
         label: t('Jours aux États-Unis an passé', 'Days in US last year'),
-        value: daysLast,
+        value: P.daysLast,
         min: 0,
         max: 365,
         step: 1,
         format: (v) => num(v) + ' ' + t('j', 'd'),
-        onInput: (v) => { daysLast = v; sptRedraw(); },
+        onInput: (v) => { setP('daysLast', v); sptRedraw(); },
       }),
       slider({
         label: t('Jours aux États-Unis il y a 2 ans', 'Days in US two years ago'),
-        value: days2Ago,
+        value: P.days2Ago,
         min: 0,
         max: 365,
         step: 1,
         format: (v) => num(v) + ' ' + t('j', 'd'),
-        onInput: (v) => { days2Ago = v; sptRedraw(); },
+        onInput: (v) => { setP('days2Ago', v); sptRedraw(); },
       }),
     ),
     h('div', { class: 'sep' }),
@@ -230,27 +234,26 @@ function snowbirdGuidanceCard() {
 // Section 3 — US Estate Tax Exposure for Canadians
 // ---------------------------------------------------------------------------
 
-function estateSection() {
-  const UNIFIED_CREDIT = 13990000; // 2024 US unified credit (USD)
-  let usSitus = 500000;
-  let worldwide = 2000000;
-
+function estateSection(P, setP, US, cur) {
+  const UNIFIED_CREDIT = US.estate.exemption;
+  const RATE = US.estate.rate;
   const result = h('div', {});
 
   function estateRedraw() {
+    const usSitus = P.usSitus, worldwide = P.worldwide;
     const safeWorldwide = worldwide > 0 ? worldwide : 1;
     const ratio = Math.min(1, usSitus / safeWorldwide);
     const proratedExemption = UNIFIED_CREDIT * ratio;
     const taxableUS = Math.max(0, usSitus - proratedExemption);
-    const estimatedTax = taxableUS * 0.40;
+    const estimatedTax = taxableUS * RATE;
     const exposed = taxableUS > 0;
 
     const pairs = [
       [t('Actifs de source américaine (US situs)', 'US-Situs Assets'), money(usSitus, { currency: 'USD' })],
       [t('Succession mondiale totale', 'Total Worldwide Estate'), money(worldwide, { currency: 'USD' })],
-      [t('Ratio US situs / mondial', 'US-Situs / Worldwide Ratio'), (ratio * 100).toFixed(1) + ' %'],
+      [t('Ratio US situs / mondial', 'US-Situs / Worldwide Ratio'), pct(ratio, 1)],
       [
-        t('Exemption unifiée proratisée (traité CA-US)', 'Prorated Unified Credit (CA-US Treaty)'),
+        t(`Exemption unifiée ${US.taxYear} (${money(UNIFIED_CREDIT, { currency: 'USD', compact: true })}) proratisée (traité CA-US)`, `${US.taxYear} unified credit (${money(UNIFIED_CREDIT, { currency: 'USD', compact: true })}) prorated (CA-US Treaty)`),
         money(Math.round(proratedExemption), { currency: 'USD' }),
       ],
       [
@@ -259,7 +262,7 @@ function estateSection() {
         exposed ? 'neg' : 'pos',
       ],
       [
-        t('Impôt successoral américain estimé (taux 40 %)', 'Estimated US Estate Tax (40% rate)'),
+        t(`Impôt successoral américain estimé (taux ${pct(RATE, 0)})`, `Estimated US Estate Tax (${pct(RATE, 0)} rate)`),
         exposed ? money(Math.round(estimatedTax), { currency: 'USD' }) : t('Aucun', 'None'),
         exposed ? 'neg' : 'pos',
       ],
@@ -311,28 +314,28 @@ function estateSection() {
     t('Exposition à l\'impôt successoral américain', 'US Estate Tax Exposure for Canadians'),
     {
       sub: t(
-        'Biens de source américaine (immobilier US, actions US) détenus par des Canadiens',
-        'US-Situs assets (US real estate, US stocks) held by Canadians',
+        `Biens de source américaine (immobilier US, actions US) détenus par des Canadiens — succession mondiale initialisée à l’actif total du dossier (${cur}, traité comme USD)`,
+        `US-Situs assets (US real estate, US stocks) held by Canadians — worldwide estate initialised to the file's total assets (${cur}, treated as USD)`,
       ),
     },
     h('div', { class: 'grid cols-2' },
       slider({
         label: t('Actifs de source américaine (USD)', 'US-Situs Assets (USD)'),
-        value: usSitus,
+        value: P.usSitus,
         min: 0,
         max: 5000000,
         step: 25000,
         format: (v) => money(v, { currency: 'USD', compact: true }),
-        onInput: (v) => { usSitus = v; estateRedraw(); },
+        onInput: (v) => { setP('usSitus', v); estateRedraw(); },
       }),
       slider({
         label: t('Succession mondiale totale (USD)', 'Total Worldwide Estate (USD)'),
-        value: worldwide,
+        value: P.worldwide,
         min: 100000,
         max: 20000000,
         step: 100000,
         format: (v) => money(v, { currency: 'USD', compact: true }),
-        onInput: (v) => { worldwide = v; estateRedraw(); },
+        onInput: (v) => { setP('worldwide', v); estateRedraw(); },
       }),
     ),
     h('div', { class: 'sep' }),
@@ -476,8 +479,20 @@ function disclaimerCard() {
 // Main render
 // ---------------------------------------------------------------------------
 
-export function render({ client, jur }) {
+export function render({ store, client, jur }) {
+  store = store || appStore;
   const cur = jur.currency;
+  const F = clientFacts(client, jur);
+  // US estate parameters always come from the US jurisdiction table (also for a CA client)
+  const US = jur.country === 'US' ? jur : JURISDICTIONS.US;
+
+  // Day counts are yearly facts → persisted in client.calc.crossborder; estate inputs seeded from the file
+  const P = whatIf(client, 'crossborder', {
+    daysThis: 0, daysLast: 0, days2Ago: 0,
+    usSitus: 0,
+    worldwide: Math.max(100000, Math.round(F.netWorth.assets)),
+  });
+  const setP = (k, v) => { P[k] = v; saveWhatIf(store, 'crossborder', { [k]: v }); };
 
   // KPI row — summary indicators
   const kpiRow = h('div', { class: 'grid cols-4 span-full' },
@@ -490,8 +505,8 @@ export function render({ client, jur }) {
     kpi({
       iconName: 'gov',
       label: t('Exemption successorale US', 'US Estate Exemption'),
-      value: money(13990000, { currency: 'USD', compact: true }),
-      sub: t('Crédit unifié 2024 — proratisé par traité CA-US', '2024 Unified credit — prorated by CA-US Treaty'),
+      value: money(US.estate.exemption, { currency: 'USD', compact: true }),
+      sub: t(`Crédit unifié ${US.taxYear} (taux ${pct(US.estate.rate, 0)}) — proratisé par traité CA-US`, `${US.taxYear} unified credit (${pct(US.estate.rate, 0)} rate) — prorated by CA-US Treaty`),
     }),
     kpi({
       iconName: 'warning',
@@ -510,9 +525,9 @@ export function render({ client, jur }) {
 
   return h('div', { class: 'grid' },
     kpiRow,
-    h('div', { class: 'span-full' }, sptSection()),
+    h('div', { class: 'span-full' }, sptSection(P, setP)),
     h('div', { class: 'span-full' }, snowbirdGuidanceCard()),
-    h('div', { class: 'span-full' }, estateSection()),
+    h('div', { class: 'span-full' }, estateSection(P, setP, US, cur)),
     h('div', { class: 'span-full' }, crossBorderIssuesCard()),
     h('div', { class: 'span-full' }, disclaimerCard()),
   );

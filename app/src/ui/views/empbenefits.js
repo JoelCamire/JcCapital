@@ -290,7 +290,8 @@ function buildHSASection({ cur, jur, F, P, setP, isCA, isQC, isIncorp, prim }) {
   function drawHSA() {
     const corpDeduction   = P.medAmount * P.corpTaxRate;
     // Personal medical credit: expenses above 3 % of net income, at the combined credit rate
-    const threshold       = isCA ? 0.03 * Math.max(0, prim.netIncome || 0) : 0;
+    const medT            = jur.fed && jur.fed.medicalThreshold;
+    const threshold       = isCA ? Math.min((medT ? medT.rate : 0.03) * Math.max(0, prim.netIncome || 0), medT && medT.cap ? medT.cap : Infinity) : 0;
     const eligible        = Math.max(0, P.medAmount - threshold);
     const personalCredit  = eligible * creditRate;
     const saving          = isIncorp ? corpDeduction : personalCredit;

@@ -1,9 +1,12 @@
 // ============================================================
 // Tax & Compliance Calendar Dashboard
 // Jurisdiction-aware annual filing/deadline tracker.
+// Corporate deadlines are computed from the business's fiscal
+// year-end on file (T2 due 6 months after YE, balance 2–3 months).
 // ============================================================
 import { h, icon, fmtDate, t } from '../dom.js';
 import { kpi, card, legend } from '../widgets.js';
+import { clientFacts } from '../../engine/facts.js';
 
 // ---- Colour palette per category ----
 const CAT_COLOR = {
@@ -30,6 +33,24 @@ function nextOccurrence(month, day) {
   return new Date(thisYear + 1, month - 1, day);
 }
 
+/** Parse a fiscal year-end 'MM-DD' string; falls back to Dec 31. */
+function parseFYE(s) {
+  const m = /^(\d{1,2})-(\d{1,2})$/.exec(String(s || '').trim());
+  const month = m ? Math.max(1, Math.min(12, +m[1])) : 12;
+  const day = m ? Math.max(1, Math.min(31, +m[2])) : 31;
+  return { month, day };
+}
+
+/** Next occurrence of (fiscal year-end + `months` months), at or after today. */
+function nextAfterFYE(fye, months) {
+  const today = new Date();
+  for (let y = today.getFullYear() - 1; y <= today.getFullYear() + 1; y++) {
+    const d = new Date(y, fye.month - 1 + months, fye.day);
+    if (d >= today) return d;
+  }
+  return new Date(today.getFullYear() + 1, fye.month - 1 + months, fye.day);
+}
+
 /** Days from today to a date (negative = past). */
 function daysUntil(date) {
   const today = new Date();
@@ -40,7 +61,11 @@ function daysUntil(date) {
 }
 
 // ---- Deadline definitions per country ----
-function buildDeadlines(country) {
+function buildDeadlines(country, biz) {
+  const fye = parseFYE(biz ? biz.fiscalYearEnd : '12-31');
+  const fyeLabel = `${String(fye.month).padStart(2, '0')}-${String(fye.day).padStart(2, '0')}`;
+  const isCCPC = !!(biz && biz.incorporated);
+
   if (country === 'CA') {
     return [
       {
@@ -63,8 +88,10 @@ function buildDeadlines(country) {
       },
       {
         key: 'ca_corp_tax_balance',
-        title: t('Solde impôt société (SPCC)', 'Corporate tax balance due (CCPC)'),
-        date: nextOccurrence(3, 31),
+        title: isCCPC
+          ? t(`Solde d’impôt société (SPCC) — 3 mois après la fin d’exercice ${fyeLabel}`, `Corporate tax balance due (CCPC) — 3 months after year-end ${fyeLabel}`)
+          : t(`Solde d’impôt société — 2 mois après la fin d’exercice ${fyeLabel}`, `Corporate tax balance due — 2 months after year-end ${fyeLabel}`),
+        date: nextAfterFYE(fye, isCCPC ? 3 : 2),
         category: 'corporate',
         forBusinessOnly: true,
       },
@@ -76,8 +103,8 @@ function buildDeadlines(country) {
       },
       {
         key: 'ca_gst_hst',
-        title: t('Déclaration TPS/TVH annuelle', 'GST/HST annual filing'),
-        date: nextOccurrence(4, 30),
+        title: t(`Déclaration TPS/TVH annuelle — 3 mois après la fin d’exercice ${fyeLabel}`, `GST/HST annual filing — 3 months after year-end ${fyeLabel}`),
+        date: nextAfterFYE(fye, 3),
         category: 'corporate',
         forBusinessOnly: true,
       },
@@ -95,8 +122,8 @@ function buildDeadlines(country) {
       },
       {
         key: 'ca_t2',
-        title: t('Production T2 société (fin juin)', 'Corporate T2 filing (June YE)'),
-        date: nextOccurrence(6, 30),
+        title: t(`Production T2 (et CO-17) — 6 mois après la fin d’exercice ${fyeLabel}`, `Corporate T2 (and CO-17) filing — 6 months after year-end ${fyeLabel}`),
+        date: nextAfterFYE(fye, 6),
         category: 'corporate',
         forBusinessOnly: true,
       },
@@ -162,8 +189,8 @@ function buildDeadlines(country) {
       },
       {
         key: 'us_c_corp',
-        title: t('Déclaration C-Corp', 'C-Corp tax return'),
-        date: nextOccurrence(4, 15),
+        title: t(`Déclaration C-Corp — 3½ mois après la fin d’exercice ${fyeLabel}`, `C-Corp tax return — 3½ months after year-end ${fyeLabel}`),
+        date: nextAfterFYE(fye, 4),
         category: 'corporate',
         forBusinessOnly: true,
       },
@@ -240,15 +267,15 @@ function buildDeadlines(country) {
       },
       {
         key: 'uk_corp_tax',
-        title: t('Paiement impôt société (9 mois après EF)', 'Corporation tax payment (9 months after YE)'),
-        date: nextOccurrence(1, 1),
+        title: t(`Paiement impôt société — 9 mois + 1 jour après la fin d’exercice ${fyeLabel}`, `Corporation tax payment — 9 months + 1 day after year-end ${fyeLabel}`),
+        date: nextAfterFYE({ month: fye.month, day: fye.day + 1 }, 9),
         category: 'corporate',
         forBusinessOnly: true,
       },
       {
         key: 'uk_ct600',
-        title: t('Production CT600 (12 mois après EF)', 'CT600 filing (12 months after YE)'),
-        date: nextOccurrence(12, 31),
+        title: t(`Production CT600 — 12 mois après la fin d’exercice ${fyeLabel}`, `CT600 filing — 12 months after year-end ${fyeLabel}`),
+        date: nextAfterFYE(fye, 12),
         category: 'corporate',
         forBusinessOnly: true,
       },
@@ -268,13 +295,13 @@ function urgencyClass(days) {
 // ---- Main render ----
 export function render({ client, jur }) {
   const country  = jur.country || 'CA';
-  const hasBiz   = !!(client.business);
-  const allDeadlines = buildDeadlines(country);
+  const F = clientFacts(client, jur);
+  const biz = F.business;
+  const hasBiz   = !!biz;
+  const allDeadlines = buildDeadlines(country, biz);
 
   // Sort chronologically
   allDeadlines.sort((a, b) => a.date - b.date);
-
-  const today = new Date();
 
   // KPI counts
   const next30 = allDeadlines.filter(d => {
@@ -317,9 +344,9 @@ export function render({ client, jur }) {
       iconName: 'timeline',
     }),
     kpi({
-      label:    t('Conformité fiscale', 'Tax compliance'),
-      value:    next30 === 0 ? t('Aucune urgence', 'No urgency') : next30 === 1 ? t('1 urgence', '1 urgent') : `${next30} ${t('urgences', 'urgent')}`,
-      sub:      `${jur.flag || ''} ${jur.name || country}`,
+      label:    t('Paramètres fiscaux', 'Tax parameters'),
+      value:    String(jur.taxYear),
+      sub:      `${jur.flag || ''} ${jur.name || country} · ${next30 === 0 ? t('aucune urgence', 'no urgency') : next30 === 1 ? t('1 urgence', '1 urgent') : `${next30} ${t('urgences', 'urgent')}`}`,
       iconName: 'check',
       accent:   next30 === 0 ? 'var(--pos)' : 'var(--warn)',
     }),
@@ -385,10 +412,9 @@ export function render({ client, jur }) {
     t('Calendrier des échéances', 'Compliance calendar'),
     {
       class: 'span-full',
-      sub: t(
-        `${allDeadlines.length} échéances — prochain cycle`,
-        `${allDeadlines.length} deadlines — next cycle`,
-      ),
+      sub: hasBiz
+        ? t(`${allDeadlines.length} échéances — prochain cycle · fin d’exercice de ${biz.name || t('l’entreprise', 'the business')} : ${biz.fiscalYearEnd || '12-31'}`, `${allDeadlines.length} deadlines — next cycle · ${biz.name || 'business'} fiscal year-end: ${biz.fiscalYearEnd || '12-31'}`)
+        : t(`${allDeadlines.length} échéances — prochain cycle`, `${allDeadlines.length} deadlines — next cycle`),
       right: h('span', { html: icon('report', 16) }),
     },
     h('div', {}, ...agendaRows),
@@ -409,8 +435,8 @@ export function render({ client, jur }) {
       icon('warning', 13),
       ' ',
       t(
-        'Les dates indiquées sont à titre indicatif et peuvent varier selon la situation personnelle, la date de clôture de l’exercice fiscal ou les règles locales. Consultez un conseiller fiscal qualifié.',
-        'Dates shown are general guidance and may vary based on personal circumstances, fiscal year-end, or local rules. Consult a qualified tax adviser.',
+        `Les dates indiquées sont à titre indicatif et peuvent varier selon la situation personnelle ou les règles locales; les échéances d’entreprise sont calculées à partir de la fin d’exercice au dossier. Paramètres fiscaux ${jur.taxYear} — à vérifier chaque année. Consultez un conseiller fiscal qualifié.`,
+        `Dates shown are general guidance and may vary based on personal circumstances or local rules; corporate deadlines are computed from the fiscal year-end on file. Tax parameters ${jur.taxYear} — verify yearly. Consult a qualified tax adviser.`,
       ),
     ),
   );
@@ -422,8 +448,8 @@ export function render({ client, jur }) {
           h('span', { html: icon('briefcase', 15) }),
           h('span', { class: 'tiny' },
             t(
-              'Les échéances marquées « Entreprise » sont affichées en grisé car aucune société n’est associée à ce dossier.',
-              'Deadlines marked “Business” are dimmed because no incorporated business is linked to this file.',
+              'Les échéances marquées « Entreprise » sont affichées en grisé car aucune société n’est associée à ce dossier (fin d’exercice 12-31 présumée).',
+              'Deadlines marked “Business” are dimmed because no incorporated business is linked to this file (12-31 year-end assumed).',
             ),
           ),
         ),

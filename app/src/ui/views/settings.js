@@ -1,14 +1,20 @@
-import { h, money, pct, icon, toast, modal, t } from '../dom.js';
+import { h, money, pct, num, icon, toast, modal, t } from '../dom.js';
 import { card, slider, statList, dataTable } from '../widgets.js';
-import { store } from '../../state/store.js';
+import { store as appStore } from '../../state/store.js';
 import { setLang, getLang } from '../../i18n.js';
 import { JURISDICTIONS, getJurisdiction, COUNTRY_LIST } from '../../jurisdictions/index.js';
+import { computeTax } from '../../engine/tax.js';
+import { assumptionsOf } from '../../state/models.js';
+import { clientFacts, whatIf, saveWhatIf } from '../../engine/facts.js';
 
-export function render({ client, jur }) {
+export function render({ store, client, jur }) {
+  store = store || appStore;
   const cur = jur.currency;
-  const A = client.assumptions;
+  const A = assumptionsOf(client);
+  const F = clientFacts(client, jur);
   const country = client.jurisdiction.country;
   const region = client.jurisdiction.region;
+  const setA = (k, v) => store.quietUpdate(c => { c.assumptions = c.assumptions || {}; c.assumptions[k] = v; });
 
   const countrySel = h('select', { onChange: e => { const c = e.target.value; store.setJurisdiction(c, JURISDICTIONS[c].defaultRegion); toast(`${t('Juridiction', 'Jurisdiction')} : ${JURISDICTIONS[c].name}`); } },
     ...COUNTRY_LIST.map(c => h('option', { value: c.code, selected: c.code === country }, `${c.flag}  ${c.name}`)));
@@ -22,6 +28,11 @@ export function render({ client, jur }) {
       h('div', { class: 'field' }, h('label', {}, t('Pays', 'Country')), countrySel),
       h('div', { class: 'field' }, h('label', {}, jur.regionLabel), regionSel)),
     h('div', { class: 'sep' }),
+    h('div', { class: 'flex between center', style: { gap: '12px', flexWrap: 'wrap', padding: '10px 12px', margin: '4px 0 10px', background: 'var(--surface-2)', borderRadius: '10px', borderLeft: '3px solid var(--accent)' } },
+      h('div', {},
+        h('div', { style: { fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 800 } }, t(`Paramètres fiscaux ${jur.taxYear}`, `Tax parameters ${jur.taxYear}`)),
+        h('div', { class: 'tiny muted' }, t(`Barèmes, cotisations, plafonds de comptes, prestations publiques et taux corporatifs de ${jur.name} (${jur.regionName}) pour l’année d’imposition ${jur.taxYear}. À vérifier chaque année (indexation, budgets).`, `${jur.name} (${jur.regionName}) brackets, contributions, account limits, public benefits and corporate rates for tax year ${jur.taxYear}. Verify every year (indexation, budgets).`))),
+      h('span', { class: 'chip warn', html: icon('warning', 13) + ' ' + t('Vérifier annuellement', 'Verify yearly') })),
     h('div', { class: 'grid cols-3' },
       infoBlock(t('Devise', 'Currency'), cur),
       infoBlock(t('Abri fiscal principal', 'Main tax shelter'), jur.labels.taxAdvantaged),
@@ -35,27 +46,63 @@ export function render({ client, jur }) {
         'Changing country replaces the account types (RRSP/TFSA ↔ 401(k)/Roth ↔ Pension/ISA), tax brackets, payroll contributions and estate rules with those of the selected jurisdiction. Your data (amounts, ages, goals) is preserved.')),
   );
 
-  const taxPreview = card(t('Aperçu fiscal comparé', 'Comparative tax preview'), { sub: t(`Impôt sur ${money(100000, { currency: cur })} (revenu d\'emploi) selon la juridiction par défaut`, `Tax on ${money(100000, { currency: cur })} (employment income) by default jurisdiction`) },
+  // ---- Comparative tax preview on the primary member's ordinary income (persisted override) ----
+  const P = whatIf(client, 'settings', { previewIncome: Math.round(F.primary ? F.primary.ordinary : 0) || 100000 });
+  const tbody = h('tbody', {});
+  const previewSub = h('div', { class: 'sub' });
+  function drawPreview() {
+    previewSub.textContent = t(`Impôt sur ${money(P.previewIncome, { currency: cur })} de revenu d’emploi (revenu ordinaire du titulaire) selon la juridiction par défaut de chaque pays`, `Tax on ${money(P.previewIncome, { currency: cur })} of employment income (primary member's ordinary income) by each country's default jurisdiction`);
+    tbody.replaceChildren(...Object.values(JURISDICTIONS).map(j => {
+      const jj = getJurisdiction(j.country, j.defaultRegion);
+      const tx = computeTax(jj, { ordinary: P.previewIncome });
+      return h('tr', {},
+        h('td', {}, `${j.flag} ${j.name} (${jj.regionName}) · ${jj.taxYear}`),
+        h('td', { class: 'num mono' }, money(tx.total, { currency: j.currency })),
+        h('td', { class: 'num mono' }, pct(tx.averageRate, 1)),
+        h('td', { class: 'num mono' }, pct(tx.marginalRate, 1)),
+        h('td', { class: 'num mono' }, money(tx.afterTax, { currency: j.currency })));
+    }));
+  }
+  drawPreview();
+  const taxPreview = h('div', { class: 'card' },
+    h('div', { class: 'card-head' }, h('div', {}, h('h3', {}, t('Aperçu fiscal comparé', 'Comparative tax preview')), previewSub)),
+    slider({ label: t('Revenu de référence (revenu ordinaire du titulaire)', 'Reference income (primary member ordinary income)'), value: P.previewIncome, min: 0, max: 500000, step: 5000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { P.previewIncome = v; saveWhatIf(store, 'settings', { previewIncome: v }); drawPreview(); } }),
     h('div', { class: 'tbl-wrap' }, h('table', { class: 'tbl' },
-      h('thead', {}, h('tr', {}, h('th', {}, t('Juridiction', 'Jurisdiction')), h('th', { class: 'num' }, t('Impôt total', 'Total tax')), h('th', { class: 'num' }, t('Taux moyen', 'Avg rate')), h('th', { class: 'num' }, t('Net', 'Net')))),
-      h('tbody', {}))));
-  buildTaxPreview(taxPreview);
+      h('thead', {}, h('tr', {}, h('th', {}, t('Juridiction', 'Jurisdiction')), h('th', { class: 'num' }, t('Impôt total', 'Total tax')), h('th', { class: 'num' }, t('Taux moyen', 'Avg rate')), h('th', { class: 'num' }, t('Taux marginal', 'Marginal')), h('th', { class: 'num' }, t('Net', 'Net')))),
+      tbody)));
 
   const langCard = card(t('Langue de l\'application', 'Application language'), { sub: t('Bascule instantanée FR / EN', 'Instant FR / EN toggle') },
     h('div', { class: 'seg' },
       h('button', { class: getLang() === 'fr' ? 'on' : '', onClick: () => setLang('fr') }, '🇫🇷  Français'),
       h('button', { class: getLang() === 'en' ? 'on' : '', onClick: () => setLang('en') }, '🇬🇧  English')));
 
-  const assumeBox = h('div', { class: 'grid cols-2' });
-  assumeBox.replaceChildren(
-    slider({ label: 'Inflation', value: A.inflation, min: 0, max: 0.06, step: 0.001, format: v => pct(v), onInput: v => store.quietUpdate(c => c.assumptions.inflation = v) }),
-    slider({ label: t('Rendement accumulation', 'Accumulation return'), value: A.preReturn, min: 0.01, max: 0.1, step: 0.001, format: v => pct(v), onInput: v => store.quietUpdate(c => c.assumptions.preReturn = v) }),
-    slider({ label: t('Rendement retraite', 'Retirement return'), value: A.postReturn, min: 0.01, max: 0.08, step: 0.001, format: v => pct(v), onInput: v => store.quietUpdate(c => c.assumptions.postReturn = v) }),
-    slider({ label: t('Volatilité (Monte Carlo)', 'Volatility (Monte Carlo)'), value: A.returnStdev, min: 0.03, max: 0.2, step: 0.005, format: v => pct(v), onInput: v => store.quietUpdate(c => c.assumptions.returnStdev = v) }),
-    slider({ label: t('Croissance salariale', 'Salary growth'), value: A.salaryGrowth, min: 0, max: 0.06, step: 0.001, format: v => pct(v), onInput: v => store.quietUpdate(c => c.assumptions.salaryGrowth = v) }),
-    slider({ label: t('Croissance immobilière', 'Real estate growth'), value: A.realEstateGrowth, min: 0, max: 0.08, step: 0.001, format: v => pct(v), onInput: v => store.quietUpdate(c => c.assumptions.realEstateGrowth = v) }),
+  // ---- Economic assumptions (all keys of defaultAssumptions, saved without re-render) ----
+  const econBox = h('div', { class: 'grid cols-2' },
+    slider({ label: 'Inflation', value: A.inflation, min: 0, max: 0.06, step: 0.001, format: v => pct(v), onInput: v => setA('inflation', v) }),
+    slider({ label: t('Rendement accumulation', 'Accumulation return'), value: A.preReturn, min: 0.01, max: 0.1, step: 0.001, format: v => pct(v), onInput: v => setA('preReturn', v) }),
+    slider({ label: t('Rendement retraite', 'Retirement return'), value: A.postReturn, min: 0.01, max: 0.08, step: 0.001, format: v => pct(v), onInput: v => setA('postReturn', v) }),
+    slider({ label: t('Volatilité (Monte Carlo)', 'Volatility (Monte Carlo)'), value: A.returnStdev, min: 0.03, max: 0.2, step: 0.005, format: v => pct(v), onInput: v => setA('returnStdev', v) }),
+    slider({ label: t('Facteur de volatilité à la retraite', 'Retired volatility factor'), value: A.retiredVolFactor, min: 0.3, max: 1, step: 0.05, format: v => `× ${num(v, 2)}`, onInput: v => setA('retiredVolFactor', v) }),
+    slider({ label: t('Croissance salariale', 'Salary growth'), value: A.salaryGrowth, min: 0, max: 0.06, step: 0.001, format: v => pct(v), onInput: v => setA('salaryGrowth', v) }),
+    slider({ label: t('Croissance immobilière', 'Real estate growth'), value: A.realEstateGrowth, min: 0, max: 0.08, step: 0.001, format: v => pct(v), onInput: v => setA('realEstateGrowth', v) }),
+    slider({ label: t('Inflation des frais d’études', 'Education inflation'), value: A.educationInflation, min: 0, max: 0.08, step: 0.001, format: v => pct(v), onInput: v => setA('educationInflation', v) }),
+    slider({ label: t('Rendement distribué (comptes imposables)', 'Distributed yield (taxable accounts)'), value: A.distributionYield, min: 0, max: 1, step: 0.05, format: v => pct(v, 0), onInput: v => setA('distributionYield', v) }),
+    slider({ label: t('Essais Monte Carlo', 'Monte Carlo trials'), value: A.mcTrials, min: 200, max: 5000, step: 100, format: v => num(v), onInput: v => setA('mcTrials', v) }),
   );
-  const assumeCard = card(t('Hypothèses économiques', 'Economic assumptions'), { sub: t('Appliquées à toutes les projections', 'Applied to all projections') }, assumeBox);
+  const econCard = card(t('Hypothèses économiques', 'Economic assumptions'), { sub: t('Appliquées à toutes les projections (enregistrées sans rechargement)', 'Applied to all projections (saved without reload)') }, econBox);
+
+  // ---- Planning policy assumptions ----
+  const policyBox = h('div', { class: 'grid cols-2' },
+    slider({ label: t('Niveau de dépenses (multiplicateur what-if)', 'Spending level (what-if multiplier)'), value: A.spendingLevel, min: 0.5, max: 1.5, step: 0.05, format: v => `× ${num(v, 2)}`, onInput: v => setA('spendingLevel', v) }),
+    slider({ label: t('Taux d’épargne cible (% du revenu brut)', 'Savings target (% of gross income)'), value: A.savingsTarget, min: 0, max: 0.4, step: 0.01, format: v => pct(v, 0), onInput: v => setA('savingsTarget', v) }),
+    slider({ label: t('Fonds d’urgence (mois de dépenses)', 'Emergency fund (months of expenses)'), value: A.emergencyMonths, min: 0, max: 12, step: 1, format: v => `${v} ${t('mois', 'mo')}`, onInput: v => setA('emergencyMonths', v) }),
+    slider({ label: t('Âge de conversion FERR', 'RRIF conversion age'), value: A.rrifConvertAge, min: 55, max: 71, step: 1, format: v => `${v}`, onInput: v => setA('rrifConvertAge', v) }),
+    slider({ label: t('Assurance vie — remplacement du revenu', 'Life insurance — income replacement'), value: A.lifeReplaceRate, min: 0.3, max: 1, step: 0.05, format: v => pct(v, 0), onInput: v => setA('lifeReplaceRate', v) }),
+    slider({ label: t('Assurance vie — taux d’actualisation réel', 'Life insurance — real discount rate'), value: A.lifeDiscount, min: 0, max: 0.06, step: 0.0025, format: v => pct(v, 2), onInput: v => setA('lifeDiscount', v) }),
+    slider({ label: t('Dernières dépenses (frais funéraires, etc.)', 'Final expenses (funeral, etc.)'), value: A.finalExpenses, min: 0, max: 100000, step: 1000, format: v => money(v, { currency: cur, compact: true }), onInput: v => setA('finalExpenses', v) }),
+    slider({ label: t('Invalidité — remplacement du revenu', 'Disability — income replacement'), value: A.diReplaceRate, min: 0.3, max: 0.9, step: 0.05, format: v => pct(v, 0), onInput: v => setA('diReplaceRate', v) }),
+  );
+  const policyCard = card(t('Hypothèses de planification', 'Planning assumptions'), { sub: t('Niveau de dépenses, épargne, urgence, FERR, assurance — une seule valeur pour toute l’application', 'Spending, savings, emergency fund, RRIF, insurance — one value for the whole app') }, policyBox);
 
   const clientsCard = card(t('Dossiers', 'Files'), { sub: t('Gérer les ménages', 'Manage households'),
     right: h('button', { class: 'btn primary sm', html: icon('plus', 14) + ' ' + t('Dossier', 'File'), onClick: addClient }) },
@@ -84,7 +131,8 @@ export function render({ client, jur }) {
   return h('div', { class: 'grid' },
     h('div', { class: 'span-full' }, jurCard),
     h('div', { class: 'grid cols-2 span-full' }, langCard, taxPreview),
-    h('div', { class: 'span-full' }, assumeCard),
+    h('div', { class: 'span-full' }, econCard),
+    h('div', { class: 'span-full' }, policyCard),
     h('div', { class: 'grid cols-2 span-full' }, clientsCard, dataCard),
   );
 
@@ -124,19 +172,4 @@ export function render({ client, jur }) {
 
 function infoBlock(label, value) {
   return h('div', {}, h('div', { class: 'tiny muted' }, label), h('b', { style: { fontSize: '15px' } }, value));
-}
-
-async function buildTaxPreview(cardEl) {
-  const { computeTax } = await import('../../engine/tax.js');
-  const tbody = cardEl.querySelector('tbody');
-  if (!tbody) return;
-  tbody.replaceChildren(...Object.values(JURISDICTIONS).map(j => {
-    const jj = getJurisdiction(j.country, j.defaultRegion);
-    const tx = computeTax(jj, { ordinary: 100000 });
-    return h('tr', {},
-      h('td', {}, `${j.flag} ${j.name} (${jj.regionName})`),
-      h('td', { class: 'num mono' }, money(tx.total, { currency: j.currency })),
-      h('td', { class: 'num mono' }, pct(tx.averageRate, 1)),
-      h('td', { class: 'num mono' }, money(tx.afterTax, { currency: j.currency })));
-  }));
 }

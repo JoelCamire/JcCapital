@@ -2,20 +2,35 @@ import { h, money, pct, num, icon, t } from '../dom.js';
 import { kpi, card, slider, statList, legend } from '../widgets.js';
 import { lineChart, barChart, PALETTE } from '../charts.js';
 import { rdspProjection, rdspGrantBond } from '../../engine/rdsp.js';
+import { clientFacts, whatIf, saveWhatIf } from '../../engine/facts.js';
+import { store as appStore } from '../../state/store.js';
 
-export function render({ client, jur, navigate }) {
+export function render({ store, client, jur, navigate }) {
+  store = store || appStore;
   const cur = jur.currency;
   const isCA = jur.country === 'CA';
-  let age = 25, contrib = 1500, income = 45000, growth = 0.05;
+  const F = clientFacts(client, jur);
+  const deps = F.education.dependents;
+  const youngest = deps.length ? deps.reduce((a, b) => (b.age < a.age ? b : a)) : null;
+
+  // Beneficiary age = youngest dependent when there is one; family income = household net income; growth = file return
+  const P = whatIf(client, 'rdsp', {
+    age: youngest ? Math.max(0, Math.min(49, Math.round(youngest.age))) : 25,
+    contrib: 1500,
+    income: Math.round(F.household.netIncome),
+    growth: F.assumptions.preReturn,
+  });
+  const setP = (k, v) => { P[k] = v; saveWhatIf(store, 'rdsp', { [k]: v }); };
 
   const out = h('div', {});
   function draw() {
-    const p = rdspProjection({ beneficiaryAge: age, annualContribution: contrib, familyIncome: income, growth });
-    const gb = rdspGrantBond(contrib, income);
+    const p = rdspProjection({ beneficiaryAge: P.age, annualContribution: P.contrib, familyIncome: P.income, growth: P.growth }, jur);
+    const gb = rdspGrantBond(P.contrib, P.income, jur);
+    const R = p.params;
     out.replaceChildren(
       h('div', { class: 'grid cols-4', style: { marginBottom: '12px' } },
-        kpi({ label: t('Subventions à vie (SCEI)', 'Lifetime grants (CDSG)'), value: money(p.totalGrant, { currency: cur, compact: true }), accent: 'var(--pos)' }),
-        kpi({ label: t('Bons à vie (BCEI)', 'Lifetime bonds (CDSB)'), value: money(p.totalBond, { currency: cur, compact: true }), accent: 'var(--pos)' }),
+        kpi({ label: t('Subventions à vie (SCEI)', 'Lifetime grants (CDSG)'), value: money(p.totalGrant, { currency: cur, compact: true }), accent: 'var(--pos)', sub: t(`max ${money(R.grantLifetime, { currency: cur, compact: true })}`, `max ${money(R.grantLifetime, { currency: cur, compact: true })}`) }),
+        kpi({ label: t('Bons à vie (BCEI)', 'Lifetime bonds (CDSB)'), value: money(p.totalBond, { currency: cur, compact: true }), accent: 'var(--pos)', sub: t(`max ${money(R.bondLifetime, { currency: cur, compact: true })}`, `max ${money(R.bondLifetime, { currency: cur, compact: true })}`) }),
         kpi({ label: t('Effet de levier gouvernemental', 'Government leverage'), value: p.leverage.toFixed(1) + '×', sub: t(`${money(p.governmentTotal, { currency: cur, compact: true })} gratuits`, `${money(p.governmentTotal, { currency: cur, compact: true })} free`) }),
         kpi({ label: t('Valeur projetée (60 ans)', 'Projected value (age 60)'), value: money(p.finalValue, { currency: cur, compact: true }), iconName: 'networth' }),
       ),
@@ -30,6 +45,7 @@ export function render({ client, jur, navigate }) {
         [t('Bons reçus', 'Bonds received'), money(p.totalBond, { currency: cur }), 'pos'],
         [t('Apport gouvernemental total', 'Total government contribution'), money(p.governmentTotal, { currency: cur }), 'pos'],
         [t('Valeur finale projetée', 'Projected final value'), money(p.finalValue, { currency: cur }), 'pos'],
+        [t(`Seuils ${jur.taxYear} — subvention bonifiée jusqu’à / bon complet jusqu’à`, `${jur.taxYear} thresholds — enhanced grant up to / full bond up to`), `${money(R.grantIncomeThreshold, { currency: cur, compact: true })} / ${money(R.bondFullThreshold, { currency: cur, compact: true })}`],
       ]),
       h('p', { class: 'tiny muted', style: { marginTop: '8px' } }, p.note),
     );
@@ -37,12 +53,12 @@ export function render({ client, jur, navigate }) {
   draw();
 
   const ctrl = card(t('Paramètres du REEI', 'RDSP parameters'), {
-    sub: t('Régime enregistré d’épargne-invalidité', 'Registered Disability Savings Plan') },
+    sub: t(`Régime enregistré d’épargne-invalidité — ${youngest ? 'bénéficiaire : ' + youngest.name + ' (' + youngest.age + ' ans)' : 'aucune personne à charge au dossier'}, revenu familial net ${money(F.household.netIncome, { currency: cur, compact: true })}`, `Registered Disability Savings Plan — ${youngest ? 'beneficiary: ' + youngest.name + ' (age ' + youngest.age + ')' : 'no dependent on file'}, family net income ${money(F.household.netIncome, { currency: cur, compact: true })}`) },
     h('div', { class: 'grid cols-4' },
-      slider({ label: t('Âge du bénéficiaire', 'Beneficiary age'), value: age, min: 0, max: 49, step: 1, format: v => `${v}`, onInput: v => { age = v; draw(); } }),
-      slider({ label: t('Cotisation annuelle', 'Annual contribution'), value: contrib, min: 0, max: 10000, step: 250, format: v => money(v, { currency: cur, compact: true }), onInput: v => { contrib = v; draw(); } }),
-      slider({ label: t('Revenu familial net', 'Family net income'), value: income, min: 0, max: 200000, step: 5000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { income = v; draw(); } }),
-      slider({ label: t('Rendement', 'Return'), value: growth, min: 0.02, max: 0.08, step: 0.005, format: v => pct(v), onInput: v => { growth = v; draw(); } }),
+      slider({ label: t('Âge du bénéficiaire', 'Beneficiary age'), value: P.age, min: 0, max: 49, step: 1, format: v => `${v}`, onInput: v => { setP('age', v); draw(); } }),
+      slider({ label: t('Cotisation annuelle', 'Annual contribution'), value: P.contrib, min: 0, max: 10000, step: 250, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('contrib', v); draw(); } }),
+      slider({ label: t('Revenu familial net (dossier)', 'Family net income (file)'), value: P.income, min: 0, max: 200000, step: 5000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('income', v); draw(); } }),
+      slider({ label: t('Rendement (hypothèse du dossier)', 'Return (file assumption)'), value: P.growth, min: 0.02, max: 0.08, step: 0.005, format: v => pct(v), onInput: v => { setP('growth', v); draw(); } }),
     ));
 
   const info = card(t('Programmes pour proches & invalidité', 'Disability & caregiver programs'), { class: 'span-full' },

@@ -37,6 +37,7 @@ const CA_FED = {
   employmentAmount: 1500,                       // Canada employment amount [idx] 2025: 1,471
   ageAmount: { amount: 9209, threshold: 46432, rate: 0.15 }, // age 65+ [idx] 2025: 9,028 / 45,522
   pensionAmount: 2000,                          // pension income amount [fixed]
+  medicalThreshold: { rate: 0.03, cap: 2891 },  // medical expenses above the lesser of 3 % of net income or the cap [idx] 2025: 2,834
   donation: { first: 200, lowRate: 0.14, highRate: 0.29, topRate: 0.33 },
   capGainsInclusion: 0.50,                      // 2/3 increase cancelled March 2025
   eligibleDivGrossUp: 1.38,
