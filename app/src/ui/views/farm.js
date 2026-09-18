@@ -2,15 +2,34 @@ import { h, money, pct, num, icon, t } from '../dom.js';
 import { kpi, card, slider, statList, legend } from '../widgets.js';
 import { barChart, PALETTE } from '../charts.js';
 import { farmTransfer, agriInvest } from '../../engine/farm.js';
+import { clientFacts, whatIf, saveWhatIf } from '../../engine/facts.js';
+import { store as appStore } from '../../state/store.js';
 
-export function render({ client, jur }) {
+export function render({ store, client, jur }) {
+  store = store || appStore;
   const cur = jur.currency;
   const isCA = jur.country === 'CA';
-  const p = { landFMV: 2000000, landACB: 300000, quotaFMV: 800000, quotaACB: 0, buildingsFMV: 400000, buildingsACB: 200000, owners: 1, otherIncome: 60000 };
+  const F = clientFacts(client, jur);
+  const prim = F.primary || { age: 55, ordinary: 0 };
+  const home = F.home;
+  const fin = (v, d = 0) => (Number.isFinite(+v) ? +v : d);
+
+  // Land/buildings from the largest real-estate asset on file (value & cost basis), owners from the
+  // business sale block, other income = the primary member's ordinary income in the year of sale.
+  const P = whatIf(client, 'farm', {
+    landFMV: home ? Math.round(fin(home.value)) : 2000000,
+    landACB: home ? Math.round(fin(home.costBasis, fin(home.value))) : 300000,
+    quotaFMV: 800000, quotaACB: 0,
+    buildingsFMV: home ? 0 : 400000, buildingsACB: home ? 0 : 200000,
+    owners: F.business ? Math.max(1, F.business.owners) : 1,
+    otherIncome: Math.round(prim.ordinary),
+    netSales: 500000,
+  });
+  const setP = (k, v) => { P[k] = v; saveWhatIf(store, 'farm', { [k]: v }); };
 
   const out = h('div', {});
   function draw() {
-    const r = farmTransfer(jur, p);
+    const r = farmTransfer(jur, { ...P, age: prim.age });
     out.replaceChildren(
       h('div', { class: 'grid cols-4', style: { marginBottom: '12px' } },
         kpi({ label: t('Gain en capital total', 'Total capital gain'), value: money(r.totalGain, { currency: cur, compact: true }) }),
@@ -28,7 +47,7 @@ export function render({ client, jur }) {
         [t('Gain — terres', 'Gain — land'), money(r.landGain, { currency: cur })],
         [t('Gain — quotas', 'Gain — quota'), money(r.quotaGain, { currency: cur })],
         [t('Gain — bâtiments', 'Gain — buildings'), money(r.buildingGain, { currency: cur })],
-        [t(`Exonération cumulative (EGC × ${r.owners})`, `Lifetime exemption (LCGE × ${r.owners})`), money(r.lcgeTotal, { currency: cur }), 'pos'],
+        [t(`Exonération cumulative (EGC ${money(r.lcge, { currency: cur, compact: true })} × ${r.owners})`, `Lifetime exemption (LCGE ${money(r.lcge, { currency: cur, compact: true })} × ${r.owners})`), money(r.lcgeTotal, { currency: cur }), 'pos'],
         [t('Portion exonérée', 'Exempt portion'), money(r.exempt, { currency: cur }), 'pos'],
         [t('Gain imposable résiduel', 'Residual taxable gain'), money(r.taxableGain, { currency: cur })],
         [t('Produit net après impôt (vente)', 'Net after-tax proceeds (sale)'), money(r.netSale, { currency: cur }), 'pos'],
@@ -38,21 +57,21 @@ export function render({ client, jur }) {
   }
   draw();
 
-  const ctrl = card(t('Transfert / vente de la ferme', 'Farm transfer / sale'), { sub: t('Biens agricoles admissibles (BAA)', 'Qualified farm property'),
+  const ctrl = card(t('Transfert / vente de la ferme', 'Farm transfer / sale'), { sub: t(`Biens agricoles admissibles (BAA) — ${home ? 'immeuble du dossier : ' + money(home.value, { currency: cur, compact: true }) : 'aucun immeuble au dossier'}, autre revenu ${money(prim.ordinary, { currency: cur, compact: true })}, âge ${prim.age}`, `Qualified farm property — ${home ? 'property on file: ' + money(home.value, { currency: cur, compact: true }) : 'no property on file'}, other income ${money(prim.ordinary, { currency: cur, compact: true })}, age ${prim.age}`),
     right: isCA ? null : h('span', { class: 'chip warn' }, t('Règles canadiennes', 'Canadian rules')) },
     h('div', { class: 'grid cols-3' },
-      slider({ label: t('Valeur des terres', 'Land value'), value: p.landFMV, min: 0, max: 10000000, step: 50000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { p.landFMV = v; draw(); } }),
-      slider({ label: t('Coût des terres (PBR)', 'Land cost (ACB)'), value: p.landACB, min: 0, max: 5000000, step: 25000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { p.landACB = v; draw(); } }),
-      slider({ label: t('Valeur des quotas', 'Quota value'), value: p.quotaFMV, min: 0, max: 5000000, step: 25000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { p.quotaFMV = v; draw(); } }),
-      slider({ label: t('Valeur des bâtiments', 'Buildings value'), value: p.buildingsFMV, min: 0, max: 5000000, step: 25000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { p.buildingsFMV = v; draw(); } }),
-      slider({ label: t('Nombre de détenteurs (EGC)', 'Number of owners (LCGE)'), value: p.owners, min: 1, max: 4, step: 1, format: v => `${v}`, onInput: v => { p.owners = v; draw(); } }),
-      slider({ label: t('Autre revenu (année de vente)', 'Other income (sale year)'), value: p.otherIncome, min: 0, max: 300000, step: 5000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { p.otherIncome = v; draw(); } }),
+      slider({ label: t('Valeur des terres', 'Land value'), value: P.landFMV, min: 0, max: 10000000, step: 50000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('landFMV', v); draw(); } }),
+      slider({ label: t('Coût des terres (PBR)', 'Land cost (ACB)'), value: P.landACB, min: 0, max: 5000000, step: 25000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('landACB', v); draw(); } }),
+      slider({ label: t('Valeur des quotas', 'Quota value'), value: P.quotaFMV, min: 0, max: 5000000, step: 25000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('quotaFMV', v); draw(); } }),
+      slider({ label: t('Valeur des bâtiments', 'Buildings value'), value: P.buildingsFMV, min: 0, max: 5000000, step: 25000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('buildingsFMV', v); draw(); } }),
+      slider({ label: t('Coût des bâtiments (PBR)', 'Buildings cost (ACB)'), value: P.buildingsACB, min: 0, max: 5000000, step: 25000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('buildingsACB', v); draw(); } }),
+      slider({ label: t('Nombre de détenteurs (EGC)', 'Number of owners (LCGE)'), value: P.owners, min: 1, max: 4, step: 1, format: v => `${v}`, onInput: v => { setP('owners', v); draw(); } }),
+      slider({ label: t('Autre revenu (année de vente)', 'Other income (sale year)'), value: P.otherIncome, min: 0, max: 300000, step: 5000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('otherIncome', v); draw(); } }),
     ));
 
   // AgriInvest mini
-  let netSales = 500000;
   const aiBox = h('div', {});
-  function drawAI() { const a = agriInvest({ netSales }); aiBox.replaceChildren(statList([
+  function drawAI() { const a = agriInvest({ netSales: P.netSales }); aiBox.replaceChildren(statList([
     [t('Ventes nettes admissibles', 'Allowable net sales'), money(a.netSales, { currency: cur })],
     [t('Dépôt du producteur (1 %)', 'Producer deposit (1%)'), money(a.maxDeposit, { currency: cur })],
     [t('Contribution gouvernementale', 'Government match'), money(a.govMatch, { currency: cur }), 'pos'],
@@ -60,7 +79,7 @@ export function render({ client, jur }) {
   ])); }
   drawAI();
   const agri = card('AgriInvest', { sub: t('Compte d’épargne agricole avec contrepartie', 'Matched farm savings account') },
-    slider({ label: t('Ventes nettes admissibles', 'Allowable net sales'), value: netSales, min: 0, max: 5000000, step: 50000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { netSales = v; drawAI(); } }),
+    slider({ label: t('Ventes nettes admissibles', 'Allowable net sales'), value: P.netSales, min: 0, max: 5000000, step: 50000, format: v => money(v, { currency: cur, compact: true }), onInput: v => { setP('netSales', v); drawAI(); } }),
     aiBox);
 
   const strat = card(t('Stratégies agricoles', 'Farm strategies'), {},

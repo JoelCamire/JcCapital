@@ -37,14 +37,14 @@ export function render({ store, navigate }) {
         toggle,
         h('button', { class: 'btn sm', html: icon('mail', 13) + ' ' + t('Courriel groupé', 'Bulk email'), disabled: !s.emails.length, onClick: () => bulkEmail(s.emails) }),
         h('button', { class: 'btn sm ghost', html: icon('doc', 13) + ' ' + t('Copier courriels', 'Copy emails'), disabled: !s.emails.length, onClick: () => copyEmails(s.emails) }),
-        h('span', { class: 'tiny muted' }, t(`${s.emails.length} courriel(s)`, `${s.emails.length} email(s)`))),
+        h('span', { class: 'tiny muted', title: t('Tous les membres du ménage ayant un courriel (conjoint inclus)', 'Every household member with an e-mail (spouse included)') }, t(`${s.emails.length} courriel(s)`, `${s.emails.length} email(s)`))),
       list);
   });
 
   const intro = h('div', { class: 'card', style: { background: 'var(--surface-2)' } },
     h('div', { class: 'flex center gap-8' }, h('span', { class: 'chip info', html: icon('funnel', 13) }),
-      h('div', { class: 'tiny muted' }, t('Listes dynamiques recalculées en direct. « Courriel groupé » ouvre votre messagerie avec les destinataires en copie cachée (Cci).',
-        'Dynamic lists recalculated live. “Bulk email” opens your mail app with recipients in blind copy (Bcc).'))));
+      h('div', { class: 'tiny muted' }, t('Listes dynamiques recalculées en direct. « Courriel groupé » ouvre votre messagerie avec les destinataires en copie cachée (Cci) — tous les membres du ménage ayant un courriel, conjoint inclus.',
+        'Dynamic lists recalculated live. “Bulk email” opens your mail app with recipients in blind copy (Bcc) — every household member with an e-mail, spouse included.'))));
 
   return h('div', { class: 'grid', style: { gap: '18px' } }, intro, h('div', { class: 'grid cols-2', style: { alignItems: 'start' } }, ...cards));
 }

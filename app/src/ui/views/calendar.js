@@ -32,9 +32,11 @@ export function render({ store, navigate }) {
       const isToday = key === todayKey;
       cells.push(h('div', { style: { ...cellStyle(false), ...(isToday ? { outline: '2px solid var(--c-gold)', outlineOffset: '-2px' } : {}) } },
         h('div', { class: 'tiny', style: { fontWeight: isToday ? '800' : '600', color: isToday ? 'var(--c-gold)' : 'var(--text-2)', marginBottom: '3px' } }, String(d)),
-        ...evs.slice(0, 4).map(ev => h('div', { title: `${ev.label} · ${ev.clientName}`, onClick: () => goto(ev.clientId),
-          style: { cursor: 'pointer', fontSize: '10.5px', lineHeight: '1.3', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', padding: '1px 4px', borderRadius: '4px', marginBottom: '2px', background: 'color-mix(in srgb, ' + EVENT_COLOR[ev.type] + ' 22%, transparent)', borderLeft: '2px solid ' + EVENT_COLOR[ev.type] } },
-          ev.label)),
+        ...evs.slice(0, 4).map(ev => h('div', {
+          // past-due reviews / next actions are pinned to today by the engine (see monthEvents) and flagged overdue
+          title: `${ev.label} · ${ev.clientName}${ev.overdue ? ' · ' + t(`en retard (prévu le ${ev.date})`, `overdue (due ${ev.date})`) : ''}`, onClick: () => goto(ev.clientId),
+          style: { cursor: 'pointer', fontSize: '10.5px', lineHeight: '1.3', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', padding: '1px 4px', borderRadius: '4px', marginBottom: '2px', background: 'color-mix(in srgb, ' + EVENT_COLOR[ev.type] + ' 22%, transparent)', borderLeft: (ev.overdue ? '3px solid var(--neg)' : '2px solid ' + EVENT_COLOR[ev.type]) } },
+          (ev.overdue ? '⚠ ' : '') + ev.label)),
         evs.length > 4 ? h('div', { class: 'tiny muted' }, `+${evs.length - 4}`) : null,
       ));
     }
@@ -47,7 +49,8 @@ export function render({ store, navigate }) {
         h('button', { class: 'btn sm ghost', onClick: () => { year = now.getFullYear(); month = now.getMonth(); build(); } }, t('Aujourd’hui', 'Today'))),
       h('div', { class: 'legend' },
         ...[['task', t('Tâche', 'Task')], ['birthday', t('Anniversaire', 'Birthday')], ['review', t('Revue', 'Review')], ['renewal', t('Renouvellement', 'Renewal')], ['nextaction', t('Action', 'Action')]]
-          .map(([k, l]) => h('span', {}, h('i', { style: { background: EVENT_COLOR[k] } }), l))));
+          .map(([k, l]) => h('span', {}, h('i', { style: { background: EVENT_COLOR[k] } }), l)),
+        h('span', { class: 'tiny muted', title: t('Revues et actions en retard (≤ 90 j) sont épinglées à aujourd’hui', 'Past-due reviews and actions (≤ 90d) are pinned to today') }, '⚠ ' + t('en retard → aujourd’hui', 'overdue → today'))));
 
     const weekHead = h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '6px', marginBottom: '6px' } },
       ...WEEKDAYS().map(w => h('div', { class: 'tiny muted', style: { textAlign: 'center', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '.04em' } }, w)));

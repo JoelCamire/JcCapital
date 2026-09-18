@@ -4,7 +4,7 @@
 // ============================================================
 import { h, icon, t, fmtDate, modal, toast, field } from '../dom.js';
 import { card } from '../widgets.js';
-import { taskBuckets, reminders, TASK_CAT_META, daysUntil } from '../../engine/crm.js';
+import { taskBuckets, reminders, TASK_CAT_META } from '../../engine/crm.js';
 import { newTask } from '../../state/models.js';
 
 const CAT_OPTS = Object.keys(TASK_CAT_META);
@@ -54,12 +54,13 @@ export function render({ store, navigate }) {
     if (old) old.replaceWith(left); else wrap.appendChild(left);
   };
 
-  const remCard = card(t('Rappels (60 j)', 'Reminders (60d)'), { sub: t('Anniversaires, revues, renouvellements', 'Birthdays, reviews, renewals') },
+  const REM_LABEL = { birthday: () => t('Anniversaire', 'Birthday'), review: () => t('Revue', 'Review'), renewal: () => t('Renouvellement', 'Renewal'), nextaction: () => t('Prochaine action', 'Next action') };
+  const remCard = card(t('Rappels (60 j)', 'Reminders (60d)'), { sub: t('Anniversaires, revues, renouvellements · revues et actions en retard (≤ 90 j) incluses', 'Birthdays, reviews, renewals · past-due reviews and actions (≤ 90d) included') },
     rem.length ? h('div', {}, ...rem.map(r => h('div', {
         class: 'flex between center', style: { padding: '9px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }, onClick: () => goto(r.clientId) },
-      h('div', {}, h('div', { style: { fontWeight: '600', fontSize: '13px' } }, `${r.who}`),
-        h('div', { class: 'tiny muted' }, `${r.clientName}`)),
-      h('span', { class: 'chip ' + (r.days <= 3 ? 'warn' : '') }, relLabel(r.days)),
+      h('div', {}, h('div', { style: { fontWeight: '600', fontSize: '13px' } }, `${(REM_LABEL[r.type] || REM_LABEL.nextaction)()} — ${r.who}`),
+        h('div', { class: 'tiny muted' }, `${r.clientName} · ${fmtDate(r.date)}`)),
+      h('span', { class: 'chip ' + (r.overdue ? 'neg' : r.days <= 3 ? 'warn' : '') }, relLabel(r.days)),
     ))) : h('div', { class: 'empty tiny' }, t('Aucun rappel', 'No reminders')));
 
   rebuild();

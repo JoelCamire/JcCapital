@@ -63,10 +63,8 @@ export function openLog(store, after, fixedClientId) {
     footer: [
       h('button', { class: 'btn ghost', onClick: () => m.close() }, t('Annuler', 'Cancel')),
       h('button', { class: 'btn primary', onClick: () => {
-        store.updateClient(clientId, c => {
-          (c.activities = c.activities || []).push(draft);
-          c.crm = c.crm || {}; c.crm.lastContactAt = Date.now();
-        });
+        // last contact is derived (crm.lastTouch) from activities — nothing else to stamp
+        store.updateClient(clientId, c => { (c.activities = c.activities || []).push(draft); });
         m.close(); after && after(); toast(t('Activité consignée', 'Activity logged'));
       } }, t('Enregistrer', 'Save')),
     ],

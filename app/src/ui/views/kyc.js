@@ -9,6 +9,7 @@ import { complianceOverview } from '../../engine/crm.js';
 export function render({ store, navigate }) {
   const goto = (id) => { store.setActive(id); navigate('relation'); };
   const ov = complianceOverview(store.state.clients);
+  // a client with no applicable item is 100 % (engine); an empty book is 100 % too
   const bookPct = ov.total ? ov.rows.reduce((s, r) => s + r.pct, 0) / ov.total : 1;
 
   const kpis = h('div', { class: 'grid cols-3' },
@@ -39,7 +40,7 @@ export function render({ store, navigate }) {
     h('div', { class: 'grid cols-2', style: { alignItems: 'start' } }, clientsCard, gapsCard),
     h('div', { class: 'card', style: { background: 'var(--surface-2)' } },
       h('div', { class: 'flex center gap-8' }, h('span', { class: 'chip info', html: icon('check', 13) }),
-        h('div', { class: 'tiny muted' }, t('Modifiez l’état de chaque document dans l’onglet « Relation client » de chaque fiche. Les prospects sont exclus tant qu’ils ne sont pas convertis en clients.',
-          'Edit each document’s status in each file’s “Client relationship” tab. Prospects are excluded until converted to clients.')))),
+        h('div', { class: 'tiny muted' }, t('Modifiez l’état de chaque document dans l’onglet « Relation client » de chaque fiche. Les prospects sont exclus tant qu’ils ne sont pas convertis en clients. « Désignation de bénéficiaires » et « Profil d’investisseur » sont dérivés automatiquement du dossier (bénéficiaires saisis, profil de risque défini) et ne se cochent pas à la main.',
+          'Edit each document’s status in each file’s “Client relationship” tab. Prospects are excluded until converted to clients. “Beneficiary designation” and “Investor profile” are derived from the file itself (beneficiaries on record, risk profile set) and are not ticked by hand.')))),
   );
 }

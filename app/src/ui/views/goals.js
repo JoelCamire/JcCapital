@@ -3,13 +3,45 @@ import { card } from '../widgets.js';
 import { formModal } from '../editor.js';
 import { store } from '../../state/store.js';
 import { newGoal } from '../../state/models.js';
-import { runProjection } from '../../engine/projection.js';
 import { educationFunding } from '../../engine/analysis.js';
 import { suggestGoals } from '../../engine/suggestions.js';
+import { clientFacts, retirementFacts } from '../../engine/facts.js';
+
+/**
+ * ONE funding rule shared by the Goals view and the Report.
+ *   retirement : amount = target ANNUAL income → funded = projected retirement-year gross income / amount
+ *   education  : educationFunding() — FV of the existing education savings vs the target
+ *   other      : projected investable capital at targetAge vs amount
+ * Returns { funded (0..1), note, detail }.
+ */
+export function goalFunding(client, jur, goal) {
+  const cur = jur.currency;
+  const F = clientFacts(client, jur);
+  const R = retirementFacts(client, jur);
+  const amount = Math.max(0, +goal.amount || 0);
+  if (goal.type === 'retirement') {
+    const inc = R.grossIncome || 0;
+    const funded = amount > 0 ? Math.min(1, inc / amount) : (inc > 0 ? 1 : 0);
+    const ok = funded >= 1 && R.success;
+    return { funded, note: t(`Revenu projeté la 1re année de retraite (${R.retirementAge} ans) : ${money(inc, { currency: cur, compact: true })}/an`, `Projected first-retirement-year income (age ${R.retirementAge}): ${money(inc, { currency: cur, compact: true })}/yr`),
+      detail: ok ? t('Sur la bonne voie', 'On track') : R.depletionAge ? t(`Capital épuisé à ${R.depletionAge} ans`, `Capital depleted at ${R.depletionAge}`) : t('Sous-financé', 'Underfunded') };
+  }
+  if (goal.type === 'education') {
+    const ef = educationFunding(client, goal);
+    const fvExisting = ef.existing * Math.pow(1 + ef.returnRate, ef.years);
+    const funded = ef.target > 0 ? Math.min(1, fvExisting / ef.target) : 1;
+    return { funded, note: t(`${money(ef.monthly, { currency: cur })}/mois requis sur ${ef.years} ans (subventions ${money(ef.projectedGrants, { currency: cur, compact: true })})`, `${money(ef.monthly, { currency: cur })}/mo required over ${ef.years} yrs (grants ${money(ef.projectedGrants, { currency: cur, compact: true })})`),
+      detail: ef.annual <= 0 ? t('Financé par l’épargne actuelle', 'Funded by current savings') : t('Cotisation requise', 'Contribution required') };
+  }
+  const rows = R.projection.rows;
+  const row = rows.find(r => r.primaryAge >= (+goal.targetAge || 0)) || rows[rows.length - 1];
+  const avail = row ? row.investable : 0;
+  return { funded: amount > 0 ? Math.min(1, avail / amount) : 1, note: t(`Capital investissable projeté à ${row ? row.primaryAge : '—'} ans : ${money(avail, { currency: cur, compact: true })}`, `Projected investable capital at ${row ? row.primaryAge : '—'}: ${money(avail, { currency: cur, compact: true })}`),
+    detail: avail >= amount ? t('Capital disponible', 'Capital available') : t('Capital insuffisant', 'Insufficient capital') };
+}
 
 export function render({ client, jur }) {
   const cur = jur.currency;
-  const proj = runProjection(client);
 
   const typeOpts = [
     { value: 'retirement', label: t('Retraite', 'Retirement') }, { value: 'education', label: t('Études', 'Education') },
@@ -19,25 +51,8 @@ export function render({ client, jur }) {
   const prioLabel = v => (prioOpts.find(o => o.value === v) || {}).label || v;
   const typeLabel = v => (typeOpts.find(o => o.value === v) || {}).label || v;
 
-  function fundingFor(goal) {
-    if (goal.type === 'retirement') {
-      const ok = proj.summary.success && !proj.summary.depletionAge;
-      const retRow = proj.rows.find(r => r.primaryRetired);
-      const funded = retRow ? Math.min(1, retRow.investable / (goal.amount * 12)) : 0;
-      return { funded: proj.summary.success ? 1 : Math.max(0.3, funded), note: ok ? t('Sur la bonne voie', 'On track') : t('Sous-financé', 'Underfunded') };
-    }
-    if (goal.type === 'education') {
-      const ef = educationFunding(client, goal);
-      const current = client.assets.filter(a => ['resp', '529', 'jisa'].includes(a.type)).reduce((s, a) => s + a.value, 0);
-      return { funded: Math.min(1, current / goal.amount), note: t(`${money(ef.monthly, { currency: cur })}/mois requis`, `${money(ef.monthly, { currency: cur })}/mo required`) };
-    }
-    const row = proj.rows.find(r => r.primaryAge >= goal.targetAge) || proj.rows[proj.rows.length - 1];
-    const avail = row ? row.investable : 0;
-    return { funded: Math.min(1, avail / (goal.amount || 1)), note: t(`Capital projeté : ${money(avail, { currency: cur, compact: true })}`, `Projected capital: ${money(avail, { currency: cur, compact: true })}`) };
-  }
-
   const cards = client.goals.map(g => {
-    const f = fundingFor(g);
+    const f = goalFunding(client, jur, g);
     const cls = f.funded >= 0.85 ? 'pos' : f.funded >= 0.5 ? 'warn' : 'neg';
     return h('div', { class: 'card' },
       h('div', { class: 'flex between center' },
@@ -54,11 +69,12 @@ export function render({ client, jur }) {
         h('span', { class: 'tiny muted' }, f.note),
         h('b', { style: { color: `var(--${cls})` } }, pct(f.funded, 0) + ' ' + t('financé', 'funded'))),
       h('div', { class: 'bar' }, h('span', { style: { width: pct(Math.min(1, f.funded), 0), background: cls === 'neg' ? 'var(--neg)' : cls === 'warn' ? 'linear-gradient(90deg,var(--warn),var(--accent-2))' : 'linear-gradient(90deg,var(--brand-500),var(--accent))' } })),
+      h('div', { class: 'tiny muted', style: { marginTop: '5px' } }, f.detail),
     );
   });
 
   const head = card(t('Objectifs financiers', 'Financial goals'), { class: 'span-full',
-    sub: t('Suivi du financement par rapport aux projections', 'Funding tracked against projections'),
+    sub: t('Suivi du financement par rapport aux projections — même règle que le rapport', 'Funding tracked against projections — same rule as the report'),
     right: h('button', { class: 'btn primary sm', html: icon('plus', 14) + ' ' + t('Objectif', 'Goal'), onClick: () => edit(newGoal(), true) }) },
     cards.length ? h('div', { class: 'grid cols-2' }, ...cards) : h('div', { class: 'empty' }, h('div', { class: 'big' }, '🎯'), t('Aucun objectif défini', 'No goals yet')));
 
@@ -86,15 +102,17 @@ export function render({ client, jur }) {
   return h('div', { class: 'grid' }, head, sugCard);
 
   function edit(item, isNew) {
-    formModal({ title: isNew ? t('Nouvel objectif', 'New goal') : t('Modifier l’objectif', 'Edit goal'), item,
+    const depOpts = [{ value: '', label: t('— (le plus jeune)', '— (youngest)') }, ...(client.dependents || []).map(d => ({ value: d.id, label: d.name }))];
+    formModal({ title: isNew ? t('Nouvel objectif', 'New goal') : t('Modifier l’objectif', 'Edit goal'), item: { ...item, dependentId: item.dependentId || '' },
       fields: [
         { key: 'name', label: t('Nom de l’objectif', 'Goal name') },
         { key: 'type', label: 'Type', type: 'select', opts: typeOpts },
-        { key: 'amount', label: t(`Montant cible (${cur})`, `Target amount (${cur})`), type: 'number', hint: t('Pour la retraite : revenu annuel souhaité', 'For retirement: desired annual income') },
-        { key: 'targetAge', label: t('Âge cible', 'Target age'), type: 'number' },
+        { key: 'amount', label: t(`Montant cible (${cur})`, `Target amount (${cur})`), type: 'number', hint: t('Pour la retraite : revenu annuel brut souhaité', 'For retirement: desired gross annual income') },
+        { key: 'targetAge', label: t('Âge cible', 'Target age'), type: 'number', hint: t('Retraite : âge du titulaire · Études : âge de l’enfant', 'Retirement: primary\'s age · Education: child\'s age') },
+        { key: 'dependentId', label: t('Enfant (objectif études)', 'Child (education goal)'), type: 'select', opts: depOpts },
         { key: 'priority', label: t('Priorité', 'Priority'), type: 'select', opts: prioOpts },
       ],
-      onSave: (d) => store.update(c => { if (isNew) c.goals.push(d); else Object.assign(c.goals.find(g => g.id === d.id), d); }),
+      onSave: (d) => store.update(c => { if (!d.dependentId) delete d.dependentId; if (isNew) c.goals.push(d); else Object.assign(c.goals.find(g => g.id === d.id), d); }),
     });
   }
 }
