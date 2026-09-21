@@ -31,10 +31,18 @@ const STRATEGIES = [
         `Raises each tax-free account (${jur.labels.taxFree}) contribution to the ${jur.taxYear} annual limit: ${fmtM(meta.limit || 0, cur)}/yr.`);
     },
     apply(clone, { jur }) {
+      // The annual limit belongs to the PERSON, not to each account: a member holding
+      // two tax-free accounts must not be granted the limit twice.
+      const firstId = clone.members?.[0]?.id;
+      const countByOwner = {};
+      (clone.assets || []).forEach(a => { if (treatmentOf(a.type) === 'taxfree') { const o = a.ownerId || firstId; countByOwner[o] = (countByOwner[o] || 0) + 1; } });
       (clone.assets || []).forEach(a => {
         if (treatmentOf(a.type) !== 'taxfree') return;
         const limit = accountMeta(jur.country, a.type).limit || accountMeta(jur.country, jur.country === 'CA' ? 'tfsa' : jur.country === 'US' ? 'roth' : 'isa').limit || 0;
-        if (limit > 0) a.annualContribution = Math.max(a.annualContribution || 0, limit);
+        if (limit <= 0) return;
+        const owner = a.ownerId || firstId;
+        const share = limit / Math.max(1, countByOwner[owner] || 1);
+        a.annualContribution = Math.max(a.annualContribution || 0, share);
       });
     },
   },

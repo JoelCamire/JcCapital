@@ -224,7 +224,8 @@ const CA = {
     QC: { rate: 0, note: 'Testament notarié : aucune homologation (vérification judiciaire seulement pour un testament olographe/devant témoins).' },
     ON: { rate: 0.015, exempt: 50000, note: 'Impôt sur l’administration des successions : 1,5 % au-delà de 50 000 $.' },
     BC: { rate: 0.014, exempt: 50000, lowRate: 0.006, lowFrom: 25000, note: '0,6 % de 25 000 à 50 000 $, 1,4 % au-delà.' },
-    AB: { flatMax: 525, note: 'Frais fixes plafonnés à 525 $.' },
+    AB: { tiers: [{ upTo: 10000, fee: 35 }, { upTo: 25000, fee: 135 }, { upTo: 125000, fee: 275 }, { upTo: 250000, fee: 400 }, { upTo: null, fee: 525 }],
+      flatMax: 525, note: 'Tarif gradué des frais de la Cour du Banc du Roi, plafonné à 525 $.' },
   },
   // Mortgage qualification ratios (federally regulated lenders)
   lending: { gds: 0.39, tds: 0.44, stressTestBuffer: 0.02, stressTestFloor: 0.0525, minDownPct: 0.05, minDownAbove500k: 0.10, insuredCap: 1500000 },

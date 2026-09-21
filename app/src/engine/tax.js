@@ -348,14 +348,23 @@ export function grossUpForNet(jur, netNeeded, otherOrdinary = 0, maxGross = Infi
  *   • accounts already in RRIF form use the prescribed factor at any age (1/(90−age) below 71)
  *   • RRSPs convert at 71 and pay their first minimum the year the owner turns 72
  */
+/** Account types that carry a legislated MINIMUM withdrawal, by country. */
+const MIN_WITHDRAWAL_TYPES = {
+  CA: new Set(['rrsp', 'rrif', 'lira', 'lif']),   // NOT the FHSA (no annual minimum)
+  US: new Set(['401k', 'ira', 'rmd', 'pension']), // NOT Roth or HSA
+  UK: new Set(),
+};
 export function rrifMinFactor(jur, age, accountType = 'rrsp') {
+  const allowed = MIN_WITHDRAWAL_TYPES[jur.country];
+  if (allowed && !allowed.has(accountType)) return 0;
   const table = jur.rrifMin || {};
   const a = Math.floor(fin(age));
   if (jur.country !== 'CA') return table[a] || 0;
-  const isRrif = accountType === 'rrif';
-  if (!isRrif && a < 72) return 0;
+  // A LIF also has a legislated MAXIMUM, which this model does not apply.
+  const alreadyConverted = accountType === 'rrif' || accountType === 'lif';
+  if (!alreadyConverted && a < 72) return 0;
   if (a >= 95) return table[95] || 0.20;
   if (table[a] != null) return table[a];
-  if (isRrif && a < 71 && a < 90) return 1 / (90 - a);
+  if (alreadyConverted && a < 71 && a < 90) return 1 / (90 - a);
   return 0;
 }

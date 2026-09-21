@@ -78,7 +78,7 @@ export function render({ store, client, jur, navigate }) {
     const childResults = deps.map(dep => {
       const yearsUntilStart = dep.yearsToGoal;
       const futureCost = futureTotalCost(annualCost, Math.round(studyYears), eduInflation, yearsUntilStart);
-      const ef = educationFunding(client, { amount: futureCost, dependentId: dep.id, name: dep.name, targetAge: dep.educationGoalAge || 18 }, { years: Math.max(1, yearsUntilStart), returnRate, existing: savingsPerChild });
+      const ef = educationFunding(client, { amount: futureCost, dependentId: dep.id, name: dep.name, targetAge: dep.educationGoalAge || 18 }, { years: Math.max(1, yearsUntilStart), returnRate, existing: savingsPerChild, target: futureCost });
       const fvExisting = savingsPerChild * Math.pow(1 + returnRate, ef.years);
       const progress = futureCost > 0 ? Math.min(1, fvExisting / futureCost) : 1;
       const path = buildPath(savingsPerChild, ef.annual, returnRate, ef.years, G, futureCost);

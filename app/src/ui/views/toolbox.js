@@ -149,14 +149,23 @@ function mortgageAffordCalc(cur, P, setP, jur, lending) {
     const tdsRatio = monthlyIncome > 0 ? (maxPayment + P.mgDebts) / monthlyIncome : 0;
     const gdsOk    = gdsRatio <= GDS + 1e-9;
     const tdsOk    = tdsRatio <= TDS + 1e-9;
-    const minDown  = lending.minDownPct != null ? maxHome * lending.minDownPct : 0;
+    // Graduated minimum: 5 % on the first 500 k$, 10 % on the excess; above the
+    // insured cap the purchase is uninsurable and needs 20 %.
+    const minDownFor = (price) => {
+      if (lending.minDownPct == null) return 0;
+      if (lending.insuredCap != null && price > lending.insuredCap) return price * 0.20;
+      const band = 500000;
+      if (lending.minDownAbove500k == null || price <= band) return price * lending.minDownPct;
+      return band * lending.minDownPct + (price - band) * lending.minDownAbove500k;
+    };
+    const minDown  = minDownFor(maxHome);
 
     resultBox.replaceChildren(
       h('div', { class: 'grid cols-2', style: { marginTop: '10px' } },
         kpi({ label: t('Paiement mensuel max (au taux de qualification)', 'Max monthly payment (at qualifying rate)'), value: money(maxPayment, { currency: cur }), accent: 'var(--pos)', sub: t(`taux de qualification ${pct(qualRate, 2)}`, `qualifying rate ${pct(qualRate, 2)}`) }),
         kpi({ label: t('Montant hypothèque max', 'Max mortgage principal'), value: money(maxMortgage, { currency: cur, compact: true }), accent: 'var(--accent)', sub: t(`paiement réel ${money(actualPayment, { currency: cur })}/mois à ${pct(P.mgRate, 2)}`, `actual payment ${money(actualPayment, { currency: cur })}/mo at ${pct(P.mgRate, 2)}`) }),
         kpi({ label: t('Prix max de la propriété', 'Max home price'), value: money(maxHome, { currency: cur, compact: true }), accent: 'var(--pos)' }),
-        kpi({ label: t('Mise de fonds', 'Down payment'), value: money(P.mgDown, { currency: cur, compact: true }), sub: pct(maxHome > 0 ? P.mgDown / maxHome : 0) + (minDown > 0 && P.mgDown < minDown ? ' — ' + t(`min. ${pct(lending.minDownPct, 0)}`, `min. ${pct(lending.minDownPct, 0)}`) : ''), accent: minDown > 0 && P.mgDown < minDown ? 'var(--warn)' : undefined }),
+        kpi({ label: t('Mise de fonds', 'Down payment'), value: money(P.mgDown, { currency: cur, compact: true }), sub: pct(maxHome > 0 ? P.mgDown / maxHome : 0) + (minDown > 0 && P.mgDown < minDown ? ' — ' + t(`min. ${money(minDown, { currency: cur, compact: true })}`, `min. ${money(minDown, { currency: cur, compact: true })}`) : ''), accent: minDown > 0 && P.mgDown < minDown ? 'var(--warn)' : undefined }),
       ),
       statList([
         [t(`Ratio ABD (max ${pct(GDS, 0)})`, `GDS ratio (max ${pct(GDS, 0)})`), pct(gdsRatio), gdsOk ? 'pos' : 'neg'],

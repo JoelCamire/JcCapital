@@ -84,14 +84,18 @@ export function oasClawback(jur, netIncome, oasAnnual = null) {
   return { clawback, net: Math.max(0, maxOas - clawback), threshold: oas.clawbackStart, fullAt, rate: oas.clawbackRate };
 }
 
-/** Cumulative-payout series indexed by age (from startAge to endAge) for the cross-over chart. */
+/**
+ * Cumulative-payout series indexed by age (from startAge to endAge) for the cross-over chart.
+ * Convention — shared with claimingAnalysis: a benefit is received each year from the claim
+ * age up to the year before death, so the cumulative AT age X is `annual × (X − claimAge)`.
+ * The chart, the lifetime-total column and the break-even column therefore always agree.
+ */
 export function buildCumulativeSeries(pension, claimAge, startAge, endAge, base = null) {
   const annual = benefitAtAge(pension, claimAge, base);
   const n = Math.max(0, Math.round(fin(endAge) - fin(startAge)) + 1);
   return Array.from({ length: n }, (_, i) => {
     const age = fin(startAge) + i;
-    if (age < claimAge) return 0;
-    return annual * (age - claimAge + 1);
+    return age <= claimAge ? 0 : annual * (age - claimAge);
   });
 }
 

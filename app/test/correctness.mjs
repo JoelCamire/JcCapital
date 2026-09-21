@@ -501,6 +501,36 @@ const QC = getJurisdiction('CA', 'QC'), ON = getJurisdiction('CA', 'ON'), BC = g
   const cs = CRM.complianceStatus(fresh);
   ok('an explicit "not applicable" is never overridden by a derived rule', cs.items.find(i => i.key === 'fatca').status === 'na' && cs.items.find(i => i.key === 'beneficiary').status === 'done');
 
+  // — second review pass —
+  ok('no minimum withdrawal on an FHSA (it is not a RRIF)', T.rrifMinFactor(QC, 75, 'fhsa') === 0 && T.rrifMinFactor(QC, 75, 'rrsp') > 0);
+  ok('a LIF has a minimum at any age; a LIRA only from 72', T.rrifMinFactor(QC, 60, 'lif') > 0 && T.rrifMinFactor(QC, 60, 'lira') === 0 && T.rrifMinFactor(QC, 75, 'lira') > 0);
+  ok('US: no RMD on a Roth, RMD on a 401(k) from 73', T.rrifMinFactor(getJurisdiction('US', 'NY'), 75, 'roth') === 0 && T.rrifMinFactor(getJurisdiction('US', 'NY'), 75, '401k') > 0);
+
+  const cppP = QC.pensions.cpp;
+  const ca70 = BEN.claimingAnalysis(cppP, [65, 70], 90);
+  const row70 = ca70.rows.find(r => r.age === 70);
+  const series70 = BEN.buildCumulativeSeries(cppP, 70, 60, 90);
+  near('the cross-over chart and the lifetime-total column agree at life expectancy', series70[series70.length - 1], row70.cumulative, 0.01);
+
+  // Education: one goal, one target, whichever screen asks.
+  const edu = normalize(JSON.parse(JSON.stringify(store.activeClient())));
+  const eduGoal = edu.goals.find(g => g.type === 'education');
+  const before = AN.educationFunding(edu, eduGoal).target;
+  edu.calc = { education: { annualCost: 12000, studyYears: 4, eduInflation: 0.04, returnRate: 0.058 } };
+  const after = AN.educationFunding(edu, eduGoal);
+  ok('the education target follows the advisor’s cost parameters on BOTH screens', before === eduGoal.amount && after.targetSource === 'cost' && Math.abs(after.target - before) > 1);
+
+  // Surplus fills the tax-free account before a taxable one.
+  const sw = bare(); const swm = sw.members[0];
+  swm.currentAge = 40; swm.retirementAge = 65; swm.lifeExpectancy = 67;
+  sw.incomes = [M.newIncome({ memberId: swm.id, type: 'employment', amount: 200000, growth: 0 })];
+  sw.expenses = [M.newExpense({ amount: 40000, growth: 0, retirementFactor: 1 })];
+  sw.assets = [M.newAsset({ ownerId: swm.id, type: 'nonreg', value: 10000, costBasis: 10000, growth: 0, annualContribution: 0 }),
+    M.newAsset({ ownerId: swm.id, type: 'tfsa', value: 10000, costBasis: 10000, growth: 0, annualContribution: 0 })];
+  normalize(sw);
+  const swRow = P.runProjection(sw).rows[0];
+  ok('a surplus fills the tax-free account first', swRow.balances.taxfree > swRow.balances.taxable);
+
   // — charts / UI contracts —
   const { cssPct } = await import('../src/ui/dom.js');
   ok('cssPct emits a valid CSS length (pct() would produce "85 %" and be dropped)', cssPct(0.85) === '85.0%' && cssPct(2) === '100.0%' && cssPct(NaN) === '0.0%');

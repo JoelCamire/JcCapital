@@ -274,7 +274,9 @@ export function runProjection(client, opts = {}) {
     const pensionSplit = split.amount;
     const sweep = (gap < -0.5 ? -gap : 0) + splitSaving;
     if (sweep > 0.5) {
-      let sink = assets.find(a => a.treat === 'taxable') || assets.find(a => a.treat === 'taxfree');
+      const biggest = (tr) => assets.filter(a => a.treat === tr).sort((x, y) => y.bal - x.bal)[0];
+      // A saver fills the tax-free account first; only the excess lands in a taxable one.
+      let sink = biggest('taxfree') || biggest('taxable');
       // A saver with only registered accounts and a house had no sink at all, so every
       // surplus dollar was silently discarded. Open a non-registered account instead.
       if (!sink) {
@@ -309,7 +311,10 @@ export function runProjection(client, opts = {}) {
       shortfall, need, netFlow, detReturn,
       balances: bal, basisTaxable: basis.taxable, assetsTotal, liabilitiesTotal, investable,
       netWorth: assetsTotal - liabilitiesTotal, realNetWorth: (assetsTotal - liabilitiesTotal) * deflator, realInvestable: investable * deflator,
-      marginalRate: blended.marginalRate, averageRate: grossIncome > 0 ? totalTax / grossIncome : 0,
+      marginalRate: blended.marginalRate,
+      marginalRateMin: Math.min(...Object.values(byMember).map(m => m.marginalRate)),
+      marginalRateMax: Math.max(...Object.values(byMember).map(m => m.marginalRate)),
+      averageRate: grossIncome > 0 ? totalTax / grossIncome : 0,
       byMember,
     });
   }

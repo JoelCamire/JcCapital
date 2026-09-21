@@ -446,7 +446,10 @@ export function render({ store, client, jur }) {
       onDelete: (row) => {
         store.update(c => {
           c.portfolio = c.portfolio || {};
-          c.portfolio.holdings = (c.portfolio.holdings || holdings).filter(h => h.id !== row.id);
+          // Only ever filter what is ALREADY stored; deleting an inferred row must not freeze
+          // the inferred portfolio into the file.
+          if (!(c.portfolio.holdings && c.portfolio.holdings.length)) return;
+          c.portfolio.holdings = c.portfolio.holdings.filter(h => h.id !== row.id);
         });
         toast(t('Position supprimée', 'Position removed'));
       },

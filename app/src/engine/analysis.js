@@ -72,6 +72,25 @@ export function lifeInsuranceNeeds(client, memberId) {
 }
 
 /**
+ * Cost of one child's studies, INFLATED to the year they start.
+ * This is the single definition of an education target: the Education screen and
+ * the Goals screen both go through it, so one goal never shows two funding levels.
+ * Uses the advisor's saved cost parameters (client.calc.education) when present.
+ */
+export function educationTarget(client, goal, dep, yearsUntilStart) {
+  const A = assumptionsOf(client);
+  const W = (client && client.calc && client.calc.education) || {};
+  const annualCost = fin(W.annualCost, 0);
+  const studyYears = Math.max(1, Math.round(fin(W.studyYears, 0)));
+  if (!(annualCost > 0)) return { amount: fin(goal && goal.amount), source: 'goal' };
+  const infl = fin(W.eduInflation, A.educationInflation);
+  const y0 = Math.max(0, fin(yearsUntilStart, dep ? Math.max(0, fin(dep.educationGoalAge, 18) - fin(dep.age)) : 0));
+  let total = 0;
+  for (let i = 0; i < studyYears; i++) total += annualCost * Math.pow(1 + infl, y0 + i);
+  return { amount: total, source: 'cost', annualCost, studyYears, inflation: infl };
+}
+
+/**
  * Required level monthly saving to hit an education goal, with an exact
  * year-by-year simulation of government grants (CESG + provincial top-up)
  * including their annual and lifetime caps, and the existing RESP balance.
@@ -93,7 +112,10 @@ export function educationFunding(client, goal, opts = {}) {
   const respTotal = (client.assets || []).filter(a => treatmentOf(a.type) === 'education').reduce((s, a) => s + fin(a.value), 0);
   const existing = fin(opts.existing, deps.length ? respTotal / deps.length : respTotal);
   const grantsUsed = fin(opts.grantsUsed, 0);
-  const target = fin(goal.amount);
+  // The target is the inflated cost of the studies when the advisor has entered cost
+  // parameters, otherwise the amount typed on the goal. `opts.target` overrides both.
+  const targetInfo = opts.target != null ? { amount: fin(opts.target), source: 'explicit' } : educationTarget(client, goal, dep, years);
+  const target = targetInfo.amount;
 
   // simulate: annual contribution c, grants credited yearly, growth at r (returns the yearly path)
   const simulate = (c) => {
@@ -115,7 +137,7 @@ export function educationFunding(client, goal, opts = {}) {
     annual = hi;
   }
   const sim = simulate(annual);
-  return { target, years, dependent: dep, annual, monthly: annual / 12, grantRate, provRate, existing, projectedGrants: sim.grants, projectedValue: sim.value, series: sim.series, returnRate: r };
+  return { target, targetSource: targetInfo.source, years, dependent: dep, annual, monthly: annual / 12, grantRate, provRate, existing, projectedGrants: sim.grants, projectedValue: sim.value, series: sim.series, returnRate: r };
 }
 
 /** Disability income-protection quick check (coverage stored as ANNUAL benefit). */

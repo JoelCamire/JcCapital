@@ -24,9 +24,15 @@ export function render({ client, jur, navigate }) {
   const windows = [];
   let cur2 = null;
   rows.forEach((r) => {
-    const kind = r.marginalRate <= lowThresh ? 'low' : r.marginalRate >= highThresh ? 'high' : 'mid';
-    if (!cur2 || cur2.kind !== kind) { if (cur2) windows.push(cur2); cur2 = { kind, from: r.primaryAge, to: r.primaryAge, avgMarg: r.marginalRate, n: 1 }; }
-    else { cur2.to = r.primaryAge; cur2.avgMarg = (cur2.avgMarg * cur2.n + r.marginalRate) / (cur2.n + 1); cur2.n++; }
+    // For a couple the planning rate is the LOWEST spouse's marginal rate (income is
+    // realised in their hands); `r.marginalRate` blends both incomes into one filer and
+    // overstates the household. A high-rate window is set by the HIGHEST rate.
+    const low = r.marginalRateMin != null ? r.marginalRateMin : r.marginalRate;
+    const high = r.marginalRateMax != null ? r.marginalRateMax : r.marginalRate;
+    const kind = low <= lowThresh ? 'low' : high >= highThresh ? 'high' : 'mid';
+    const marg = kind === 'high' ? high : low;
+    if (!cur2 || cur2.kind !== kind) { if (cur2) windows.push(cur2); cur2 = { kind, from: r.primaryAge, to: r.primaryAge, avgMarg: marg, n: 1 }; }
+    else { cur2.to = r.primaryAge; cur2.avgMarg = (cur2.avgMarg * cur2.n + marg) / (cur2.n + 1); cur2.n++; }
   });
   if (cur2) windows.push(cur2);
   const lowWindows = windows.filter(w => w.kind === 'low' && w.n >= 2);
@@ -43,7 +49,7 @@ export function render({ client, jur, navigate }) {
     sub: t('Identifier les années pour réaliser ou reporter du revenu', 'Spot years to realize or defer income'),
     right: legend([{ color: PALETTE[5], label: t('Taux marginal', 'Marginal rate') }, { color: PALETTE[0], label: t('Revenu imposable', 'Taxable income') }]) },
     h('div', { html: lineChart({ series: [{ color: PALETTE[0], values: rows.map(r => Math.round(r.taxableIncome)) }], xLabels: ages, area: true }) }),
-    h('div', { html: lineChart({ series: [{ color: PALETTE[5], values: rows.map(r => Math.round(r.marginalRate * 100)) }], xLabels: ages, area: false, height: 180 }) }),
+    h('div', { html: lineChart({ series: [{ color: PALETTE[5], values: rows.map(r => Math.round((r.marginalRateMin != null ? r.marginalRateMin : r.marginalRate) * 100)) }], xLabels: ages, area: false, height: 180 }) }),
     h('div', { class: 'tiny muted' }, t('Courbe du haut : revenu imposable ($). Courbe du bas : taux marginal (%).', 'Top: taxable income ($). Bottom: marginal rate (%).')));
 
   const oppWindows = windows.filter(w => w.n >= 2);

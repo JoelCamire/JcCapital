@@ -30,7 +30,7 @@ export function render({ store, navigate }) {
 
   const filterPills = h('div', { class: 'pill-tabs' },
     ...[['all', t('Toutes', 'All')], ...Object.keys(ACTIVITY_META).filter(k => k !== 'task').map(k => [k, ACTIVITY_META[k].label()])]
-      .map(([k, label]) => h('a', { href: 'javascript:void 0', class: 'on-target', onClick: e => { e.preventDefault(); filter = k; document.querySelectorAll('.pill-tabs a').forEach(x => x.classList.remove('on')); e.target.classList.add('on'); rebuild(); } }, label)));
+      .map(([k, label]) => h('a', { href: 'javascript:void 0', class: 'on-target', onClick: e => { e.preventDefault(); filter = k; e.target.closest('.pill-tabs')?.querySelectorAll('a').forEach(x => x.classList.remove('on')); e.target.classList.add('on'); rebuild(); } }, label)));
   filterPills.firstChild.classList.add('on');
 
   const header = h('div', { class: 'flex between center', style: { marginBottom: '16px', flexWrap: 'wrap', gap: '10px' } },

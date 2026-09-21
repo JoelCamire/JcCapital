@@ -21,13 +21,17 @@ export function render({ store, navigate }) {
   const clients = store.state.clients;
   const goto = (id) => { store.setActive(id); navigate('relation'); };
   const b = taskBuckets(clients);
-  const rem = reminders(clients, 60);
+  let rem = reminders(clients, 60);
   let showDone = false;
 
   const wrap = h('div', { class: 'grid cols-2', style: { alignItems: 'start' } });
 
   const rebuild = () => {
     const b2 = taskBuckets(store.state.clients);
+    // Reminders are derived from the same files: recompute them, otherwise the column
+    // keeps showing the state from before the task was completed or added.
+    rem = reminders(store.state.clients, 60);
+    drawReminders();
     const left = h('div', { class: 'grid', style: { gap: '18px' } });
     const sections = [
       ['overdue', t('En retard', 'Overdue'), 'neg'],
@@ -55,13 +59,20 @@ export function render({ store, navigate }) {
   };
 
   const REM_LABEL = { birthday: () => t('Anniversaire', 'Birthday'), review: () => t('Revue', 'Review'), renewal: () => t('Renouvellement', 'Renewal'), nextaction: () => t('Prochaine action', 'Next action') };
-  const remCard = card(t('Rappels (60 j)', 'Reminders (60d)'), { sub: t('Anniversaires, revues, renouvellements · revues et actions en retard (≤ 90 j) incluses', 'Birthdays, reviews, renewals · past-due reviews and actions (≤ 90d) included') },
-    rem.length ? h('div', {}, ...rem.map(r => h('div', {
-        class: 'flex between center', style: { padding: '9px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }, onClick: () => goto(r.clientId) },
-      h('div', {}, h('div', { style: { fontWeight: '600', fontSize: '13px' } }, `${(REM_LABEL[r.type] || REM_LABEL.nextaction)()} — ${r.who}`),
-        h('div', { class: 'tiny muted' }, `${r.clientName} · ${fmtDate(r.date)}`)),
-      h('span', { class: 'chip ' + (r.overdue ? 'neg' : r.days <= 3 ? 'warn' : '') }, relLabel(r.days)),
-    ))) : h('div', { class: 'empty tiny' }, t('Aucun rappel', 'No reminders')));
+  // The reminders panel is derived from the same files as the tasks, so it is redrawn
+  // by rebuild() — otherwise it keeps showing the state from before the last edit.
+  const remBody = h('div', {});
+  const drawReminders = () => {
+    remBody.replaceChildren(rem.length
+      ? h('div', {}, ...rem.map(r => h('div', {
+          class: 'flex between center', style: { padding: '9px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }, onClick: () => goto(r.clientId) },
+        h('div', {}, h('div', { style: { fontWeight: '600', fontSize: '13px' } }, `${(REM_LABEL[r.type] || REM_LABEL.nextaction)()} — ${r.who}`),
+          h('div', { class: 'tiny muted' }, `${r.clientName} · ${fmtDate(r.date)}`)),
+        h('span', { class: 'chip ' + (r.overdue ? 'neg' : r.days <= 3 ? 'warn' : '') }, relLabel(r.days)),
+      )))
+      : h('div', { class: 'empty tiny' }, t('Aucun rappel', 'No reminders')));
+  };
+  const remCard = card(t('Rappels (60 j)', 'Reminders (60d)'), { sub: t('Anniversaires, revues, renouvellements · revues et actions en retard (≤ 90 j) incluses', 'Birthdays, reviews, renewals · past-due reviews and actions (≤ 90d) included') }, remBody);
 
   rebuild();
   wrap.appendChild(h('div', { class: 'grid', style: { gap: '18px' } }, remCard));

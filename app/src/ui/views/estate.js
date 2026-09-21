@@ -32,7 +32,7 @@ export function render({ client, jur }) {
     kpi({ label: t('Impôts / droits au décès', 'Taxes / duties at death'), value: money(est.total, { currency: cur, compact: true }), accent: 'var(--neg)', sub: est.label }),
     kpi({ label: t('Legs net aux héritiers', 'Net legacy to heirs'), value: money(est.gross - est.total, { currency: cur, compact: true }), accent: 'var(--pos)' }),
     kpi({ label: t('Liquidité au décès', 'Liquidity at death'), value: liquidityOk ? t('Suffisante', 'Sufficient') : t('Insuffisante', 'Insufficient'), accent: liquidityOk ? 'var(--pos)' : 'var(--neg)',
-      sub: t(`${money(liquid, { currency: cur, compact: true })} liquides${lifeCoverage > 0 ? ` (dont ${money(lifeCoverage, { currency: cur, compact: true })} d’assurance vie)` : ''}`, `${money(liquid, { currency: cur, compact: true })} liquid${lifeCoverage > 0 ? ` (incl. ${money(lifeCoverage, { currency: cur, compact: true })} life insurance)` : ''}`) }),
+      sub: t(`${money(liquid, { currency: cur, compact: true })} liquides${lifeCoverage > 0 ? ` (dont ${money(lifeCoverage, { currency: cur, compact: true })} d’assurance vie EN VIGUEUR AUJOURD’HUI)` : ''}`, `${money(liquid, { currency: cur, compact: true })} liquid${lifeCoverage > 0 ? ` (incl. ${money(lifeCoverage, { currency: cur, compact: true })} life insurance IN FORCE TODAY)` : ''}`) }),
   );
 
   const breakdown = card(t('Estimation des impôts au décès', 'Estimated taxes at death'), { sub: t(`${jur.flag} ${jur.name} — ${jur.regionName} · règles ${jur.taxYear}`, `${jur.flag} ${jur.name} — ${jur.regionName} · ${jur.taxYear} rules`) },
@@ -64,18 +64,35 @@ export function render({ client, jur }) {
     trajectory, strategies);
 }
 
-/** Probate / estate administration fee from the jurisdiction table. */
+/** Probate / estate administration fee from the jurisdiction table (graduated tiers or a rate). */
 function probateFee(jur, value) {
   const P = jur.probate && jur.probate[jur.region];
   if (!P) return { fee: 0, known: false };
-  if (P.flatMax != null) return { fee: Math.min(P.flatMax, value * (P.rate || 0) || P.flatMax), known: true };
+  const v = Math.max(0, Number.isFinite(+value) ? +value : 0);
+  if (Array.isArray(P.tiers)) {
+    for (const tr of P.tiers) if (tr.upTo == null || v <= tr.upTo) return { fee: tr.fee, known: true };
+    return { fee: P.flatMax || 0, known: true };
+  }
   let fee = 0;
   const exempt = P.exempt || 0;
   if (P.lowRate != null && P.lowFrom != null) {
-    fee += Math.max(0, Math.min(value, exempt) - P.lowFrom) * P.lowRate;
-    fee += Math.max(0, value - exempt) * (P.rate || 0);
-  } else fee = Math.max(0, value - exempt) * (P.rate || 0);
+    fee += Math.max(0, Math.min(v, exempt) - P.lowFrom) * P.lowRate;
+    fee += Math.max(0, v - exempt) * (P.rate || 0);
+  } else fee = Math.max(0, v - exempt) * (P.rate || 0);
+  if (P.flatMax != null) fee = Math.min(fee, P.flatMax);
   return { fee, known: true };
+}
+
+/**
+ * Value that actually passes through the will. Registered accounts with a named
+ * beneficiary (and life insurance, which is not a balance-sheet asset here) go
+ * directly to the beneficiary and are NOT probated.
+ */
+function probatableEstate(client, row) {
+  const bal = row.balances;
+  const designated = (client.beneficiaries || []).length > 0;
+  const registered = (bal.deferred || 0) + (bal.taxfree || 0);
+  return { value: Math.max(0, row.assetsTotal - (designated ? registered : 0)), designated, registered };
 }
 
 function estimateEstateTax(jur, row, client, F) {
@@ -98,10 +115,14 @@ function estimateEstateTax(jur, row, client, F) {
     const capTax = gain > 0 ? Math.max(0, computeTax(jur, { ordinary: otherIncome + bal.deferred, capGains: gain, ...base }).total - computeTax(jur, { ordinary: otherIncome + bal.deferred, ...base }).total) : 0;
     lines.push({ label: t(`Gain en capital réputé (non enreg., gain latent ${money(gain, { currency: jur.currency, compact: true })})`, `Deemed capital gain (non-reg., latent gain ${money(gain, { currency: jur.currency, compact: true })})`), value: capTax });
     total += capTax;
-    const pr = probateFee(jur, row.assetsTotal);
+    const pe = probatableEstate(client, row);
+    const pr = probateFee(jur, pe.value);
     const P = jur.probate && jur.probate[jur.region];
-    if (pr.fee > 0) { lines.push({ label: t(`Frais d'homologation (${jur.regionName})`, `Probate fees (${jur.regionName})`), value: pr.fee }); total += pr.fee; }
-    else lines.push({ label: t(`Frais d'homologation (${jur.regionName})`, `Probate fees (${jur.regionName})`), value: 0 });
+    const prLabel = t(`Frais d'homologation (${jur.regionName}) — sur ${money(pe.value, { currency: jur.currency, compact: true })} passant par le testament`,
+      `Probate fees (${jur.regionName}) — on ${money(pe.value, { currency: jur.currency, compact: true })} passing through the will`);
+    lines.push({ label: prLabel, value: pr.fee });
+    if (pr.fee > 0) total += pr.fee;
+    if (pe.designated && pe.registered > 0) lines.push({ label: t(`Dont exclu : comptes enregistrés avec bénéficiaire désigné (${money(pe.registered, { currency: jur.currency, compact: true })})`, `Excluded: registered accounts with a named beneficiary (${money(pe.registered, { currency: jur.currency, compact: true })})`), value: 0 });
     return {
       gross, total, lines, label: t('Impôt sur le revenu + homologation', 'Income tax + probate'),
       note: t(`Au Canada, il n'existe pas d'impôt successoral distinct : le décès déclenche une disposition réputée. Le REER/FERR est pleinement imposable, les gains en capital à ${pct(jur.capGainsInclusion || 0.5, 0)}. La résidence principale est exonérée. Un roulement au conjoint reporte l'impôt.${P && P.note ? ' ' + P.note : ''}`,
