@@ -148,3 +148,29 @@ export function compareDecumulation(jur, params) {
   const best = results.reduce((b, r) => r.finalEstate > b.finalEstate ? r : b, results[0]);
   return { results, best: best.strategy };
 }
+
+/**
+ * Best bracket target for the bracket-filling strategies (meltdown / tfsaPreserve).
+ * Sweeps the target on a coarse grid, then refines around the winner. A target is
+ * better when it leaves fewer shortfall years, then when it leaves a larger
+ * after-tax estate. Returns { target, strategy, finalEstate, totalTax, shortfallYears, grid }.
+ */
+export function optimizeBracketTarget(jur, params, { min = 20000, max = 150000, step = 10000, strategies = ['meltdown', 'tfsaPreserve'] } = {}) {
+  const lo0 = Math.max(0, fin(min, 20000)), hi0 = Math.max(lo0, fin(max, 150000)), st = Math.max(100, fin(step, 5000));
+  const grid = []; let best = null;
+  const better = (a, b) => a.shortfallYears !== b.shortfallYears ? a.shortfallYears < b.shortfallYears : a.finalEstate > b.finalEstate + 0.5;
+  const tryTarget = (target) => {
+    for (const s of strategies) {
+      const r = simulateDecumulation(jur, { ...params, bracketTarget: target }, s);
+      const g = { target, strategy: s, finalEstate: r.finalEstate, totalTax: r.totalTax, shortfallYears: r.rows.filter(x => x.shortfall > 0.5).length };
+      grid.push(g); if (!best || better(g, best)) best = g;
+    }
+  };
+  for (let tgt = lo0; tgt <= hi0 + 1e-9; tgt += st) tryTarget(tgt);
+  // the default target (top of the first bracket) and the advisor's current one are always candidates
+  for (const tgt of [defaultBracketTarget(jur), fin(params.bracketTarget, NaN)]) if (Number.isFinite(tgt) && tgt >= lo0 && tgt <= hi0 && !grid.some(g => Math.abs(g.target - tgt) < 1e-6)) tryTarget(tgt);
+  // refine in fifths of the coarse step around the winner (14 + 10 targets × strategies ≈ 48 simulations)
+  const fine = st / 5, lo = Math.max(lo0, best.target - st), hi = Math.min(hi0, best.target + st);
+  for (let tgt = lo; tgt <= hi + 1e-9; tgt += fine) if (!grid.some(g => Math.abs(g.target - tgt) < 1e-6)) tryTarget(tgt);
+  return { ...best, grid };
+}

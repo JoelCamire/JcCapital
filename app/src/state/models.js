@@ -34,9 +34,25 @@ export function assumptionsOf(client) {
   const A = { ...defaultAssumptions(), ...raw };
   if (raw.rriffConvertAge != null && raw.rrifConvertAge == null) A.rrifConvertAge = raw.rriffConvertAge;
   delete A.rriffConvertAge;
-  for (const k of Object.keys(A)) if (typeof defaultAssumptions()[k] === 'number' && !Number.isFinite(+A[k])) A[k] = defaultAssumptions()[k];
+  // Every numeric assumption is COERCED to a number and kept inside a sane range: a
+  // corrupted file ([] / "abc" / −1 for inflation) would otherwise leak strings or
+  // infinities into every engine (string concatenation in Monte Carlo, 1/0 deflator).
+  const D = defaultAssumptions();
+  for (const k of Object.keys(A)) {
+    if (typeof D[k] !== 'number') continue;
+    const v = (typeof A[k] === 'number' || typeof A[k] === 'string') ? +A[k] : NaN;
+    const [lo, hi] = ASSUMPTION_RANGE[k] || [-1e9, 1e9];
+    A[k] = Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : D[k];
+  }
   return A;
 }
+/** Plausible bounds per numeric assumption (rates per year, ages in years). */
+export const ASSUMPTION_RANGE = {
+  preReturn: [-0.5, 0.5], postReturn: [-0.5, 0.5], inflation: [0, 0.3], returnStdev: [0, 1], retiredVolFactor: [0, 3],
+  salaryGrowth: [-0.5, 0.5], realEstateGrowth: [-0.5, 0.5], rrifConvertAge: [50, 100], spendingLevel: [0, 10], distributionYield: [0, 1],
+  savingsTarget: [0, 1], emergencyMonths: [0, 60], educationInflation: [0, 0.3], lifeReplaceRate: [0, 3], lifeDiscount: [0, 0.3],
+  finalExpenses: [0, 1e7], diReplaceRate: [0, 3], mcTrials: [50, 10000],
+};
 
 export function newMember(over = {}) {
   return {

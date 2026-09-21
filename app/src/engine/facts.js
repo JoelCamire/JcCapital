@@ -13,7 +13,7 @@ import { computeTax, marginalRateFor } from './tax.js';
 import { treatmentOf, incomeBucket, runProjection } from './projection.js';
 import { netWorthBreakdown } from './analysis.js';
 import { corporateTaxCA, businessValuation } from './corporate.js';
-import { amortize, compoundingFor, effectiveMonthlyRate } from './amortization.js';
+import { amortize, compoundingFor, effectiveMonthlyRate, saneRate } from './amortization.js';
 import { activePolicies, coverageOf, premiumsOf, investmentProducts, aumOf } from './policies.js';
 import { assumptionsOf } from '../state/models.js';
 
@@ -159,7 +159,7 @@ function build(client, jur) {
   const totalDebt = liabilities.reduce((s, l) => s + fin(l.balance), 0);
   const monthlyDebtService = liabilities.reduce((s, l) => s + fin(l.payment) + fin(l.extraPayment), 0);
   const annualDebtService = monthlyDebtService * 12;
-  const weightedRate = totalDebt > 0 ? liabilities.reduce((s, l) => s + fin(l.balance) * fin(l.rate), 0) / totalDebt : 0;
+  const weightedRate = totalDebt > 0 ? liabilities.reduce((s, l) => s + fin(l.balance) * saneRate(l.rate), 0) / totalDebt : 0;
   const mortgage = liabilities.filter(l => l.type === 'mortgage').sort((a, b) => fin(b.balance) - fin(a.balance))[0] || null;
 
   const grossIncome = sum('grossIncome');

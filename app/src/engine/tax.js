@@ -368,3 +368,25 @@ export function rrifMinFactor(jur, age, accountType = 'rrsp') {
   if (alreadyConverted && a < 71 && a < 90) return 1 / (90 - a);
   return 0;
 }
+
+/**
+ * Minimise f(x) over 0 ≤ x ≤ maxX with a coarse grid followed by two local
+ * refinements around the best point (precision ≈ maxX / (coarse × refine²)).
+ * Used by every "how much should move to the spouse" search so the projection,
+ * the optimizer screen and the tests agree on one answer.
+ * Returns { x, value } (x = 0 when nothing beats f(0) by more than `tol`).
+ */
+export function minimizeOnGrid(f, maxX, { coarse = 8, refine = 4, tol = 0.5 } = {}) {
+  let best = 0, bestV = f(0);
+  if (!(maxX > 0)) return { x: 0, value: bestV };
+  const evalAt = (x) => { const v = f(x); if (v < bestV - tol) { best = x; bestV = v; } };
+  let step = maxX / coarse;
+  for (let k = 1; k <= coarse; k++) evalAt(step * k);
+  for (let pass = 0; pass < 2; pass++) {
+    const lo = Math.max(0, best - step), hi = Math.min(maxX, best + step);
+    step = (hi - lo) / (2 * refine);
+    if (!(step > 0)) break;
+    for (let k = 0; k <= 2 * refine; k++) { const x = lo + step * k; if (x !== best) evalAt(x); }
+  }
+  return { x: best, value: bestV };
+}

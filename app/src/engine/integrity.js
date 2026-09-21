@@ -60,6 +60,8 @@ export function integrityChecks(client, jur) {
   if (F.household.surplus < -1) add('warn', 'deficit', t(`Budget déficitaire de ${M(-F.household.surplus)}/an`, `Budget deficit of ${M(-F.household.surplus)}/yr`), t('Dépenses + dettes + cotisations dépassent le revenu net : la projection comble l’écart en puisant dans les placements.', 'Expenses + debt + contributions exceed net income: the projection funds the gap from investments.'), 'budget');
   if (!(client.expenses || []).length) add('info', 'noexp', t('Aucune dépense saisie', 'No expenses entered'), t('Sans dépenses, la retraite paraît financée quoi qu’il arrive.', 'Without expenses, retirement always looks funded.'), 'client');
   for (const l of F.liabilities) if (l.unpayable) add('error', 'debt-' + l.id, t(`« ${l.label} » : le paiement ne couvre pas l’intérêt`, `“${l.label}”: payment does not cover interest`), t('Le solde augmente chaque mois. Corrigez le paiement ou le taux.', 'The balance grows every month. Fix the payment or the rate.'), 'debt');
+  // A rate above 50 %/yr is almost always "5" typed for 5 % (the engines cap it at 100 %/yr).
+  for (const l of (client.liabilities || [])) if (Number.isFinite(+l.rate) && +l.rate > 0.5) add('error', 'rate-' + l.id, t(`« ${l.label} » : taux de ${Math.round(+l.rate * 100)} %`, `“${l.label}”: rate of ${Math.round(+l.rate * 100)}%`), t('Le taux est saisi en décimal (0,05 = 5 %). Corrigez-le : le moteur le plafonne à 100 %/an.', 'The rate is entered as a decimal (0.05 = 5%). Fix it: the engine caps it at 100%/yr.'), 'debt');
 
   // ---- assumptions sanity ----
   const A = F.assumptions;

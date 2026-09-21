@@ -9,9 +9,17 @@
 // effectiveMonthlyRate() converts a quoted annual rate accordingly.
 // ============================================================
 
+/**
+ * Highest annual rate the engines accept (100 %/yr). A rate typed as "1e3" or "5"
+ * (meaning 5 %) would otherwise compound a balance to ±Infinity within the horizon;
+ * the integrity check flags anything above 50 % so the advisor sees the typo.
+ */
+export const MAX_ANNUAL_RATE = 1;
+export const saneRate = (annualRate) => Number.isFinite(+annualRate) ? Math.min(MAX_ANNUAL_RATE, Math.max(0, +annualRate)) : 0;
+
 /** Effective monthly rate for a quoted annual rate. */
 export function effectiveMonthlyRate(annualRate, compounding = 'monthly') {
-  const r = Number.isFinite(+annualRate) ? Math.max(0, +annualRate) : 0;
+  const r = saneRate(annualRate);
   if (r === 0) return 0;
   if (compounding === 'semi-annual') return Math.pow(1 + r / 2, 1 / 6) - 1;
   if (compounding === 'annual') return Math.pow(1 + r, 1 / 12) - 1;

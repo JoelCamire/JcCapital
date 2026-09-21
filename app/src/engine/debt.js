@@ -2,7 +2,7 @@
 // Debt & mortgage engine — thin layer over the shared amortization
 // module so the Debt view, the projection and the timeline agree.
 // ============================================================
-import { amortize as amortizeCore, effectiveMonthlyRate, compoundingFor } from './amortization.js';
+import { amortize as amortizeCore, effectiveMonthlyRate, compoundingFor, saneRate } from './amortization.js';
 
 const fin = (v, d = 0) => (Number.isFinite(+v) ? +v : d);
 
@@ -25,7 +25,7 @@ export function liabilityCompounding(l, country = 'CA') { return l?.compounding 
 export function payoffStrategy(liabilities, extraMonthly, method = 'avalanche', country = 'CA') {
   const debts = (liabilities || [])
     .filter(l => fin(l.balance) > 0 && fin(l.payment) + fin(l.extraPayment) > 0)
-    .map(l => ({ id: l.id, label: l.label, balance: fin(l.balance), rate: fin(l.rate), payment: fin(l.payment) + fin(l.extraPayment), i: effectiveMonthlyRate(fin(l.rate), liabilityCompounding(l, country)) }));
+    .map(l => ({ id: l.id, label: l.label, balance: fin(l.balance), rate: saneRate(l.rate), payment: fin(l.payment) + fin(l.extraPayment), i: effectiveMonthlyRate(l.rate, liabilityCompounding(l, country)) }));
   if (!debts.length) return { months: 0, totalInterest: 0, debtFreeMonths: 0, order: [], unpayable: false, payoffByDebt: {} };
 
   if (method === 'avalanche') debts.sort((a, b) => b.rate - a.rate); else debts.sort((a, b) => a.balance - b.balance);

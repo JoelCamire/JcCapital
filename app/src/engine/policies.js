@@ -18,7 +18,7 @@ export function activePolicies(client) { return policiesOf(client).filter(isActi
 export function coverageOf(client, memberId, type = 'life') {
   return activePolicies(client)
     .filter(p => KIND_TO_INSURANCE[p.kind] === type && (memberId == null || p.insuredId === memberId || (p.insuredId == null && client?.members?.[0]?.id === memberId)))
-    .reduce((s, p) => s + fin(p.faceAmount), 0);
+    .reduce((s, p) => s + Math.max(0, fin(p.faceAmount)), 0);   // a negative face amount is a typo, never negative cover
 }
 
 /** Annual premium total (active policies), optionally per member. */

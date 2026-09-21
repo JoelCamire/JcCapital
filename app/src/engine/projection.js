@@ -9,7 +9,7 @@
 // Every parameter comes from the client file or the jurisdiction.
 // ============================================================
 import { getJurisdiction } from '../jurisdictions/index.js';
-import { computeTax, grossUpForNet, rrifMinFactor, incrementalTax } from './tax.js';
+import { computeTax, grossUpForNet, rrifMinFactor, incrementalTax, minimizeOnGrid } from './tax.js';
 import { CURRENT_YEAR, assumptionsOf } from '../state/models.js';
 import { stepLoan, compoundingFor } from './amortization.js';
 
@@ -61,8 +61,11 @@ export function runProjection(client, opts = {}) {
   const spendingLevel = clamp(fin(A.spendingLevel, 1), 0, 5);
   const distYield = clamp(fin(A.distributionYield, 0.45), 0, 1);
 
+  // Growth rates are bounded to [−50 %, +100 %]/yr: a "growth" typed as 5 (for 5 %) or a
+  // corrupted 1e12 would otherwise push a balance to ±Infinity inside the horizon.
+  const saneGrowth = (v, d) => Math.max(-0.5, Math.min(1, fin(v, d)));
   const assets = (client.assets || []).map(a => ({
-    ...a, bal: fin(a.value), basis: fin(a.costBasis ?? a.value), growth: fin(a.growth, 0.05),
+    ...a, bal: fin(a.value), basis: fin(a.costBasis ?? a.value), growth: saneGrowth(a.growth, 0.05),
     annualContribution: fin(a.annualContribution), employerMatch: fin(a.employerMatch),
     treat: treatmentOf(a.type), owner: (a.ownerId && byId[a.ownerId]) ? a.ownerId : primary.id,
   }));
@@ -91,7 +94,7 @@ export function runProjection(client, opts = {}) {
       const endOk = i.endAge == null || i.endAge === '' || age <= fin(i.endAge);
       const empOk = !isEmp || age < m.retirementAge;
       if (!(startOk && endOk && empOk)) continue;
-      const amt = fin(i.amount) * Math.pow(1 + fin(i.growth ?? A.inflation, A.inflation), y);
+      const amt = fin(i.amount) * Math.pow(1 + saneGrowth(i.growth ?? A.inflation, A.inflation), y);
       if (i.taxable === false) inc[mId].nontaxable += amt; else inc[mId][bucket] += amt;
     }
 
@@ -103,7 +106,7 @@ export function runProjection(client, opts = {}) {
       const ownerAge = ages[a.owner] ?? primaryAge;
       const owner = byId[a.owner] || primary;
       const ownerRetired = ownerAge >= owner.retirementAge;
-      const g = a.treat === 'realestate' ? fin(a.growth, A.realEstateGrowth) : (ownerRetired ? Math.min(a.growth, A.postReturn) : a.growth);
+      const g = a.treat === 'realestate' ? saneGrowth(a.growth, A.realEstateGrowth) : (ownerRetired ? Math.min(a.growth, A.postReturn) : a.growth);
       const growthAmt = a.bal * g;
       a.bal += growthAmt;
       if (a.treat !== 'realestate') investableGrowth += growthAmt;
@@ -142,7 +145,7 @@ export function runProjection(client, opts = {}) {
     // ---------- Expenses ----------
     let expenses = 0;
     for (const e of (client.expenses || [])) {
-      const base = fin(e.amount) * Math.pow(1 + fin(e.growth ?? A.inflation, A.inflation), y) * spendingLevel;
+      const base = fin(e.amount) * Math.pow(1 + saneGrowth(e.growth ?? A.inflation, A.inflation), y) * spendingLevel;
       expenses += primaryRetired ? base * fin(e.retirementFactor, 1) : base;
     }
 
@@ -171,8 +174,9 @@ export function runProjection(client, opts = {}) {
       const maxT = Math.min(0.5 * H.eligiblePension, Math.max(0, (H.ordinary - L.ordinary) / 2));
       if (maxT <= 100) return { amount: 0, from: null, to: null };
       const taxWith = (tr) => taxOf(hi, -tr).total + taxOf(lo, tr).total;
-      let best = 0, bestTax = taxWith(0);
-      for (let k = 1; k <= 8; k++) { const tr = maxT * k / 8; const tx = taxWith(tr); if (tx < bestTax - 0.5) { best = tr; bestTax = tx; } }
+      // coarse grid + two local refinements (precision ≈ maxT/128): the same search
+      // the Optimizer screen uses, so both show the same transfer.
+      const best = minimizeOnGrid(taxWith, maxT).x;
       return { amount: best, from: hi.id, to: lo.id };
     };
     const tallyTaxes = (split) => {

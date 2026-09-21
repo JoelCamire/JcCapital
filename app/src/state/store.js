@@ -133,6 +133,12 @@ export function normalize(c) {
   c.tasks = c.tasks || [];
   c.products = c.products || [];
   c.compliance = c.compliance || {};
+  // Rows imported from older files or spreadsheets may lack an id or a label; every
+  // screen concatenates the label into text, so back-fill both rather than print "undefined".
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  const backfill = (rows, labelKey, fallback) => { for (const r of rows) { if (!r || typeof r !== 'object') continue; if (!r.id) r.id = uid(); if (r[labelKey] == null || r[labelKey] === '') r[labelKey] = fallback; } };
+  backfill(c.incomes, 'label', 'Revenu'); backfill(c.expenses, 'label', 'Dépense'); backfill(c.assets, 'label', 'Compte');
+  backfill(c.liabilities, 'label', 'Dette'); backfill(c.goals, 'name', 'Objectif'); backfill(c.members, 'name', 'Membre'); backfill(c.dependents, 'name', 'Enfant');
   for (const l of c.liabilities) { if (l.extraPayment == null) l.extraPayment = 0; if (l.compounding === undefined) l.compounding = null; }
   c.updatedAt = c.updatedAt || c.createdAt || Date.now();
   c._rev = c._rev || 0;

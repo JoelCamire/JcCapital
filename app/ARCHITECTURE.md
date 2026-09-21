@@ -72,6 +72,7 @@ le **préremplit** et, si l'utilisateur le modifie, le **persiste** avec
 | `harness.mjs` | 68 scénarios × 64 vues rendues en FR et EN sans erreur. |
 | `interaction.mjs` | démarrage, navigation, fuzz des contrôles, opérations du store, dossier vide. |
 | `synctest.mjs` | synchronisation cloud à deux appareils. |
+| `mega.mjs` | **Suite générative** : 10 000 dossiers inventés (19 archétypes — couple incorporé avec holdco, retraités en décaissement, fortune familiale, famille recomposée, autonome, FIRE, parent seul, snowbirds, ferme, jeune locataire, veuve, divorcé·e, régime PD, investisseur immobilier, enfant handicapé/REEI, dossier hérité, extrêmes, **chaos** (champs corrompus), minimal) × QC/ON/BC/AB/US/UK, ~170 vérifications par dossier (≈ 1,7 M au total) : identités de la projection année par année, impôt du ménage = Σ membres, Monte Carlo reproductible et bandes ordonnées, fractionnement jamais pénalisant, sensibilités monotones (plus de dépenses ⇒ moins de valeur nette), oracles « meilleur résultat » (cible de tranche optimale ≥ cible par défaut, recommandation RRQ = argmax), liens corporatifs, CRM qui se réconcilie, aller-retour export/import, 64 vues rendues sur les dossiers les plus complexes (FR/EN) sans NaN. Mesure p50/p95/max de chaque moteur et de chaque vue ; **budgets de vitesse** (`--budget`). `./test/run.sh mega` (4 shards parallèles) ou `node test/mega.mjs --n 2000 --views 20`; `--dump i` imprime un dossier. |
 
 ## 5. Mise à jour annuelle
 

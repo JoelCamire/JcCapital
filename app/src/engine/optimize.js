@@ -4,7 +4,7 @@
 // facts.js (current) or retirementFacts (projected) so its answers
 // agree with the rest of the app.
 // ============================================================
-import { computeTax } from './tax.js';
+import { computeTax, minimizeOnGrid } from './tax.js';
 import { treatmentOf, PENSION_TYPES } from './projection.js';
 import { clientFacts, retirementFacts } from './facts.js';
 import { t } from '../i18n.js';
@@ -48,13 +48,9 @@ export function incomeSplitting(client, jur, { atRetirement = false } = {}) {
   const hi = a.ordinary >= b.ordinary ? a : b, lo = hi === a ? b : a;
   const current = splitTax(jur, hi, lo, 0, hi.age, lo.age);
   const maxTransfer = Math.min(hi.pension * 0.5, Math.max(0, (hi.ordinary - lo.ordinary) / 2));
-  let best = { transfer: 0, tax: current };
-  const steps = 40;
-  for (let k = 1; k <= steps; k++) {
-    const tr = maxTransfer * k / steps;
-    const tx = splitTax(jur, hi, lo, tr, hi.age, lo.age);
-    if (tx < best.tax - 0.5) best = { transfer: tr, tax: tx };
-  }
+  // same search as the projection's yearly split (coarse grid + local refinement)
+  const found = minimizeOnGrid((tr) => splitTax(jur, hi, lo, tr, hi.age, lo.age), maxTransfer, { coarse: 16 });
+  const best = { transfer: found.x, tax: found.value };
   return {
     applicable: true, current, optimized: best.tax, savings: Math.max(0, current - best.tax), transfer: best.transfer,
     eligiblePension: hi.pension, maxTransfer,

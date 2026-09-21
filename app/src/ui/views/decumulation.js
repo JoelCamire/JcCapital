@@ -1,7 +1,7 @@
 import { h, money, pct, num, icon, t } from '../dom.js';
 import { kpi, card, slider, statList, legend, badgeScore } from '../widgets.js';
 import { lineChart, barChart, PALETTE } from '../charts.js';
-import { compareDecumulation, strategyLabel, strategyDesc, defaultBracketTarget } from '../../engine/decumulation.js';
+import { compareDecumulation, optimizeBracketTarget, strategyLabel, strategyDesc, defaultBracketTarget } from '../../engine/decumulation.js';
 import { clientFacts, retirementFacts, whatIf, saveWhatIf } from '../../engine/facts.js';
 
 export function render({ store, client, jur }) {
@@ -38,6 +38,7 @@ export function render({ store, client, jur }) {
   const save = (patch) => { Object.assign(p, patch); saveWhatIf(store, 'decumulation', patch); };
 
   const out = h('div', {});
+  let optCache = { key: null, opt: null };
   function draw() {
     const cmp = compareDecumulation(jur, p);
     const byKey = Object.fromEntries(cmp.results.map(r => [r.strategy, r]));
@@ -45,6 +46,13 @@ export function render({ store, client, jur }) {
     const baseline = byKey.nonregFirst;
     const taxSaved = baseline.totalTax - best.totalTax;
     const estateGain = best.finalEstate - baseline.finalEstate;
+    // Best bracket target found by sweeping the target (the slider is the advisor's choice).
+    // The sweep does not depend on the slider itself, so it is memoised on the other inputs.
+    const optKey = JSON.stringify({ ...p, bracketTarget: 0 });
+    if (optCache.key !== optKey) optCache = { key: optKey, opt: optimizeBracketTarget(jur, p) };
+    const opt = optCache.opt;
+    const optGain = opt.finalEstate - best.finalEstate;
+    const optIsCurrent = Math.abs(opt.target - p.bracketTarget) < 1;
     const labels = cmp.results.map(r => strategyLabel(r.strategy));
     const short = (l) => l.length > 14 ? l.slice(0, 12) + '…' : l;
 
@@ -70,11 +78,18 @@ export function render({ store, client, jur }) {
         )))));
 
     out.replaceChildren(
-      h('div', { class: 'grid cols-3', style: { marginBottom: '12px' } },
+      h('div', { class: 'grid cols-4', style: { marginBottom: '12px' } },
         kpi({ label: t('Stratégie optimale', 'Optimal strategy'), value: strategyLabel(cmp.best), accent: 'var(--pos)' }),
         kpi({ label: t('Impôt à vie économisé', 'Lifetime tax saved'), value: money(taxSaved, { currency: cur, compact: true }), accent: taxSaved >= 0 ? 'var(--pos)' : 'var(--neg)', sub: t('vs non enregistré en premier', 'vs non-registered first') }),
         kpi({ label: t('Succession nette de plus', 'Extra net estate'), value: money(estateGain, { currency: cur, compact: true }), accent: estateGain >= 0 ? 'var(--pos)' : 'var(--neg)' }),
+        kpi({ label: t('Cible de tranche optimale', 'Best bracket target'), value: money(opt.target, { currency: cur, compact: true }), accent: optIsCurrent || optGain <= 0.5 ? undefined : 'var(--warn)',
+          sub: optIsCurrent || optGain <= 0.5
+            ? t('la cible actuelle est déjà la meilleure', 'the current target is already the best')
+            : t(`${strategyLabel(opt.strategy)} : +${money(optGain, { currency: cur, compact: true })} de succession nette`, `${strategyLabel(opt.strategy)}: +${money(optGain, { currency: cur, compact: true })} net estate`) }),
       ),
+      optIsCurrent || optGain <= 0.5 ? null : h('div', { class: 'flex', style: { marginBottom: '12px' } },
+        h('button', { class: 'btn sm primary', html: icon('check', 13) + ' ' + t(`Appliquer la cible optimale (${money(opt.target, { currency: cur, compact: true })})`, `Apply the best target (${money(opt.target, { currency: cur, compact: true })})`),
+          onClick: () => { save({ bracketTarget: opt.target }); draw(); ctrlSliders.replaceChildren(...buildSliders()); } })),
       h('div', { class: 'grid cols-2' },
         card(t('Impôt à vie + récupération PSV', 'Lifetime tax + OAS clawback'), {},
           h('div', { html: barChart({ xLabels: labels.map(short),

@@ -196,7 +196,7 @@ export function pipelineSummary(clients, now = Date.now()) {
     for (const o of (c.opportunities || [])) {
       const s = normalizeStage(o.stage);
       const st = stages[s];
-      const val = fin(o.value, 0);
+      const val = Math.max(0, fin(o.value, 0));        // a negative "value" is a typo, not a liability
       const prob = Math.max(0, Math.min(100, fin(o.probability, 0))) / 100;
       const isPrem = o.valueKind === 'premium';
       st.count++;
@@ -293,7 +293,7 @@ export function revenueSummary(clients) {
     for (const o of (c.opportunities || [])) {
       if (o.valueKind === 'premium' && OPEN_STAGES.includes(normalizeStage(o.stage))) {
         const prob = Math.max(0, Math.min(100, fin(o.probability, 0))) / 100;
-        firstYearPotential += fin(o.value, 0) * prob;
+        firstYearPotential += Math.max(0, fin(o.value, 0)) * prob;
       }
     }
   }

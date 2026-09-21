@@ -36,6 +36,8 @@ const RB = await import('../src/engine/rentbuy.js');
 const DEBT = await import('../src/engine/debt.js');
 const SB = await import('../src/engine/selfbiz.js');
 const OPT = await import('../src/engine/optimize.js');
+const IG = await import('../src/engine/integrity.js');
+const CRMX = await import('../src/engine/crm.js');
 
 let pass = 0, fail = 0; const fails = [];
 function ok(name, cond, detail = '') { if (cond) pass++; else { fail++; fails.push(name + (detail ? ` — ${detail}` : '')); } }
@@ -530,6 +532,68 @@ const QC = getJurisdiction('CA', 'QC'), ON = getJurisdiction('CA', 'ON'), BC = g
   normalize(sw);
   const swRow = P.runProjection(sw).rows[0];
   ok('a surplus fills the tax-free account first', swRow.balances.taxfree > swRow.balances.taxable);
+
+  // — third pass (10 000-file generative suite) —
+  // Rows imported without a label/id (spreadsheets, old exports) used to print "undefined" in every screen.
+  const dirty = normalize({ name: 'x', jurisdiction: { country: 'CA', region: 'QC' }, members: [{ currentAge: 40, retirementAge: 65, lifeExpectancy: 90 }],
+    liabilities: [{ type: 'mortgage', balance: 100000, rate: 0.05, payment: 800 }], assets: [{ type: 'tfsa', value: 5000 }], incomes: [{ type: 'employment', amount: 50000 }], expenses: [{ amount: 1000 }], goals: [{ type: 'purchase', amount: 1 }] });
+  ok('normalize back-fills ids and labels on rows that lack them', dirty.liabilities[0].label === 'Dette' && !!dirty.liabilities[0].id && dirty.assets[0].label === 'Compte' && dirty.incomes[0].label === 'Revenu' && dirty.expenses[0].label === 'Dépense' && dirty.goals[0].name === 'Objectif' && dirty.members[0].name === 'Membre');
+  const dirtySnap = JSON.stringify(dirty); normalize(dirty);
+  ok('the back-fill is stable across a second normalize (export/import round trip)', JSON.stringify(dirty) === dirtySnap);
+
+  // The shared grid minimiser finds the optimum of bracket-shaped (piecewise-linear) functions
+  // to within its stated precision — brute-force oracle over 4 000 points.
+  {
+    let worst = 0;
+    const seeded = (() => { let a = 12345; return () => { a = (a * 1664525 + 1013904223) >>> 0; return a / 4294967296; }; })();
+    for (let trial = 0; trial < 60; trial++) {
+      const maxX = 1000 + seeded() * 60000;
+      const kinks = Array.from({ length: 5 }, () => seeded() * maxX).sort((a, b) => a - b);
+      const slopes = Array.from({ length: 6 }, () => seeded() * 0.6 - 0.3);
+      // f(x) = tax(hi − x) + tax(lo + x)-like: piecewise linear with random slopes per segment
+      const f = (x) => { let v = 0, prev = 0; for (let k = 0; k < kinks.length; k++) { if (x <= kinks[k]) return v + slopes[k] * (x - prev); v += slopes[k] * (kinks[k] - prev); prev = kinks[k]; } return v + slopes[5] * (x - prev); };
+      let brute = f(0); for (let k = 1; k <= 4000; k++) brute = Math.min(brute, f(maxX * k / 4000));
+      const found = T.minimizeOnGrid(f, maxX);
+      worst = Math.max(worst, found.value - brute - 0.6 * (maxX / 128));   // precision maxX/128 × max slope
+    }
+    ok('minimizeOnGrid is within its stated precision of the brute-force optimum on 60 random bracket-shaped functions', worst <= 0.5, `worst excess ${worst.toFixed(2)}`);
+    ok('minimizeOnGrid returns x = 0 for an increasing function and never leaves [0, max]', T.minimizeOnGrid(x => 2 * x, 100).x === 0 && T.minimizeOnGrid(x => -x, 100).x === 100);
+  }
+
+  // Decumulation: the bracket-target search never does worse than the default target.
+  {
+    const jq = getJurisdiction('CA', 'QC');
+    const params = { startAge: 62, endAge: 92, deferred: 900000, tfsa: 120000, nonreg: 300000, nonregBasis: 150000, otherIncomeNow: 20000, pensionIncomeNow: 20000, cppAnnual: 12000, cppStartAge: 65, oasAnnual: 8900, oasStartAge: 65, spending: 70000, inflation: 0.021, returnRate: 0.045 };
+    const opt = DEC.optimizeBracketTarget(jq, params);
+    const dflt = DEC.simulateDecumulation(jq, params, 'meltdown');
+    ok('optimizeBracketTarget ≥ the default meltdown target', opt.finalEstate >= dflt.finalEstate - 0.5 && opt.target >= 20000 && opt.target <= 150000);
+    ok('optimizeBracketTarget reports the best point of its own grid', opt.grid.every(g => g.shortfallYears > opt.shortfallYears || (g.shortfallYears === opt.shortfallYears && g.finalEstate <= opt.finalEstate + 0.5)));
+    const exact = DEC.simulateDecumulation(jq, { ...params, bracketTarget: opt.target }, opt.strategy);
+    near('re-simulating at the reported target reproduces the reported estate', exact.finalEstate, opt.finalEstate, 0.01);
+  }
+
+  // Defects found by the chaos archetype (corrupted fields) — each one used to leak NaN/±Infinity into a screen.
+  {
+    const A = M.assumptionsOf({ assumptions: { preReturn: [], inflation: -1, returnStdev: 'abc', mcTrials: '1e12', spendingLevel: null, postReturn: '0.04' } });
+    ok('assumptionsOf coerces and clamps every numeric assumption', A.preReturn === M.defaultAssumptions().preReturn && A.inflation === 0 && A.returnStdev === M.defaultAssumptions().returnStdev && A.mcTrials === 10000 && A.spendingLevel === 1 && A.postReturn === 0.04);
+    const cz = bare(); const czm = cz.members[0]; czm.currentAge = 40; czm.retirementAge = 65; czm.lifeExpectancy = 90;
+    cz.assumptions = { inflation: -1, preReturn: [] };
+    cz.liabilities = [M.newLiability({ type: 'mortgage', balance: 300000, rate: '1e3', payment: 1500 })];
+    cz.assets = [M.newAsset({ ownerId: czm.id, type: 'rrsp', value: 50000, growth: 1e12 })];
+    cz.incomes = [M.newIncome({ memberId: czm.id, type: 'employment', amount: 80000, growth: 5 })];
+    normalize(cz);
+    const czp = P.runProjection(cz);
+    ok('a corrupted rate/growth/inflation still yields a finite projection', czp.rows.every(r => Number.isFinite(r.netWorth) && Number.isFinite(r.realNetWorth) && Number.isFinite(r.deflator)));
+    const czmc = MC.runMonteCarlo(cz, { trials: 100 });
+    ok('… and a finite, ordered Monte Carlo', Number.isFinite(czmc.successRate) && czmc.bands.every(b => b.p10 <= b.p50 && b.p50 <= b.p90));
+    ok('integrity flags a loan rate typed as a percentage (1e3 → 100 000 %)', IG.integrityChecks(cz, QC).findings.some(f => f.key.startsWith('rate-')));
+    ok('effectiveMonthlyRate caps the annual rate at 100 %', AM.effectiveMonthlyRate(1e3) === AM.effectiveMonthlyRate(1));
+    const neg = bare(); neg.products = [M.newProduct({ kind: 'life', faceAmount: -1, insuredId: neg.members[0].id, status: 'inforce' })]; normalize(neg);
+    ok('a negative face amount never yields negative coverage', (await import('../src/engine/policies.js')).coverageOf(neg, neg.members[0].id, 'life') === 0);
+    const opp = bare(); opp.opportunities = [M.newOpportunity({ type: 'life', stage: 'meeting', value: -1, valueKind: 'premium', probability: 47 })]; normalize(opp);
+    const ps = CRMX.pipelineSummary([opp]);
+    ok('a negative opportunity value is ignored by the pipeline (weighted ≤ open)', ps.openPremium === 0 && ps.weightedPremium <= ps.openPremium);
+  }
 
   // — charts / UI contracts —
   const { cssPct } = await import('../src/ui/dom.js');
