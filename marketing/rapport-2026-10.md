@@ -88,3 +88,9 @@ Google Doc **« Trousse publications perso — Octobre 2026 »** créé avec, po
 1. Fusionne la PR #22 (claude/contenu-2026-10).
 2. Dans Metricool > Planificateur, approuve ou modifie chaque brouillon (7 publications, 7-29 octobre).
 3. Copie-colle la trousse perso sur ton LinkedIn et ton Facebook personnels.
+
+## RÉVISION DU 1er OCTOBRE 2026 (après relecture)
+
+- **Article sur les dons de bienfaisance retiré** (thème exclu), avec son entrée dans `blog/index.html` et `sitemap.xml`, et les visuels 05, 06 et 07 (dons et taux/financement, thèmes exclus). Les brouillons Metricool du 22, 28 et 29 octobre pointent vers ces visuels : **à supprimer dans Metricool** (non modifiés automatiquement). Le script vidéo 2 (dons) est caduc.
+- **Exonération des gains en capital** : plafond corrigé à **1 275 000 $ en 2026** (indexation), ajout de l'impôt minimum de remplacement, des conditions des biens agricoles, de tableaux et d'exemples chiffrés. Le visuel 01 et le script 1 affichent encore 1 250 000 $ : à refaire ou à ajuster avant publication.
+- **Fractionnement du revenu de retraite** : tableau fédéral vs Québec (65 ans au Québec), division de la rente du RRQ, règles sur le revenu fractionné corrigées, crédit pour revenu de pension et récupération de la PSV, exemples chiffrés.
