@@ -1,0 +1,34 @@
+{
+  "id": "2026-11-04-invalidite-autonome",
+  "cover": "img/social/2026-10-v2/2026-11-09-invalidite-autonome.png",
+  "slides": [
+    {
+      "eyebrow": "Exemple",
+      "h2": "Six mois sans travailler.",
+      "big": "45 000 $",
+      "lead": "C'est le revenu qui ne rentre pas, pour un travailleur autonome qui gagne 90 000 $ par année."
+    },
+    {
+      "eyebrow": "Ce qui continue",
+      "h2": "Les factures, <em>elles, ne prennent pas congé.</em>",
+      "items": ["L'hypothèque ou le loyer", "Le camion et l'équipement", "Les fournisseurs", "L'épicerie et la famille"]
+    },
+    {
+      "eyebrow": "Ce qui manque",
+      "h2": "À votre compte, <em>vous êtes votre propre filet.</em>",
+      "items": ["Pas d'assurance collective", "Pas d'employeur qui continue de payer", "Pas de banque de congés de maladie"]
+    },
+    {
+      "eyebrow": "Trois points à vérifier",
+      "h2": "Une bonne assurance invalidité, <em>c'est d'abord ces détails.</em>",
+      "items": ["Le délai de carence<small>Combien de temps avant le premier versement ?</small>", "La durée des prestations<small>Deux ans, cinq ans, jusqu'à 65 ans ?</small>", "La définition d'invalidité<small>Votre métier à vous, ou n'importe quel emploi ?</small>"]
+    },
+    {
+      "eyebrow": "Votre revenu est-il protégé ?",
+      "h2": "Faites le diagnostic <em>en 5 minutes.</em>",
+      "lead": "Un questionnaire simple pour voir ce qui est couvert, et ce qui ne l'est pas.",
+      "cta": "<strong>jccapital.ca</strong> › Assurance<br>ou écrivez <strong>PLAN</strong> en message.",
+      "note": "Exemple à titre illustratif. Joël Camiré, conseiller en sécurité financière, rattaché à SFL Gestion de patrimoine."
+    }
+  ]
+}
