@@ -204,5 +204,20 @@ files['linkedin-perso-marbre'] = page(1584, 396, marbreBg('50% 42%', .42) + `
   <div class="sl">Protection et stratégie financière <b class="gold">pour entrepreneurs</b></div>
   <div class="side"><div style="margin-bottom:22px">${sigBars(7, 6, 30)}</div><div class="mm">Protection<br>Épargne<br>Retraite</div><div class="url">jccapital.ca</div></div>`, G.perso);
 
+// LinkedIn perso 1584x396 : TERROIR (choix de Joël, 29 oct.), assorti aux deux pages
+files['linkedin-perso-terroir'] = page(1584, 396, terroirBg('62% 42%', '112% auto') + `
+  .vign { background: linear-gradient(90deg, rgba(10,9,8,.92) 0%, rgba(10,9,8,.72) 30%, rgba(10,9,8,.15) 66%, rgba(10,9,8,.35) 100%),
+                      linear-gradient(180deg, rgba(10,9,8,.45) 0%, rgba(10,9,8,0) 30%, rgba(10,9,8,0) 70%, rgba(10,9,8,.65) 100%); }
+  .sun { position: absolute; left: 1020px; top: 60px; width: 620px; height: 280px; background: radial-gradient(closest-side, rgba(220,195,162,.30), rgba(220,195,162,0)); mix-blend-mode: screen; }
+  .blk { position: absolute; left: 500px; top: 0; bottom: 0; display: flex; align-items: center; gap: 36px; }
+  .blk .vr { width: 1px; height: 140px; background: linear-gradient(180deg, rgba(198,172,143,0), #DCC3A2, rgba(198,172,143,0)); }
+  .blk .sl { font-size: 38px; line-height: 1.18; }
+  .blk .mm { margin-top: 18px; font-size: 14px; letter-spacing: .4em; }
+  .br { position: absolute; right: 90px; bottom: 56px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 15px; letter-spacing: .26em; text-transform: uppercase; color: rgba(234,224,213,.72); line-height: 2; }
+`, `<div class="field"></div><div class="duo"></div><div class="dark"></div><div class="warm"></div><div class="sun"></div><div class="vign"></div>
+  <div class="blk">${mono(150)}<div class="vr"></div>
+    <div><div class="sl">Protection et stratégie financière<br><b class="gold">pour entrepreneurs</b></div><div class="mm">Protection · Épargne · Retraite</div></div></div>
+  <div class="br">Entreprises · Fermes<br>jccapital.ca</div>`, G.perso);
+
 for (const [k, v] of Object.entries(files)) fs.writeFileSync(path.join(outDir, `${k}.html`), v);
 console.log(Object.keys(files).join('\n'));
