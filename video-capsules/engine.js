@@ -362,7 +362,15 @@ function draw(t) {
   drawHeader(t, V, idx, lt);
 }
 
-/* ---------- nappe sonore WebAudio ---------- */
+/* ---------- musique de fond WebAudio (ambiance spa) ----------
+ * Une seule fonction, partagée par les 4 capsules, déterministe (graine fixe).
+ * Do majeur, 80 BPM (1 mesure = 3 s), un accord toutes les 2 mesures :
+ * Cmaj9 – Am9 – Fmaj7 – G(add9), en boucle.
+ * Couches : nappe (sinus + triangles, passe-bas 1 200-1 700 Hz qui respire),
+ * basse sinus, pouls feutré à 80 BPM (à peine audible), cloche douce ou
+ * arpège lent toutes les 2 mesures, réverbération par convolution
+ * (bruit décroissant généré). Fondu d'entrée 1,5 s, fondu de sortie 2 s.
+ * Fonctionne aussi avec un OfflineAudioContext (dest = ac.destination). */
 function makeAudio() {
   const AC = window.AudioContext || window.webkitAudioContext;
   const ac = new AC({ sampleRate: 48000 });
@@ -370,48 +378,112 @@ function makeAudio() {
   return { ac, dest };
 }
 function scheduleAudio(ac, dest, dur, lead) {
-  const master = ac.createGain(); master.gain.value = 0;
-  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400; lp.Q.value = 0.3;
-  master.connect(lp); lp.connect(dest);
-  const T0 = ac.currentTime + lead;
+  const T0 = ac.currentTime + lead, END = T0 + dur;
+  const BEAT = 60 / 80, BAR = 4 * BEAT, CH = 2 * BAR;          // 0,75 s · 3 s · 6 s
+  const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+  let seed = 20261029;                                          // graine fixe : même musique à chaque rendu
+  const rnd = () => { seed = (seed + 0x6D2B79F5) | 0; let x = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
+
+  // ---- chaîne de sortie : bus -> passe-bas 1 800 Hz -> compresseur doux -> volume général -> dest
+  const master = ac.createGain();
+  const LVL = 0.28;
   master.gain.setValueAtTime(0, T0);
-  master.gain.linearRampToValueAtTime(0.16, T0 + 2.5);
-  master.gain.setValueAtTime(0.16, T0 + dur - 3);
-  master.gain.linearRampToValueAtTime(0, T0 + dur);
-  const chords = [
-    [130.81, 196.00, 246.94, 329.63], // Cmaj7
-    [110.00, 164.81, 246.94, 261.63], // Am(add9)
-    [87.31, 130.81, 220.00, 329.63],  // Fmaj7
-    [98.00, 146.83, 246.94, 293.66]   // G
+  master.gain.linearRampToValueAtTime(LVL, T0 + 1.5);           // fondu d'entrée 1,5 s
+  master.gain.setValueAtTime(LVL, END - 2);
+  master.gain.linearRampToValueAtTime(0, END);                  // fondu de sortie 2 s
+  const comp = ac.createDynamicsCompressor();
+  comp.threshold.value = -20; comp.knee.value = 18; comp.ratio.value = 2.5; comp.attack.value = 0.08; comp.release.value = 0.6;
+  const top = ac.createBiquadFilter(); top.type = 'lowpass'; top.frequency.value = 1800; top.Q.value = 0.5;
+  const bus = ac.createGain();
+  bus.connect(top); top.connect(comp); comp.connect(master); master.connect(dest);
+
+  // ---- réverbération : convolution avec un bruit stéréo décroissant (3,5 s)
+  const rev = ac.createConvolver();
+  const len = Math.floor(ac.sampleRate * 3.5), ir = ac.createBuffer(2, len, ac.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = ir.getChannelData(c);
+    for (let i = 0; i < len; i++) { const x = i / len; d[i] = (rnd() * 2 - 1) * Math.pow(1 - x, 2.2) * Math.exp(-3 * x); }
+  }
+  rev.buffer = ir;
+  const revTone = ac.createBiquadFilter(); revTone.type = 'lowpass'; revTone.frequency.value = 1500;
+  const wet = ac.createGain(); wet.gain.value = 0.55;
+  rev.connect(revTone); revTone.connect(wet); wet.connect(bus);
+  const out = (node, dry, send) => {
+    const g = ac.createGain(); g.gain.value = dry; node.connect(g); g.connect(bus);
+    const s = ac.createGain(); s.gain.value = send; node.connect(s); s.connect(rev);
+  };
+
+  // ---- nappe : passe-bas qui respire lentement entre ~1 200 et ~1 700 Hz
+  const padBus = ac.createGain(); padBus.gain.value = 1;
+  const padLp = ac.createBiquadFilter(); padLp.type = 'lowpass'; padLp.frequency.value = 1450; padLp.Q.value = 0.4;
+  const lfo = ac.createOscillator(); lfo.frequency.value = 1 / 16;
+  const lfoG = ac.createGain(); lfoG.gain.value = 250;
+  lfo.connect(lfoG); lfoG.connect(padLp.frequency); lfo.start(T0); lfo.stop(END + 4);
+  padBus.connect(padLp); out(padLp, 0.8, 0.45);
+
+  const CHORDS = [                                              // basse, nappe, motif
+    { b: 36, pad: [52, 55, 59, 62], bell: [76] },               // Cmaj9 (I)
+    { b: 45, pad: [52, 55, 59, 60], arp: [69, 72, 76] },        // Am9 (vi)
+    { b: 41, pad: [53, 57, 60, 64], bell: [72] },               // Fmaj7 (IV)
+    { b: 43, pad: [50, 55, 59, 62], arp: [67, 71, 74] }         // G(add9) (V)
   ];
-  const CH = 8;
-  for (let k = 0; k * CH < dur + CH; k++) {
-    const ch = chords[k % chords.length], st = T0 + k * CH - 1.5, en = st + CH + 3;
-    ch.forEach((f, j) => {
-      [0, 1].forEach(layer => {
-        const o = ac.createOscillator(); o.type = layer ? 'triangle' : 'sine';
-        o.frequency.value = f * (layer ? 2 : 1); o.detune.value = (j % 2 ? 5 : -5) + layer * 3;
-        const g = ac.createGain(); const peak = (layer ? 0.035 : 0.11) / (1 + j * 0.25);
-        g.gain.setValueAtTime(0, Math.max(T0, st));
-        g.gain.linearRampToValueAtTime(peak, st + 2.5);
-        g.gain.setValueAtTime(peak, en - 3);
-        g.gain.linearRampToValueAtTime(0, en);
-        o.connect(g); g.connect(master); o.start(Math.max(T0, st)); o.stop(en + 0.1);
+  const env = (g, st, peak, a, en, r) => {                      // longues attaques et relâchements
+    g.gain.setValueAtTime(0, st);
+    g.gain.linearRampToValueAtTime(peak, st + a);
+    g.gain.setValueAtTime(peak, en);
+    g.gain.linearRampToValueAtTime(0, en + r);
+  };
+  const N = Math.ceil(dur / CH) + 1;
+  for (let k = 0; k < N; k++) {
+    const P = CHORDS[k % CHORDS.length];
+    const st = T0 + k * CH - (k ? 1.2 : 0);                     // chevauchement : fondu enchaîné des accords
+    if (st > END) break;
+    const en = T0 + (k + 1) * CH - 0.6, a = k ? 2.6 : 1.5, r = 3;
+    // nappe : chaque note = sinus + triangle légèrement désaccordé
+    P.pad.forEach((m, j) => {
+      [['sine', 0.05, 0], ['triangle', 0.018, 7]].forEach(([type, peak, det]) => {
+        const o = ac.createOscillator(); o.type = type; o.frequency.value = hz(m);
+        o.detune.value = (j % 2 ? det : -det) + (rnd() - 0.5) * 4;
+        const g = ac.createGain(); env(g, st, peak / (1 + j * 0.15), a, en, r);
+        o.connect(g); g.connect(padBus); o.start(st); o.stop(en + r + 0.05);
       });
     });
-  }
-  // petite cloche douce à chaque changement d'écran
-  V.scenes.forEach((s, i) => {
-    if (i === 0) return;
-    const t = T0 + s.start;
-    [880, 1318.5].forEach((f, j) => {
-      const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = f;
-      const g = ac.createGain();
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(j ? 0.025 : 0.05, t + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
-      o.connect(g); g.connect(master); o.start(t); o.stop(t + 1.7);
+    // basse : sinus rond
+    { const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = hz(P.b);
+      const g = ac.createGain(); env(g, st, 0.11, a, en, r);
+      o.connect(g); out(g, 0.9, 0.15); o.start(st); o.stop(en + r + 0.05); }
+    // pouls feutré à 80 BPM : sinus grave, attaque arrondie, temps 1 un peu plus présent
+    const c0 = T0 + k * CH;
+    for (let b = 0; b < 8; b++) {
+      const t = c0 + b * BEAT;
+      if (t < T0 + 3 || t > END - 2.5) continue;                // absent de l'intro et de la fin
+      const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = hz(P.b + 12);
+      const g = ac.createGain(), pk = b % 4 === 0 ? 0.05 : 0.03;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(pk, t + 0.07);
+      g.gain.setTargetAtTime(0, t + 0.07, 0.16);
+      o.connect(g); out(g, 0.9, 0.2); o.start(t); o.stop(t + 1.2);
+    }
+    // motif : cloche douce (accords pairs) ou arpège lent feutré (accords impairs), une fois toutes les 2 mesures
+    const notes = P.bell || P.arp, t1 = c0 + (P.bell ? 2 * BEAT : BAR), gap = 2 * BEAT / 1.5;
+    notes.forEach((m, i) => {
+      const t = t1 + i * gap;
+      if (t < T0 + 2 || t > END - 3) return;
+      const pan = ac.createStereoPanner ? ac.createStereoPanner() : null;
+      const g = ac.createGain(), pk = P.bell ? 0.045 : 0.032;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(pk, t + 0.06);             // pas d'attaque sèche
+      g.gain.setTargetAtTime(0, t + 0.06, P.bell ? 1.1 : 0.8);
+      [[1, 1], [2, 0.18]].forEach(([mul, lv]) => {              // fondamentale + octave très discrète
+        const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = hz(m) * mul;
+        const og = ac.createGain(); og.gain.value = lv; o.connect(og); og.connect(g);
+        o.start(t); o.stop(t + 6);
+      });
+      if (pan) { pan.pan.value = (i % 2 ? 0.25 : -0.25); g.connect(pan); out(pan, 0.55, 0.7); }
+      else out(g, 0.55, 0.7);
     });
-  });
+  }
 }
 
 /* ---------- utilitaires réseau ---------- */
@@ -472,7 +544,9 @@ async function record(id) {
   try {
     audio = makeAudio();
     await audio.ac.resume();
-    const c0 = audio.ac.currentTime; await new Promise(r => setTimeout(r, 300));
+    const c0 = audio.ac.currentTime;
+    // l’horloge audio de Chrome headless peut tarder à démarrer : on attend jusqu’à 3 s
+    for (let i = 0; i < 30 && !(audio.ac.currentTime > c0); i++) await new Promise(r => setTimeout(r, 100));
     if (audio.ac.state === 'running' && audio.ac.currentTime > c0) {
       audio.dest.stream.getAudioTracks().forEach(tr => stream.addTrack(tr));
     } else { log('audio inactif: ' + audio.ac.state); audio = null; }
