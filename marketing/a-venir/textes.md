@@ -189,3 +189,50 @@ Pour calculer votre écart, écrivez-moi PLAN en message.
 - 2 déc., couverture : photo 5833775 (deux hommes qui consultent une tablette)
 - 16 déc. : photo 6128914 (couple à la promenade en automne)
 - Bannières, direction photo : photo 32332105 (champ au lever du soleil)
+
+---
+
+# Refontes du 29 oct.
+
+Source des visuels : `marketing/a-venir/gabarit-refontes-29oct.js` (images du site uniquement : `img/field-agricole.jpg`, `img/quarts.jpg`). Les anciens visuels sont conservés tels quels ; les nouveaux portent des noms distincts.
+
+## 16 décembre 2026 (remplace « Deux retraites, un seul impôt à réduire ») : Le cadeau qu'on oublie sous le sapin
+
+**Pourquoi ce sujet :** concret, lié aux Fêtes, faisable en 10 minutes, et utile à toute la cible (entrepreneurs, travailleurs autonomes, agricole, 25 à 50 ans), dont la vie change vite (bébé, séparation, union de fait, entreprise). Il évite de répéter le 25 nov. (fin d'année) et le 18 nov. (relève de la ferme). Sujet assurance : l'appel à l'action est donc le diagnostic assurance.
+**Format :** visuel accrocheur, étiquette-cadeau « Bénéficiaire : À : ... ? » (1 image)
+**Visuel :** `2026-12-16-cadeau-beneficiaires-01.png`
+
+**Texte (136 mots) :**
+
+Entre deux réunions de famille, voici un cadeau qui ne coûte rien : vérifier qui recevrait l'argent de vos assurances et de vos placements si vous partiez demain.
+
+On remplit le formulaire une fois, puis on l'oublie. Pendant ce temps, la vie change : un bébé, une séparation, un nouveau conjoint, une entreprise. Et une séparation, surtout en union de fait, ne change pas automatiquement le nom inscrit.
+
+Trois vérifications à faire avant le 31 décembre :
+
+1. Vos assurances vie : qui est nommé, et pour quelle part ?
+
+2. Vos REER et CELI : au Québec, on peut nommer un bénéficiaire directement seulement dans un contrat d'assurance, par exemple des fonds distincts. Sinon, c'est votre testament qui décide.
+
+3. Votre testament : reflète-t-il encore votre famille d'aujourd'hui ?
+
+Quand avez-vous vérifié vos bénéficiaires pour la dernière fois ?
+
+Faites le diagnostic assurance : https://jccapital.ca/pages/assurance.html
+
+*Mots-clics (Facebook et LinkedIn) :* #Assurance #Beneficiaire #TravailleurAutonome
+
+*À valider par la conformité SFL avant diffusion :* les deux règles juridiques du texte. (1) Au Québec, le divorce ou la nullité du mariage rend caduque la désignation du conjoint comme bénéficiaire, mais rien n'est automatique pour des conjoints de fait qui se séparent (Code civil du Québec, art. 2459). (2) Au Québec, on peut désigner un bénéficiaire d'un REER ou d'un CELI directement seulement dans un contrat d'assurance, comme une rente ou des fonds distincts ; autrement, c'est le testament qui désigne.
+
+## 6 janvier 2027 : Mythe, « Le RRQ va suffire pour ma retraite » (carrousel v2)
+
+**Format :** carrousel de 5 diapositives refait pour un effet « wow »
+**Visuels :** `2027-01-06-mythe-rrq-v2-01.png` à `2027-01-06-mythe-rrq-v2-05.png`
+
+1. Couverture : photo du champ du site très assombrie, mythe barré, chiffre géant « 33 % » et le titre « Au mieux, le RRQ remplacera le tiers de votre revenu. »
+2. Jauge en demi-cercle : 25 % (taux de base), de 25 % à 33,33 % (bonification, plein effet d'ici 2064), et le reste hachuré, « l'écart à combler ». Mention du plafond de 85 000 $ en 2026. Source : Retraite Québec.
+3. Exemple à 80 000 $ illustré par une colonne empilée : le RRQ couvre de 20 000 $ à 26 700 $, l'écart à combler va de 53 300 $ à 60 000 $ par année. Note « Exemple simplifié ».
+4. À votre compte : trois cartes à gros chiffres (0 régime d'employeur, 0 $ de cotisation au RRQ sur les dividendes, 3 outils : REER, CELI, épargne dans l'entreprise).
+5. Appel à l'action sur le marbre du site : « Combien vous manquera-t-il à la retraite ? », avec un bouton « Écrivez PLAN en message ».
+
+**Texte :** inchangé (voir la section du 6 janvier ci-dessus). Les chiffres sont les mêmes et ont les mêmes sources. Seul ajout sur les visuels : l'écart de 53 300 $ à 60 000 $, calculé ainsi : 80 000 $ - 26 700 $ = 53 300 $ et 80 000 $ - 20 000 $ = 60 000 $. Il est présenté comme un exemple simplifié.
