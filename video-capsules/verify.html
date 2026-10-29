@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr-CA">
+<head><meta charset="utf-8"><title>Vérification capsule</title></head>
+<body style="margin:0;background:#000">
+<video id="v" muted playsinline preload="auto"></video>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+'use strict';
+const log = m => fetch('/log', { method: 'POST', body: String(m) });
+const qs = new URLSearchParams(location.search);
+const once = (el, ev) => new Promise(r => el.addEventListener(ev, r, { once: true }));
+(async () => {
+  try {
+    if (qs.get('probe')) {
+      ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp9']
+        .forEach(m => log(m + ' => ' + MediaRecorder.isTypeSupported(m)));
+      await fetch('/done', { method: 'POST', body: 'probe' }); return;
+    }
+    const file = qs.get('file');
+    const v = document.getElementById('v');
+    v.src = file;
+    await once(v, 'loadedmetadata');
+    let d = v.duration;
+    if (!isFinite(d)) {               // webm de MediaRecorder : durée inconnue
+      v.currentTime = 1e6; await once(v, 'seeked'); d = v.duration;
+      if (!isFinite(d)) d = v.currentTime;
+      v.currentTime = 0; await once(v, 'seeked');
+    }
+    const r = await fetch(file, { method: 'HEAD' }).catch(() => null);
+    log(`fichier=${file} durée=${d.toFixed(2)}s dimensions=${v.videoWidth}x${v.videoHeight}`);
+    const c = document.getElementById('c'), x = c.getContext('2d');
+    const base = file.replace(/^2026-capsule-/, '').replace(/\.(mp4|webm)$/, '');
+    const times = (qs.get('t') || '2,20,end').split(',');
+    const sheetMode = qs.get('sheet') === '1';
+    const cols = 4, sw = 405, sh = 720, sheet = document.createElement('canvas');
+    sheet.width = cols * sw; sheet.height = Math.ceil(times.length / cols) * sh;
+    const sc = sheet.getContext('2d'); let k = 0;
+    for (const s of times) {
+      const t = s === 'end' ? Math.max(0, d - 0.15) : parseFloat(s);
+      v.currentTime = t; await once(v, 'seeked');
+      await new Promise(r => setTimeout(r, 120));
+      x.drawImage(v, 0, 0, 1080, 1920);
+      sc.drawImage(c, (k % cols) * sw, Math.floor(k / cols) * sh, sw - 4, sh - 4);
+      sc.fillStyle = '#ff0'; sc.font = '28px monospace'; sc.fillText('v=' + t.toFixed(2), (k % cols) * sw + 10, Math.floor(k / cols) * sh + sh - 16); k++;
+      if (sheetMode) continue;
+      const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+      const name = `controle-${base}-${s === 'end' ? 'fin' : String(Math.round(t)).padStart(2, '0') + 's'}.png`;
+      await fetch('/upload?name=' + encodeURIComponent(name), { method: 'POST', body: blob });
+    }
+    if (sheetMode) {
+      const sb = await new Promise(r => sheet.toBlob(r, 'image/jpeg', 0.85));
+      await fetch('/upload?name=' + encodeURIComponent('planche-video-' + base + '.jpg'), { method: 'POST', body: sb });
+    }
+    // présence d'une piste audio : on lit 1,5 s et on regarde les octets audio décodés
+    v.currentTime = 10; await once(v, 'seeked');
+    try { await v.play(); await new Promise(r => setTimeout(r, 1500)); v.pause(); } catch (e) { log('lecture: ' + e.message); }
+    log('octets audio décodés: ' + v.webkitAudioDecodedByteCount + ' / vidéo: ' + v.webkitVideoDecodedByteCount);
+    await fetch('/done', { method: 'POST', body: 'verify ' + d.toFixed(2) });
+  } catch (e) { await log('ERREUR ' + e.message); await fetch('/done', { method: 'POST', body: 'erreur' }); }
+})();
+</script>
+</body>
+</html>
