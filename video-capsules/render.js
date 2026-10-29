@@ -74,6 +74,7 @@ server.listen(0, '127.0.0.1', () => {
   else if (mode === 'frames') url = `/video-capsules/capsule.html?v=${arg1}&frames=${arg2 || '2,20,end'}`;
   else if (mode === 'verify') url = `/video-capsules/verify.html?file=${encodeURIComponent(arg1)}&t=${arg2 || '2,20,end'}`;
   else if (mode === 'sheet') url = `/video-capsules/verify.html?file=${encodeURIComponent(arg1)}&sheet=1&t=${arg2}`;
+  else if (mode === 'audio') url = '/video-capsules/musique.html';
   else if (mode === 'probe') url = `/video-capsules/verify.html?probe=1`;
   else { console.error('mode inconnu'); process.exit(2); }
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'jc-capsule-'));

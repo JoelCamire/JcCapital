@@ -1,0 +1,20 @@
+<!doctype html><meta charset="utf-8"><title>musique</title>
+<script src="engine-audio-only.js"></script>
+<script>
+// Rend la musique hors ligne (60 s), mesure le volume et envoie un WAV d'écoute.
+function log(m){fetch('/log',{method:'POST',body:String(m)});}
+(async()=>{try{
+ const dur=59.5, sr=48000, n=Math.ceil(sr*(dur+0.6));
+ const ac=new OfflineAudioContext(2,n,sr);
+ scheduleAudio(ac, ac.destination, dur, 0.1);
+ const buf=await ac.startRendering();
+ const L=buf.getChannelData(0), R=buf.getChannelData(1); let peak=0, clip=0, rows=[];
+ for(let s=0;s<60;s+=4){const a=s*sr,b=Math.min(n,(s+4)*sr);let sum=0,p=0;for(let i=a;i<b;i++){const v=Math.abs(L[i]);sum+=v*v;if(v>p)p=v;if(v>=0.999)clip++;}peak=Math.max(peak,p);rows.push(s+'s rms '+Math.sqrt(sum/(b-a)).toFixed(3)+' crête '+p.toFixed(3));}
+ log(rows.join(' | ')+' || CRÊTE '+peak.toFixed(3)+' écrêtages '+clip);
+ const dv=new DataView(new ArrayBuffer(44+n*4)); const w=(o,s)=>{for(let i=0;i<s.length;i++)dv.setUint8(o+i,s.charCodeAt(i));};
+ w(0,'RIFF');dv.setUint32(4,36+n*4,true);w(8,'WAVEfmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,2,true);dv.setUint32(24,sr,true);dv.setUint32(28,sr*4,true);dv.setUint16(32,4,true);dv.setUint16(34,16,true);w(36,'data');dv.setUint32(40,n*4,true);
+ for(let i=0,o=44;i<n;i++){for(const c of [L,R]){const v=Math.max(-1,Math.min(1,c[i]));dv.setInt16(o,v*32767,true);o+=2;}}
+ await fetch('/upload?name=musique-apercu.wav',{method:'POST',body:new Blob([dv])});
+ await fetch('/done',{method:'POST',body:'audio'});
+}catch(e){log('ERREUR '+e.message);fetch('/done',{method:'POST',body:'err'});}})();
+</script>
