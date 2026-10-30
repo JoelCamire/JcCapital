@@ -1,6 +1,6 @@
 # Capsules vidéo 2026 : CELI, CELIAPP, REER, REEI
 
-Format : vertical 1080 × 1920, 30 i/s, H.264 + AAC (MP4), sans voix, musique pop-house entraînante générée en WebAudio (la mineur, 120 BPM, Am-F-C-G, pompage, refrain syncopé), libre de droits.
+Format : vertical 1080 × 1920, 30 i/s, H.264 + AAC (MP4), sans voix, musique pop douce et rythmée générée en WebAudio (la mineur, 100 BPM, Am-F-C-G, refrain syncopé discret), libre de droits.
 Animation typographique sur canvas, sans images d'archive ni visage. Identité JC Capital (bleu nuit, or champagne, Outfit, IBM Plex Mono).
 
 Minutage : les temps ci-dessous sont ceux de la timeline. Dans le fichier MP4, tout est décalé de +0,15 s (amorce).

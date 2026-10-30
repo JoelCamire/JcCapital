@@ -362,9 +362,9 @@ function draw(t) {
   drawHeader(t, V, idx, lt);
 }
 
-/* ---------- musique de fond WebAudio (pop-house entraînante) ----------
+/* ---------- musique de fond WebAudio (pop douce et rythmée) ----------
  * Une seule fonction, partagée par les 4 capsules, déterministe (graine fixe), libre de droits.
- * La mineur, 120 BPM (1 mesure = 2 s), un accord par mesure : Am – F – C – G (boucle de 8 s).
+ * La mineur, 100 BPM (1 mesure = 2,4 s), un accord par mesure : Am – F – C – G (boucle de 8 s).
  * Couches : grosse caisse 4 temps, clap sur 2 et 4, charleston sur les contretemps,
  * basse en contretemps, nappe « supersaw » avec effet de pompage (sidechain),
  * refrain pluck syncopé avec écho en croche pointée.
@@ -379,22 +379,22 @@ function makeAudio() {
 }
 function scheduleAudio(ac, dest, dur, lead) {
   const T0 = ac.currentTime + lead, END = T0 + dur;
-  const BEAT = 0.5, BAR = 2, S8 = BEAT / 2;                     // 120 BPM
+  const BEAT = 0.6, BAR = 2.4, S8 = BEAT / 2;                   // 100 BPM
   const hz = m => 440 * Math.pow(2, (m - 69) / 12);
   let seed = 20261029;
   const rnd = () => { seed = (seed + 0x6D2B79F5) | 0; let x = Math.imul(seed ^ (seed >>> 15), 1 | seed);
     x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
 
   // repères de structure (en secondes depuis T0), alignés sur les mesures
-  const INTRO = 4;                                              // 2 mesures filtrées
-  const BRK0 = Math.round((dur * 0.5) / BAR) * BAR, BRK1 = BRK0 + 4;  // pause de 2 mesures au milieu
+  const INTRO = 2 * BAR;                                        // 2 mesures filtrées
+  const BRK0 = Math.round((dur * 0.5) / BAR) * BAR, BRK1 = BRK0 + 2 * BAR;  // pause de 2 mesures au milieu
   const OUT = dur - 2.5;
   const inBreak = t => t >= BRK0 && t < BRK1;
   const drums = t => t >= INTRO && !inBreak(t) && t < dur - 1;
 
   // ---- sortie : bus -> passe-haut 30 Hz -> compresseur -> volume général -> dest
   const master = ac.createGain();
-  const LVL = 0.75;
+  const LVL = 0.85;
   master.gain.setValueAtTime(0, T0);
   master.gain.linearRampToValueAtTime(LVL, T0 + 0.6);
   master.gain.setValueAtTime(LVL, T0 + OUT);
@@ -413,18 +413,18 @@ function scheduleAudio(ac, dest, dur, lead) {
   // ---- filtre d'ensemble de la musique (intro fermée puis ouverture, pause légèrement fermée)
   const musLp = ac.createBiquadFilter(); musLp.type = 'lowpass'; musLp.Q.value = 0.9;
   musLp.frequency.setValueAtTime(500, T0);
-  musLp.frequency.exponentialRampToValueAtTime(16000, T0 + INTRO);
-  musLp.frequency.setValueAtTime(16000, T0 + BRK0);
+  musLp.frequency.exponentialRampToValueAtTime(9000, T0 + INTRO);
+  musLp.frequency.setValueAtTime(9000, T0 + BRK0);
   musLp.frequency.exponentialRampToValueAtTime(1400, T0 + BRK0 + 0.5);
   musLp.frequency.setValueAtTime(1400, T0 + BRK1 - 2);
-  musLp.frequency.exponentialRampToValueAtTime(16000, T0 + BRK1);
+  musLp.frequency.exponentialRampToValueAtTime(9000, T0 + BRK1);
   musLp.connect(bus);
 
   // ---- pompage (sidechain) : la nappe et la basse s'effacent à chaque grosse caisse
   const duck = ac.createGain(); duck.gain.setValueAtTime(1, T0); duck.connect(musLp);
   // ---- écho en croche pointée pour le refrain
-  const dly = ac.createDelay(1); dly.delayTime.value = 0.375;
-  const fb = ac.createGain(); fb.gain.value = 0.32;
+  const dly = ac.createDelay(1); dly.delayTime.value = 0.45;
+  const fb = ac.createGain(); fb.gain.value = 0.25;
   const dTone = ac.createBiquadFilter(); dTone.type = 'lowpass'; dTone.frequency.value = 3500;
   const dWet = ac.createGain(); dWet.gain.value = 0.3;
   dly.connect(dTone); dTone.connect(fb); fb.connect(dly); dTone.connect(dWet); dWet.connect(musLp);
@@ -443,9 +443,9 @@ function scheduleAudio(ac, dest, dur, lead) {
     const P = CH[k % 4], b0 = k * BAR, t0 = T0 + b0;
     // nappe supersaw : 3 dents de scie désaccordées par note
     { const g = ac.createGain();
-      g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.022, t0 + 0.04);
-      g.gain.setValueAtTime(0.022, t0 + BAR - 0.08); g.gain.linearRampToValueAtTime(0, t0 + BAR + 0.02);
-      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2600; lp.Q.value = 0.5;
+      g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.02, t0 + 0.04);
+      g.gain.setValueAtTime(0.02, t0 + BAR - 0.08); g.gain.linearRampToValueAtTime(0, t0 + BAR + 0.02);
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1800; lp.Q.value = 0.5;
       g.connect(lp); lp.connect(duck);
       P.pad.forEach(m => [-12, 0, 12].forEach(det => {
         const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = hz(m); o.detune.value = det + (rnd() - 0.5) * 3;
@@ -458,9 +458,9 @@ function scheduleAudio(ac, dest, dur, lead) {
       if (s % 2 === 1 || (inBreak(rel) && s === 0)) {
         const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = hz(P.b + 12);
         const o2 = ac.createOscillator(); o2.type = 'sine'; o2.frequency.value = hz(P.b);
-        const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 6;
+        const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 2;
         lp.frequency.setValueAtTime(1400, t); lp.frequency.exponentialRampToValueAtTime(220, t + 0.18);
-        const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.16, t + 0.008);
+        const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.13, t + 0.008);
         g.gain.setTargetAtTime(0, t + 0.12, 0.05);
         o.connect(lp); lp.connect(g); o2.connect(g); g.connect(duck);
         [o, o2].forEach(x => { x.start(t); x.stop(t + 0.4); });
@@ -470,23 +470,23 @@ function scheduleAudio(ac, dest, dur, lead) {
         if (s % 2 === 0) {
           const o = ac.createOscillator(); o.type = 'sine';
           o.frequency.setValueAtTime(155, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.11);
-          const g = ac.createGain(); g.gain.setValueAtTime(1.0, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+          const g = ac.createGain(); g.gain.setValueAtTime(0.55, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
           o.connect(g); g.connect(bus); o.start(t); o.stop(t + 0.4);
-          duck.gain.setValueAtTime(0.22, t); duck.gain.linearRampToValueAtTime(1, t + 0.36);
+          duck.gain.setValueAtTime(0.65, t); duck.gain.linearRampToValueAtTime(1, t + 0.3);
         }
         // clap sur 2 et 4 (trois éclats rapprochés)
         if (s === 2 || s === 6) {
-          const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1400; bp.Q.value = 1.2;
+          const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2400; bp.Q.value = 1.5;
           const g = ac.createGain(); g.gain.setValueAtTime(0, t);
-          [0, 0.011, 0.022].forEach(d => { g.gain.setValueAtTime(0.45, t + d); g.gain.setTargetAtTime(0.05, t + d + 0.002, 0.004); });
-          g.gain.setValueAtTime(0.3, t + 0.03); g.gain.setTargetAtTime(0, t + 0.03, 0.06);
+          [0, 0.011, 0.022].forEach(d => { g.gain.setValueAtTime(0.16, t + d); g.gain.setTargetAtTime(0.05, t + d + 0.002, 0.004); });
+          g.gain.setValueAtTime(0.1, t + 0.03); g.gain.setTargetAtTime(0, t + 0.03, 0.06);
           noise(t, 0.35).connect(bp); bp.connect(g); g.connect(bus);
         }
       }
       // charleston : contretemps dès l'intro (doux), aussi pendant la pause
       if (s % 2 === 1 && rel >= 2 && rel < dur - 1) {
         const hpf = ac.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 8000;
-        const g = ac.createGain(); const pk = rel < INTRO ? 0.07 : 0.13;
+        const g = ac.createGain(); const pk = rel < INTRO ? 0.04 : 0.07;
         g.gain.setValueAtTime(pk, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
         noise(t, 0.08).connect(hpf); hpf.connect(g); g.connect(bus);
       }
@@ -496,11 +496,11 @@ function scheduleAudio(ac, dest, dur, lead) {
       const t = t0 + st * S8;
       if (t > T0 + OUT) return;
       const m = P.hook[i];
-      const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.085, t + 0.004);
-      g.gain.setTargetAtTime(0, t + 0.004, 0.09);
+      const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.06, t + 0.004);
+      g.gain.setTargetAtTime(0, t + 0.004, 0.14);
       const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 3;
-      lp.frequency.setValueAtTime(5200, t); lp.frequency.exponentialRampToValueAtTime(900, t + 0.2);
-      [['square', 0, 0.5], ['sawtooth', 7, 0.5], ['sine', 1200, 0.25]].forEach(([type, det, lv]) => {
+      lp.frequency.setValueAtTime(3000, t); lp.frequency.exponentialRampToValueAtTime(800, t + 0.25);
+      [['triangle', 0, 0.6], ['sawtooth', 7, 0.25], ['sine', 1200, 0.2]].forEach(([type, det, lv]) => {
         const o = ac.createOscillator(); o.type = type; o.frequency.value = hz(m); o.detune.value = det;
         const og = ac.createGain(); og.gain.value = lv; o.connect(og); og.connect(lp);
         o.start(t); o.stop(t + 0.7);
@@ -514,7 +514,7 @@ function scheduleAudio(ac, dest, dur, lead) {
     const t = T0 + a, len = b - a;
     const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 2;
     bp.frequency.setValueAtTime(600, t); bp.frequency.exponentialRampToValueAtTime(9000, t + len);
-    const g = ac.createGain(); g.gain.setValueAtTime(0.001, t); g.gain.exponentialRampToValueAtTime(0.18, t + len - 0.02);
+    const g = ac.createGain(); g.gain.setValueAtTime(0.001, t); g.gain.exponentialRampToValueAtTime(0.05, t + len - 0.02);
     g.gain.linearRampToValueAtTime(0, t + len);
     const s = ac.createBufferSource(); s.buffer = nb; s.loop = true; s.start(t); s.stop(t + len);
     s.connect(bp); bp.connect(g); g.connect(bus);
