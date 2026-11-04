@@ -279,7 +279,7 @@
   .btn.danger:hover{background:var(--alerte);color:#fff}
   .btn.danger:disabled{opacity:.35;cursor:not-allowed}
   /* mode « le client remplit » */
-  body.m-fill .aside,body.m-fill #view-conseiller .note,body.m-fill .tab .x,body.m-fill select.tab-add,
+  body.m-fill .aside,body.m-fill #view-conseiller .note,
   body.m-fill .acctools,body.m-fill .sec-head .why,body.m-fill .cons-only{display:none!important}
   body.m-fill .page{grid-template-columns:minmax(0,1fr);max-width:840px}
   body.m-fill #view-client{display:none}
@@ -596,7 +596,23 @@ const SECTIONS = [
 ];
 const OBLIG = QUESTIONS.filter(q=>!q.onlyIf);
 const NB_Q = OBLIG.length;
-const TYPES_COMPTE = ['CELI','REER','CELIAPP','REEE','Non enregistré','Compte de société','CRI','FRV','FERR','REER de conjoint','Autre'];
+/* Liste complète des comptes. Les anciens libellés sont conservés tels quels :
+   les liens déjà envoyés restent valides. */
+const GROUPES_COMPTE = [
+  ["Épargne libre d'impôt", ['CELI','CELIAPP']],
+  ['Retraite', ['REER','REER de conjoint','REER collectif','FERR','FERR de conjoint','RVER']],
+  ['Retraite immobilisée', ['CRI','FRV','RERI','FRRI','FRVR']],
+  ['Études et invalidité', ['REEE','REEE familial','REEI']],
+  ['Non enregistré', ['Non enregistré','Non enregistré — conjoint','Compte de société','Compte de fiducie','Succession']],
+  ['Autre', ['Autre']]
+];
+const TYPES_COMPTE = GROUPES_COMPTE.flatMap(g=>g[1]);
+/* menu groupé; un type absent de la liste (ancien lien) reste affiché */
+function optionsComptes(sel){
+  let h=GROUPES_COMPTE.map(g=>`<optgroup label="${g[0]}">${g[1].map(t=>`<option${t===sel?' selected':''}>${t}</option>`).join('')}</optgroup>`).join('');
+  if(sel && !TYPES_COMPTE.includes(sel)) h=`<option selected>${esc(sel)}</option>`+h;
+  return h;
+}
 const FREQ = [['par semaine',52],['par deux semaines',26],['par mois',12],['par année',1]];
 const CONSEILLER_MAIL='joelcamire@jccapital.ca';
 const CONSEILLER_TEL='581 398-6747';
@@ -787,7 +803,7 @@ function renderTabs(){
     el.appendChild(b);
   });
   const sel=document.createElement('select'); sel.className='tab-add';
-  sel.innerHTML='<option value="">+ Ajouter un compte…</option>'+TYPES_COMPTE.map(t=>`<option>${t}</option>`).join('');
+  sel.innerHTML='<option value="">+ Ajouter un compte…</option>'+optionsComptes('');
   sel.onchange=e=>{ if(e.target.value){ const na=newAccount(e.target.value); const src=state.accounts[cur];
     /* les questions sur la personne (connaissances, capacité) sont copiées : elles ne changent pas d'un compte à l'autre */
     ['K','Kb','inc','st','fs','nw','age','FU','EV'].forEach(k=>{ if(src.ans[k]!==undefined) na.ans[k]=JSON.parse(JSON.stringify(src.ans[k])); });
@@ -901,7 +917,7 @@ function manques(){
 
 function renderQuestionnaire(){
   const a=state.accounts[cur], root=document.getElementById('questionnaire'); root.innerHTML='';
-  const ts=document.getElementById('a-type'); ts.innerHTML=TYPES_COMPTE.map(t=>`<option${t===a.type?' selected':''}>${t}</option>`).join('');
+  const ts=document.getElementById('a-type'); ts.innerHTML=optionsComptes(a.type);
   document.getElementById('a-but').value=a.but; document.getElementById('a-titre').value=a.titulaire;
   const notes=document.getElementById('a-notes'); if(notes) notes.value=a.notes||'';
 
