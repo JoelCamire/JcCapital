@@ -19,7 +19,8 @@ const css = (p) => `
   .wrap { position: absolute; inset: 0; padding: 88px 88px 128px; display: flex; flex-direction: column; }
   .eyebrow { font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 34px; letter-spacing: .22em; text-transform: uppercase; color: #C6AC8F; text-shadow: 0 2px 14px rgba(0,0,0,.55); }
   .small { margin-top: 28px; font-size: 52px; font-weight: 500; color: rgba(244,238,228,.92); line-height: 1.18; max-width: 900px; text-shadow: 0 2px 18px rgba(0,0,0,.6); }
-  .small.strike { text-decoration: line-through; text-decoration-color: #C6AC8F; text-decoration-thickness: 4px; color: rgba(244,238,228,.8); }
+  .small.strike { display: inline-block; align-self: flex-start; margin-top: 34px; padding: 18px 28px; border-radius: 14px; background: rgba(12,20,23,.72); border-left: 6px solid #C6AC8F;
+                  font-size: 56px; font-weight: 700; color: #F4EEE4; text-decoration: line-through; text-decoration-color: #C6AC8F; text-decoration-thickness: 5px; }
   .rule { width: 132px; height: 3px; background: #C6AC8F; margin-top: 40px; }
   h1 { margin-top: auto; font-weight: 800; font-size: ${p.h1Size || 104}px; line-height: .98; letter-spacing: -.03em; text-wrap: balance; text-shadow: 0 6px 40px rgba(0,0,0,.65); }
   .sub { margin-top: 34px; font-size: 38px; font-weight: 500; line-height: 1.26; max-width: 880px; color: rgba(244,238,228,.95); text-shadow: 0 2px 18px rgba(0,0,0,.6); }
@@ -38,14 +39,14 @@ const page = (p, i, n) => `<!doctype html><html lang="fr"><head><meta charset="u
 <div class="photo"></div><div class="veil"></div><div class="wrap">
   <div class="eyebrow">${p.eyebrow}</div>
   ${p.small ? `<div class="small${p.strike ? ' strike' : ''}">${p.small}</div>` : ''}
-  <div class="rule"></div>
+  ${p.small ? '' : '<div class="rule"></div>'}
   <h1>${p.h1}</h1>
   ${p.items ? `<ul>${p.items.map((it, k) => `<li><b>${String(k + 1).padStart(2, '0')}</b><span>${it}</span></li>`).join('')}</ul>` : ''}
   ${p.sub ? `<div class="sub">${p.sub}</div>` : ''}
   ${p.cta ? `<div class="cta">${p.cta}</div>` : ''}
   ${p.note ? `<div class="note">${p.note}</div>` : ''}
 </div>
-<div class="foot"><span>${i + 1} / ${n}${i + 1 < n ? ' <span class="swipe">→</span>' : ''}</span><span class="brand">JC CAPITAL <i>•</i></span></div>
+<div class="foot"><span>${i + 1} / ${n}${i + 1 < n ? ' <span class="swipe">· glissez →</span>' : ''}</span><span class="brand">JC CAPITAL <i>•</i></span></div>
 </body></html>`;
 
 const id = '2026-11-11-mythe-employeur-v3';
