@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Élianne pour Oura : autorisation reçue</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{--noir:#0A0908;--nuit:#22333B;--or:#C6AC8F;--beige:#EAE0D5;--papier:#F6F1EA;--encre:#1B1A17;--muet:#7A6E62;--ligne:#D9CDBD;--font:'Outfit',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--papier);color:var(--encre);font-family:var(--font);font-size:16px;line-height:1.6}
+  main{max-width:640px;margin:0 auto;padding:60px 24px}
+  h1{font-weight:300;font-size:26px;color:var(--nuit);margin:0 0 8px}
+  h1 b{font-weight:600}
+  p{color:var(--muet);max-width:60ch}
+  .code{font-family:var(--mono);font-size:15px;word-break:break-all;background:#fff;border:1px solid var(--ligne);border-radius:8px;padding:14px 16px;margin:18px 0}
+  button{font:inherit;font-weight:600;background:var(--nuit);color:#fff;border:0;border-radius:6px;padding:10px 16px;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--or);outline-offset:2px}
+  .err{color:#A8574E}
+</style>
+</head>
+<body>
+<main>
+  <h1><b>Élianne pour Oura</b><br>Autorisation reçue</h1>
+  <p id="msg">Lecture du code…</p>
+  <div class="code" id="code" hidden></div>
+  <button id="copy" type="button" hidden>Copier le code</button>
+  <p>Ce code n'est valide que 10 minutes et ne sert qu'une fois. Tu peux fermer cette page après l'avoir transmis à Élianne.</p>
+</main>
+<script>
+  var q = new URLSearchParams(location.search);
+  var code = q.get('code'), err = q.get('error');
+  var msg = document.getElementById('msg'), box = document.getElementById('code'), btn = document.getElementById('copy');
+  if (err) {
+    msg.innerHTML = '<span class="err">Oura a refusé : ' + err + (q.get('error_description') ? ' (' + q.get('error_description') + ')' : '') + '</span>';
+  } else if (code) {
+    msg.textContent = 'Oura a accepté. Voici le code d’autorisation :';
+    box.textContent = code; box.hidden = false; btn.hidden = false;
+    btn.addEventListener('click', function () {
+      navigator.clipboard.writeText(code).then(function () { btn.textContent = 'Copié'; }).catch(function () { btn.textContent = 'Sélectionne et copie le code'; });
+    });
+  } else {
+    msg.textContent = 'Aucun code dans l’adresse. Recommence l’autorisation depuis le lien d’Élianne.';
+  }
+</script>
+</body>
+</html>
