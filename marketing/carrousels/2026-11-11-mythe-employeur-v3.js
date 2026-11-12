@@ -1,4 +1,4 @@
-// Carrousel 4 diapositives, version 3 (11 nov. 2026, soir) : photo plein cadre partout, 4 diapositives maximum (Joël : « c'est beaucoup »).
+// Carrousel 4 diapositives, version 3 (11 nov. 2026, soir; textes revus le 12 nov. : assurance invalidité, sans répétition, offre = révision de la collective) : photo plein cadre partout, 4 diapositives maximum (Joël : « c'est beaucoup »).
 // Usage : node 2026-11-11-mythe-employeur-v3.js <dossier-de-construction>   (pexels-<id>.jpg doivent s'y trouver)
 // Rendu : chrome --headless=new --virtual-time-budget=8000 --window-size=1080,1350 --screenshot=<png> <html>
 const fs = require('fs');
@@ -54,21 +54,21 @@ const slides = [
   { photo: 8487720, pos: '50% 40%', bright: .78, veilTop: .6, strike: true,
     eyebrow: 'Mythe · Vérité', small: '« Mon assurance collective me suffit. »',
     h1: 'Elle part <em>quand vous partez.</em>', h1Size: 112,
-    sub: 'Changement d\'emploi, mise à pied, lancement d\'entreprise : vos avantages sociaux disparaissent, souvent au pire moment.' },
+    sub: 'Assurance vie, assurance invalidité : vos avantages sociaux appartiennent au contrat de votre employeur, pas à vous.' },
   { photo: 28666795, pos: '50% 85%', bright: .85, veilTop: .5, sat: .9,
-    eyebrow: 'Le jour où vous partez',
-    h1: 'Elle ne vous <em>suit pas.</em>',
-    items: ['Vous changez d\'emploi', 'Vous êtes mis à pied', 'Vous partez à votre compte'],
-    sub: 'L\'assurance vie et l\'assurance salaire de votre régime collectif appartiennent au contrat de l\'employeur. Dans les trois cas, elles prennent fin.' },
+    eyebrow: 'Le jour du départ',
+    h1: 'Trois situations, <em>un même résultat.</em>',
+    items: ['Vous changez d\'emploi', 'Vous êtes mis à pied', 'Vous vous lancez à votre compte'],
+    sub: 'La couverture prend fin. Certains régimes permettent de convertir une partie de l\'assurance vie, dans un court délai et à certaines conditions.' },
   { photo: 6753424, pos: '50% 50%', bright: .6, veilTop: .55, sat: .8,
     eyebrow: 'Le vrai piège',
-    h1: 'Vous assurer seul ? <em>Votre santé du moment compte.</em>', h1Size: 92,
-    sub: 'Dans la collective, personne ne vous pose de questions sur votre santé. Pour une assurance à vous, un diagnostic reçu entre-temps peut faire grimper la prime, ou fermer la porte.' },
+    h1: 'Seul, <em>votre santé du moment compte.</em>', h1Size: 100,
+    sub: 'Au travail, on vous a accepté sans questions médicales. Un diagnostic reçu entre-temps peut faire grimper la prime d\'une protection individuelle, ou fermer la porte.' },
   { photo: 33702577, pos: '50% 45%', bright: .95, veilTop: .45,
     eyebrow: 'Et vous ?',
-    h1: 'Sans la collective, <em>que vous resterait‑il ?</em>',
-    sub: 'Une assurance à vous ne dépend pas de votre emploi, et elle se prend pendant que tout va bien.',
-    cta: 'Faites le diagnostic assurance :<br><strong>jccapital.ca</strong> › Assurance<br>ou écrivez <strong>PLAN</strong> en message.',
+    h1: 'Que couvre vraiment <em>votre régime ?</em>',
+    sub: 'Je révise votre assurance collective avec vous : ce qui est inclus, ce qui manque, et votre besoin réel pour être bien protégé, quoi qu\'il arrive.',
+    cta: 'Révision sans frais de votre collective :<br><strong>jccapital.ca</strong> › Assurance<br>ou écrivez <strong>COLLECTIVE</strong> en message.',
     note: 'Joël Camiré, conseiller en sécurité financière (JC Capital).' },
 ];
 slides.forEach((s, k) => fs.writeFileSync(path.join(out, `${id}-0${k + 1}.html`), fr(page(s, k, slides.length))));
