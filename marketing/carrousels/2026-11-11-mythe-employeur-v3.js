@@ -68,7 +68,7 @@ const slides = [
     eyebrow: 'Et vous ?',
     h1: 'Que couvre vraiment <em>votre régime ?</em>',
     sub: 'Je révise votre assurance collective avec vous : ce qui est inclus, ce qui manque, et votre besoin réel pour être bien protégé, quoi qu\'il arrive.',
-    cta: 'Révision sans frais de votre collective :<br><strong>jccapital.ca</strong> › Assurance<br>ou écrivez <strong>COLLECTIVE</strong> en message.',
+    cta: 'Révision sans frais de votre collective :<br>écrivez <strong>COLLECTIVE</strong> en message<br>ou prenez rendez-vous sur <strong>jccapital.ca</strong>',
     note: 'Joël Camiré, conseiller en sécurité financière (JC Capital).' },
 ];
 slides.forEach((s, k) => fs.writeFileSync(path.join(out, `${id}-0${k + 1}.html`), fr(page(s, k, slides.length))));
