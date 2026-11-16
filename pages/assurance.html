@@ -587,6 +587,7 @@
                     <div class="progress-fill" id="progressBar"></div>
                 </div>
                 <!-- 1. QUESTIONNAIRE -->
+                <p class="no-print" style="color: var(--c-light-beige); opacity: 0.75; font-size: 0.85rem; margin: 0 0 10px;" data-fr=" " data-en="Note: this assessment is currently offered in French. An English version is available on request at admin@jccapital.ca."> </p>
                 <div id="sectionQuiz" class="layout-section">
                     <div id="questionContainer"></div>
                     <div class="nav-area"><button id="btnPrev" class="btn-prev hidden" onclick="prevQuestion()"
@@ -628,7 +629,7 @@
                             <div class="consent-container">
                                 <input type="checkbox" id="consentCheck" onchange="validateForm()">
                                 <label for="consentCheck" class="consent-text">
-                                    <strong>J'accepte d'être contacté(e)</strong> par un expert certifié de JC CAPITAL pour discuter de mon analyse.
+                                    <strong>J'accepte d'être contacté(e)</strong> par Joël Camiré, conseiller en sécurité financière (JC Capital), pour discuter de mon analyse.
                                 </label>
                             </div>
                             <button type="button" id="btnUnlock" class="btn-unlock" onclick="processLead()" disabled>DÉVERROUILLER MON ANALYSE ➤</button>
@@ -652,9 +653,7 @@
                         <div style="font-size: 2rem; margin-bottom: 10px;">📞 📧</div>
                         <div>Merci <strong id="outName" style="color: #fff;">Client</strong>. Votre dossier est
                             analysé. </div>
-                        <div style="margin-top: 15px; font-size: 1rem; line-height: 1.5;">Un
-                            expert de l'équipe <strong>JC CAPITAL</strong> communiquera avec
-                            vous<br>
+                        <div style="margin-top: 15px; font-size: 1rem; line-height: 1.5;"><strong>Joël Camiré</strong>, conseiller en sécurité financière (JC Capital), communiquera avec vous<br>
                             <strong>par téléphone ou par courriel</strong> au : <span id="outPhone"
                                 class="highlight-phone">...</span> d'ici 1 jour
                             ouvrable pour répondre à vos questions.
@@ -673,7 +672,7 @@
                             ne doit pas être interprété comme tel. <br><br>Les
                             stratégies présentées ici doivent impérativement être
                             validées lors d'une rencontre avec
-                            un conseiller certifié de <strong>JC CAPITAL</strong>,
+                            Joël Camiré, conseiller en sécurité financière (<strong>JC Capital</strong>), rattaché à SFL Gestion de patrimoine,
                             qui effectuera une Analyse des Besoins Financiers (ABF)
                             complète conforme aux normes de l'AMF et de la CSF.
                         </div>
@@ -779,7 +778,7 @@ let advancing = false; // verrou anti double-clic sur les choix uniques
 
 window.onload = function() {
     renderQuestion();
-    document.getElementById('leadForm').addEventListener('keypress', function (e) {
+    document.getElementById('leadForm').addEventListener('keydown', function (e) {
         if (e.key === 'Enter') {
             e.preventDefault();
             if (!document.getElementById('btnUnlock').disabled) { processLead(); }
@@ -831,7 +830,7 @@ function renderQuestion() {
             else isSelected = answers[q.id] === opt.val;
         }
         const iconClass = q.multi ? "check-style" : "radio-style";
-        html += `<div class="option-btn ${isSelected ? 'selected' : ''}" onclick="clickOption('${q.id}', '${opt.val}', ${q.multi})">
+        html += `<div class="option-btn ${isSelected ? 'selected' : ''}" role="${q.multi ? 'checkbox' : 'radio'}" tabindex="0" aria-checked="${isSelected}" onclick="clickOption('${q.id}', '${opt.val}', ${q.multi})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                     <div class="selector-icon ${iconClass}"></div>
                     <div class="option-content">
                         <span class="option-main">${opt.label}</span>
@@ -892,6 +891,7 @@ function prevQuestion() {
 
 function showLeadForm() {
     document.getElementById('sectionQuiz').classList.add('hidden');
+    document.getElementById('progressBar').style.width = '95%';
     const loader = document.getElementById('sectionLoader');
     loader.classList.remove('hidden');
     const statusText = document.getElementById('loaderStatus');
@@ -961,6 +961,9 @@ function computeStrategy() {
     if (has('famille', 'parents')) addLife("Soutien à vos parents / proches", 100000);
     if (has('heritage', 'maximize') || has('heritage', 'transfer') || has('patrimoine', 'vhigh')) {
         addLife(has('heritage', 'transfer') ? "Équité successorale et transfert d'entreprise" : "Legs et impôt au décès", 350000);
+    } else if (has('heritage', 'taxes')) {
+        const taxMap = { low: 50000, med: 100000, high: 250000 };
+        addLife("Impôt au décès (REER/FERR, gains latents)", taxMap[answers.patrimoine] || 100000);
     }
     if (lifeBase === 0) addLife("Frais finaux, dettes personnelles et impôts", 50000);
     s.lifeBase = lifeBase;
@@ -1116,7 +1119,7 @@ function processLead() {
     const finishFail = () => {
         // Le lead N'EST PAS perdu : sauvegarde locale + alerte visible dans le rapport
         try { localStorage.setItem('jc_lead_backup', JSON.stringify(templateParams)); } catch (e) {}
-        finishProcess(true);
+        finishProcess(true, templateParams);
     };
 
     // Tentative d'envoi, avec UNE reprise automatique avant de basculer en mode secours
@@ -1127,7 +1130,17 @@ function processLead() {
         });
 }
 
-function finishProcess(emailFailed) {
+function buildMailtoLink(p) {
+    // Résumé court seulement : les clients de courriel limitent la longueur d'un lien mailto
+    const full = (p && p.message) || '';
+    const cut = full.indexOf('--- RÉPONSES DÉTAILLÉES ---');
+    const resume = cut > -1 ? full.slice(0, cut) : full.slice(0, 1500);
+    const subject = 'Bilan de protection — ' + ((p && p.client_name) || 'client');
+    const nl = String.fromCharCode(10);
+    return 'mailto:admin@jccapital.ca?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(resume.trim() + nl + nl + '(Envoyé manuellement depuis jccapital.ca)');
+}
+
+function finishProcess(emailFailed, templateParams) {
     document.getElementById('sectionLead').classList.add('hidden');
     document.getElementById('sectionReport').classList.remove('hidden');
     document.getElementById('progressBar').style.width = '100%';
@@ -1135,7 +1148,11 @@ function finishProcess(emailFailed) {
         const box = document.createElement('div');
         box.className = 'no-print';
         box.style.cssText = "background: rgba(239,68,68,0.12); border: 1px solid #ef4444; border-radius: 10px; padding: 15px 20px; margin-bottom: 20px; color: var(--c-light-beige); line-height: 1.5;";
-        box.innerHTML = '<strong>Petit pépin technique :</strong> la transmission automatique de votre dossier a échoué. Pour être certain(e) d\'être rappelé(e), réservez directement votre consultation avec le bouton doré ci-dessous, ou appelez-nous au <a href="tel:+15813986747" style="color: var(--c-gold); font-weight:700;">581 398-6747</a>.';
+        const btnStyle = "display:inline-block; margin:10px 8px 0 0; padding:10px 18px; border-radius:8px; font-weight:700; text-decoration:none; font-size:0.95rem;";
+        box.innerHTML = '<strong>Votre bilan est prêt ci-dessous.</strong> La transmission automatique de votre dossier n’a pas fonctionné. Pour être certain(e) d’être rappelé(e), choisissez une option :<br>'
+            + '<a href="' + buildMailtoLink(templateParams) + '" style="' + btnStyle + ' background: var(--c-gold); color:#0A0908;">📧 Envoyer mon dossier par courriel</a>'
+            + '<a href="https://calendly.com/joelcamire-jccapital/consultation" target="_blank" rel="noopener" style="' + btnStyle + ' border:1px solid var(--c-gold); color: var(--c-gold);">📅 Réserver ma consultation</a>'
+            + '<a href="tel:+15813986747" style="' + btnStyle + ' border:1px solid var(--c-gold); color: var(--c-gold);">📞 581 398-6747</a>';
         const report = document.getElementById('sectionReport');
         report.insertBefore(box, report.firstChild);
     }
