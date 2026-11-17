@@ -497,7 +497,7 @@
             text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;
         }
         .dashboard-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
             gap: 15px; text-align: center; margin-top: 15px;
         }
         .dashboard-cell {
@@ -515,6 +515,104 @@
         }
         .dashboard-value.gold { color: var(--c-gold); }
 
+        /* --- RAPPORT VISUEL (2026-11) --- */
+        .vuln-hero {
+            display: grid; grid-template-columns: 150px 1fr; gap: 24px; align-items: center;
+            padding: 24px; margin-bottom: 24px; border-radius: 14px;
+            border: 1px solid var(--vc); background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(0,0,0,0.25));
+            box-shadow: 0 0 40px -20px var(--vc);
+        }
+        .gauge { width: 150px; height: 150px; display: block; }
+        .gauge-arc { transition: stroke-dashoffset 1.2s ease-out; }
+        .gauge-num { font-size: 34px; font-weight: 800; fill: var(--c-light-beige); }
+        .gauge-sub { font-size: 11px; fill: var(--c-light-beige); opacity: 0.6; }
+        .vuln-kicker { font-size: 0.75rem; letter-spacing: 2px; color: var(--c-gold); font-weight: 700; }
+        .vuln-level { font-size: 2.2rem; font-weight: 800; color: var(--vc); line-height: 1.1; margin: 4px 0 8px; }
+        .vuln-desc { color: var(--c-light-beige); opacity: 0.9; line-height: 1.6; margin: 0; }
+        .vuln-desc strong { color: #fff; }
+
+        .dashboard-cell { border: 1px solid rgba(255,255,255,0.06); }
+        .dashboard-icon { font-size: 1.6rem; line-height: 1; margin-bottom: 6px; }
+        .dashboard-sub { font-size: 0.72rem; color: var(--c-light-beige); opacity: 0.55; margin-top: 4px; }
+        .breakdown { margin-top: 14px; color: var(--c-light-beige); }
+        .breakdown summary { cursor: pointer; color: var(--c-gold); font-size: 0.9rem; font-weight: 600; list-style: none; }
+        .breakdown summary::before { content: "▸ "; }
+        .breakdown[open] summary::before { content: "▾ "; }
+        .breakdown ul { list-style: none; padding: 0; margin: 10px 0 0; }
+        .breakdown li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.08); font-size: 0.9rem; }
+        .breakdown li strong { color: #fff; white-space: nowrap; }
+
+        .section-kicker { font-size: 0.75rem; letter-spacing: 2px; color: var(--c-gold); font-weight: 700; }
+        .prio-intro { text-align: center; margin: 30px 0 16px; }
+        .prio-intro h3 { color: var(--c-light-beige); font-size: 1.5rem; margin: 4px 0 0; }
+
+        .prio-card {
+            position: relative; margin-bottom: 18px; padding: 22px; border-radius: 14px;
+            background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-left: 5px solid var(--pc);
+        }
+        .prio-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+        .prio-badge { font-size: 0.7rem; letter-spacing: 2px; font-weight: 800; color: #0A0908; background: var(--pc); padding: 4px 10px; border-radius: 999px; }
+        .prio-icon { font-size: 1.5rem; line-height: 1; }
+        .prio-title { font-size: 1.25rem; font-weight: 700; color: var(--c-light-beige); }
+        .prio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+        .prio-amount { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 12px 14px; }
+        .prio-amount-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--c-light-beige); opacity: 0.6; }
+        .prio-amount-value { font-size: 1.35rem; font-weight: 800; color: #fff; margin-top: 4px; }
+        .prio-urgency { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; }
+        .urgency { width: 100%; }
+        .urgency-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--c-light-beige); margin-bottom: 6px; font-weight: 600; }
+        .urgency-track { height: 10px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
+        .urgency-fill { height: 100%; border-radius: 999px; transition: width 1s ease-out; }
+        .prio-list { margin: 8px 0 0; padding-left: 20px; }
+        .prio-list li { margin-bottom: 7px; }
+        .prio-sublist { margin: 6px 0 0; padding-left: 18px; }
+        .prio-cta { display: inline-block; margin-top: 14px; color: var(--c-gold); font-weight: 700; text-decoration: none; border-bottom: 1px solid transparent; }
+        .prio-cta:hover { border-bottom-color: var(--c-gold); }
+
+        .concern-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 12px; }
+        .concern { display: flex; gap: 12px; align-items: flex-start; background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px 14px; color: var(--c-light-beige); line-height: 1.5; font-size: 0.95rem; }
+        .concern-icon { font-size: 1.4rem; line-height: 1; }
+        .concern strong { color: #fff; }
+        .concern span { opacity: 0.85; }
+
+        .strengths { border-left: 4px solid #22c55e; }
+        .urgency-box { border-left: 4px solid #ef4444; }
+        .start-box { border-left: 4px solid #22c55e; }
+        .rec-text ul { margin-top: 8px; }
+        .rec-text li { margin-bottom: 6px; }
+
+        .timeline { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+        .tl-step { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; padding: 6px 14px 6px 6px; color: var(--c-light-beige); font-weight: 600; font-size: 0.9rem; }
+        .tl-num { width: 28px; height: 28px; border-radius: 50%; background: var(--c-gold); color: #0A0908; display: grid; place-items: center; font-weight: 800; font-size: 0.85rem; }
+        .tl-final .tl-num { background: #22c55e; }
+
+        .final-cta { text-align: center; margin-top: 30px; padding: 32px 22px; border: 2px solid var(--c-gold); border-radius: 16px; background: radial-gradient(circle at top, rgba(198,172,143,0.14), rgba(198,172,143,0.03)); }
+        .final-cta h3 { color: var(--c-gold); font-size: 1.5rem; margin: 0 0 10px; }
+        .final-cta p { color: var(--c-light-beige); opacity: 0.9; line-height: 1.6; margin: 0 auto 16px; max-width: 560px; }
+        .cta-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 20px; }
+        .cta-chips span { font-size: 0.8rem; color: var(--c-light-beige); border: 1px solid rgba(198,172,143,0.4); border-radius: 999px; padding: 4px 12px; }
+        .cta-main { display: inline-block; background: var(--c-gold); color: #0A0908; font-weight: 800; font-size: 1.1rem; padding: 16px 34px; border-radius: 12px; text-decoration: none; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 10px 30px -10px var(--c-gold); transition: transform .15s ease; }
+        .cta-main:hover { transform: translateY(-2px); }
+        .cta-alt { margin-top: 14px !important; font-size: 0.95rem; }
+        .cta-alt a { color: var(--c-gold); font-weight: 700; text-decoration: none; }
+
+        /* Barre d'action fixe (visible une fois le rapport affiché) */
+        .cta-bar { position: fixed; left: 0; right: 0; bottom: -120px; z-index: 900; display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; padding: 12px 16px; background: rgba(10,9,8,0.96); border-top: 1px solid var(--c-gold); backdrop-filter: blur(8px); transition: bottom .4s ease; }
+        .cta-bar.visible { bottom: 0; }
+        .cta-bar-text { color: var(--c-light-beige); font-size: 0.95rem; }
+        .cta-bar-text strong { color: #fff; }
+        .cta-bar-btn { background: var(--c-gold); color: #0A0908; font-weight: 800; padding: 10px 18px; border-radius: 10px; text-decoration: none; white-space: nowrap; }
+        .cta-bar-tel { color: var(--c-gold); font-weight: 700; text-decoration: none; white-space: nowrap; }
+        .cta-bar-close { background: none; border: none; color: var(--c-light-beige); opacity: 0.6; font-size: 1.2rem; cursor: pointer; padding: 4px 8px; }
+        body.has-cta-bar { padding-bottom: 80px; }
+
+        @media (max-width: 768px) {
+            .vuln-hero { grid-template-columns: 1fr; text-align: center; }
+            .vuln-gauge { display: flex; justify-content: center; }
+            .prio-grid { grid-template-columns: 1fr; }
+            .cta-bar-text { display: none; }
+        }
+
         /* --- IMPRESSION : rapport lisible sur papier (fond blanc, texte foncé) --- */
         .print-only { display: none; }
 
@@ -530,7 +628,11 @@
             #header-placeholder, #footer-placeholder, .progress-bar-container,
             button, .no-print { display: none !important; }
             .glass-panel, .assessment-container, .report-section, .report-dashboard,
-            .dashboard-cell, .contact-box { background: #fff !important; backdrop-filter: none !important; }
+            .dashboard-cell, .contact-box, .prio-card, .vuln-hero, .prio-amount, .prio-urgency, .concern, .tl-step { background: #fff !important; backdrop-filter: none !important; box-shadow: none !important; }
+            .prio-card, .vuln-hero { page-break-inside: avoid; border-color: #b5b5b5 !important; }
+            .gauge-num, .gauge-sub { fill: #1a1a1a !important; }
+            .prio-badge, .tl-num { color: #fff !important; }
+            .cta-bar { display: none !important; }
             .assessment-container { padding: 0; margin: 0; border: none !important; min-height: 0; }
             .report-section, .report-dashboard, .contact-box, .dashboard-cell { border-color: #b5b5b5 !important; }
             .report-section, .report-dashboard, .contact-box, .dashboard-cell { page-break-inside: avoid; }
@@ -577,10 +679,9 @@
                     data-en="Financial Protection <span style='color: var(--c-gold); font-style: italic;'>Assessment</span>">
                     Bilan de Protection <span style="color: var(--c-gold); font-style: italic;">Financière</span></h1>
                 <p class="sub-title" style="font-size: 1.1rem; opacity: 0.8;"
-                    data-fr="Identifiez vos vulnérabilités financières en 2 minutes. Ce diagnostic analyse vos risques (Vie, Invalidité, Maladie) pour générer une stratégie de protection sur mesure."
-                    data-en="Identify your financial vulnerabilities in 2 minutes. This diagnosis analyzes your risks (Life, Disability, Critical Illness) to generate a tailored protection strategy.">
-                    Identifiez vos vulnérabilités financières en 2 minutes. Ce diagnostic analyse vos risques
-                    (Vie, Invalidité, Maladie) pour générer une stratégie de protection sur mesure.</p>
+                    data-fr="En 2 minutes, obtenez votre indice de vulnérabilité, vos cibles de protection (vie, invalidité, maladie grave) et un plan d'action classé par urgence. Gratuit, confidentiel, sans engagement."
+                    data-en="In 2 minutes, get your vulnerability index, your protection targets (life, disability, critical illness) and an action plan ranked by urgency. Free, confidential, no obligation.">
+                    En 2 minutes, obtenez votre indice de vulnérabilité, vos cibles de protection (vie, invalidité, maladie grave) et un plan d'action classé par urgence. Gratuit, confidentiel, sans engagement.</p>
             </div>
             <div class="assessment-container glass-panel">
                 <div class="progress-bar-container">
@@ -645,8 +746,7 @@
                         <strong>JC CAPITAL</strong> — Bilan de Protection Financière · jccapital.ca · 581 398-6747 · admin@jccapital.ca
                     </div>
                     <div style="text-align: center; margin-bottom: 30px;">
-                        <h2 style="font-size: 2rem; color: var(--c-gold);">Votre Plan
-                            Stratégique</h2>
+                        <h2 style="font-size: 2rem; color: var(--c-gold);">Votre plan de protection personnalisé</h2>
                     </div>
                     <!-- CONFIRMATION DE CONTACT -->
                     <div class="contact-box">
@@ -658,6 +758,7 @@
                                 class="highlight-phone">...</span> d'ici 1 jour
                             ouvrable pour répondre à vos questions.
                         </div>
+                        <div id="outCopyNote" style="display:none; margin-top: 12px; font-size: 0.9rem; opacity: 0.85;">📬 Une copie de ce bilan vient d'être envoyée à <strong id="outEmail" style="color:#fff;">votre courriel</strong>.</div>
                     </div>
                     <div id="reportContent"></div>
                     <div style="text-align: center; margin-top: 30px;"><button onclick="window.print()"
@@ -691,6 +792,12 @@
       </p>
     </div>
 
+    <div id="ctaBar" class="cta-bar no-print" aria-live="polite">
+        <span class="cta-bar-text"><strong>Prêt à valider ces chiffres ?</strong> 30 minutes gratuites avec Joël, sans engagement.</span>
+        <a class="cta-bar-btn" href="https://calendly.com/joelcamire-jccapital/consultation" target="_blank" rel="noopener">📅 Réserver</a>
+        <a class="cta-bar-tel" href="tel:+15813986747">📞 581 398-6747</a>
+        <button class="cta-bar-close" aria-label="Fermer" onclick="this.parentElement.classList.remove('visible')">✕</button>
+    </div>
     <div id="footer-placeholder"></div>
     <script>
 // --- VALIDATION & AUTOCOMPLETE COURRIEL ---
@@ -1084,16 +1191,69 @@ function buildEmailBody(s, name, phone, email) {
     return body;
 }
 
-function sendLeadEmail(templateParams) {
-    return emailjs.send('service_b4f4ooy', 'template_qphmqft', templateParams);
+// --- ENVOI DU DOSSIER ---
+// Voie principale : point de réception Google (compte perso de Joël → livraison fiable dans la boîte pro).
+// Secours 1 : EmailJS. Secours 2 : copie locale + courriel pré-rempli dans la boîte d'alerte.
+const ENDPOINT_BILAN = 'https://script.google.com/macros/s/AKfycbzg_-Gb64WLCjwFndK8ZMMKgQUAfeoZ0y5goP6Edq3gC9vRYhLI8ygbYH5HENpDYvRVBw/exec';
+
+function labelOf(q, val) { const o = q.options.find(o => o.val === val); return o ? o.label : val; }
+
+function buildLeadPayload(s, name, phone, email) {
+    const reponses = [];
+    questions.forEach(q => {
+        const v = answers[q.id];
+        if (v === undefined) return;
+        reponses.push({ q: q.title, a: Array.isArray(v) ? v.map(x => labelOf(q, x)) : labelOf(q, v) });
+    });
+    return {
+        kind: 'bilan',
+        client_name: name, client_phone: phone, client_email: email, consent: true,
+        page: location.href, date: new Date().toISOString(),
+        resume: buildEmailBody(s, name, phone, email),
+        strategy: {
+            lifeText: '~ ' + formatCurrency(s.lifeBase),
+            lifeBreakdown: s.lifeBreakdown.map(b => ({ label: b.label, amount: formatCurrency(b.amount) })),
+            hasWorkIncome: s.hasWorkIncome,
+            diText: s.hasWorkIncome ? s.diText : 'Non applicable (aucun revenu de travail)',
+            carence: s.hasWorkIncome ? s.carence : '',
+            mgText: '~ ' + formatCurrency(s.mgBase),
+            budgetText: s.budgetText,
+            priorityOrder: s.priorityOrder,
+            vulnerabilite: s.vulnScore + '/100 (' + s.vulnLabel + ')'
+        },
+        reponses
+    };
+}
+
+function sendViaGoogle(payload) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 20000);
+    return fetch(ENDPOINT_BILAN, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload), signal: ctrl.signal })
+        .then(r => r.json())
+        .then(j => { clearTimeout(timer); if (!j || j.ok !== true) throw new Error('google: ' + JSON.stringify(j)); return j; });
+}
+
+function sendViaEmailJS(payload) {
+    if (typeof emailjs === 'undefined') return Promise.reject(new Error('emailjs absent'));
+    return emailjs.send('service_b4f4ooy', 'template_qphmqft', {
+        client_name: payload.client_name, client_phone: payload.client_phone, client_email: payload.client_email,
+        message: payload.resume, to_email: 'admin@jccapital.ca'
+    });
+}
+
+function sendLead(payload) {
+    return sendViaGoogle(payload)
+        .catch(() => new Promise(r => setTimeout(r, 1500)).then(() => sendViaGoogle(payload)))
+        .catch(() => sendViaEmailJS(payload));
 }
 
 function retryBackupLead() {
     try {
         const backup = localStorage.getItem('jc_lead_backup');
         if (!backup) return;
-        const params = JSON.parse(backup);
-        sendLeadEmail(params).then(() => { localStorage.removeItem('jc_lead_backup'); }).catch(() => {});
+        let p = JSON.parse(backup);
+        if (!p.kind) p = { kind: 'bilan', client_name: p.client_name, client_phone: p.client_phone, client_email: p.client_email, resume: p.message || '', strategy: {}, reponses: [] };
+        sendLead(p).then(() => { localStorage.removeItem('jc_lead_backup'); }).catch(() => {});
     } catch (e) { /* localStorage indisponible : tant pis */ }
 }
 
@@ -1110,29 +1270,22 @@ function processLead() {
 
     document.getElementById('outName').innerText = name;
     document.getElementById('outPhone').innerText = phone;
+    const outEmail = document.getElementById('outEmail'); if (outEmail) outEmail.innerText = email;
 
     const strategy = generateReportHTML();
-    const emailBody = buildEmailBody(strategy, name, phone, email);
-    const templateParams = { client_name: name, client_phone: phone, client_email: email, message: emailBody, to_email: "admin@jccapital.ca" };
+    const payload = buildLeadPayload(strategy, name, phone, email);
 
-    const finishOk = () => { finishProcess(false); };
-    const finishFail = () => {
-        // Le lead N'EST PAS perdu : sauvegarde locale + alerte visible dans le rapport
-        try { localStorage.setItem('jc_lead_backup', JSON.stringify(templateParams)); } catch (e) {}
-        finishProcess(true, templateParams);
-    };
-
-    // Tentative d'envoi, avec UNE reprise automatique avant de basculer en mode secours
-    sendLeadEmail(templateParams)
-        .then(finishOk)
+    sendLead(payload)
+        .then(() => finishProcess(false, payload))
         .catch(() => {
-            setTimeout(() => { sendLeadEmail(templateParams).then(finishOk).catch(finishFail); }, 1500);
+            // Le lead N'EST PAS perdu : sauvegarde locale + alerte visible dans le rapport
+            try { localStorage.setItem('jc_lead_backup', JSON.stringify(payload)); } catch (e) {}
+            finishProcess(true, payload);
         });
 }
 
 function buildMailtoLink(p) {
-    // Résumé court seulement : les clients de courriel limitent la longueur d'un lien mailto
-    const full = (p && p.message) || '';
+    const full = (p && p.resume) || '';
     const cut = full.indexOf('--- RÉPONSES DÉTAILLÉES ---');
     const resume = cut > -1 ? full.slice(0, cut) : full.slice(0, 1500);
     const subject = 'Bilan de protection — ' + ((p && p.client_name) || 'client');
@@ -1140,259 +1293,267 @@ function buildMailtoLink(p) {
     return 'mailto:admin@jccapital.ca?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(resume.trim() + nl + nl + '(Envoyé manuellement depuis jccapital.ca)');
 }
 
-function finishProcess(emailFailed, templateParams) {
+function finishProcess(emailFailed, payload) {
     document.getElementById('sectionLead').classList.add('hidden');
     document.getElementById('sectionReport').classList.remove('hidden');
     document.getElementById('progressBar').style.width = '100%';
+    const copyNote = document.getElementById('outCopyNote');
+    if (copyNote) copyNote.style.display = emailFailed ? 'none' : 'block';
+    const bar = document.getElementById('ctaBar');
+    if (bar) bar.classList.add('visible');
     if (emailFailed) {
         const box = document.createElement('div');
         box.className = 'no-print';
         box.style.cssText = "background: rgba(239,68,68,0.12); border: 1px solid #ef4444; border-radius: 10px; padding: 15px 20px; margin-bottom: 20px; color: var(--c-light-beige); line-height: 1.5;";
         const btnStyle = "display:inline-block; margin:10px 8px 0 0; padding:10px 18px; border-radius:8px; font-weight:700; text-decoration:none; font-size:0.95rem;";
         box.innerHTML = '<strong>Votre bilan est prêt ci-dessous.</strong> La transmission automatique de votre dossier n’a pas fonctionné. Pour être certain(e) d’être rappelé(e), choisissez une option :<br>'
-            + '<a href="' + buildMailtoLink(templateParams) + '" style="' + btnStyle + ' background: var(--c-gold); color:#0A0908;">📧 Envoyer mon dossier par courriel</a>'
+            + '<a href="' + buildMailtoLink(payload) + '" style="' + btnStyle + ' background: var(--c-gold); color:#0A0908;">📧 Envoyer mon dossier par courriel</a>'
             + '<a href="https://calendly.com/joelcamire-jccapital/consultation" target="_blank" rel="noopener" style="' + btnStyle + ' border:1px solid var(--c-gold); color: var(--c-gold);">📅 Réserver ma consultation</a>'
             + '<a href="tel:+15813986747" style="' + btnStyle + ' border:1px solid var(--c-gold); color: var(--c-gold);">📞 581 398-6747</a>';
         const report = document.getElementById('sectionReport');
         report.insertBefore(box, report.firstChild);
     }
+    window.scrollTo({ top: document.querySelector('.assessment-container').offsetTop - 20, behavior: 'smooth' });
 }
 
 // --- RAPPORT ---
+const CALENDLY_URL = 'https://calendly.com/joelcamire-jccapital/consultation';
+
+function gaugeSVG(score, color) {
+    const r = 52, c = 2 * Math.PI * r, off = c * (1 - score / 100);
+    return `<svg viewBox="0 0 120 120" class="gauge" role="img" aria-label="Indice de vulnérabilité ${score} sur 100">
+        <circle cx="60" cy="60" r="${r}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10"/>
+        <circle cx="60" cy="60" r="${r}" fill="none" stroke="${color}" stroke-width="10" stroke-linecap="round"
+            stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 60 60)" class="gauge-arc"/>
+        <text x="60" y="56" text-anchor="middle" class="gauge-num">${score}</text>
+        <text x="60" y="76" text-anchor="middle" class="gauge-sub">/ 100</text>
+    </svg>`;
+}
+
+function urgencyMeter(score, color) {
+    const pct = Math.max(8, Math.min(100, Math.round(score)));
+    const label = pct >= 80 ? 'Urgence très élevée' : pct >= 65 ? 'Urgence élevée' : pct >= 50 ? 'Urgence modérée' : 'À planifier';
+    return `<div class="urgency"><div class="urgency-label"><span>${label}</span><span>${pct} %</span></div><div class="urgency-track"><div class="urgency-fill" style="width:${pct}%; background:${color};"></div></div></div>`;
+}
+
+function prioCard(opts) {
+    // opts: { type, icon, color, score, title, amount, amountLabel, enjeu, items[] }
+    return `<div class="prio-card" style="--pc:${opts.color};">
+        <div class="prio-head">
+            <div class="prio-badge">PRIORITÉ {IDX}</div>
+            <div class="prio-icon">${opts.icon}</div>
+            <div class="prio-title">${opts.title}</div>
+        </div>
+        <div class="prio-grid">
+            <div class="prio-amount"><div class="prio-amount-label">${opts.amountLabel}</div><div class="prio-amount-value">${opts.amount}</div></div>
+            <div class="prio-urgency">${urgencyMeter(opts.score, opts.color)}</div>
+        </div>
+        <div class="rec-text"><strong>L'enjeu :</strong> ${opts.enjeu}</div>
+        <div class="rec-text" style="margin-top:10px;"><strong>🎯 La solution :</strong><ul class="prio-list">${opts.items.map(i => `<li>${i}</li>`).join('')}</ul></div>
+        <a class="prio-cta no-print" href="${CALENDLY_URL}" target="_blank" rel="noopener">En parler avec Joël →</a>
+    </div>`;
+}
+
 function generateReportHTML() {
     const container = document.getElementById('reportContent');
     const has = hasAns;
     const s = computeStrategy();
     let html = "";
 
-    // --- 1. TABLEAU DE BORD ---
-    const diCell = s.hasWorkIncome
-        ? `<div class="dashboard-cell"><div class="dashboard-label">Protection de Revenu (rente mensuelle*)</div><div class="dashboard-value">${s.diText}</div></div>`
-        : `<div class="dashboard-cell"><div class="dashboard-label">Stratégie Successorale</div><div class="dashboard-value">Prioritaire</div></div>`;
-    html += `<div class="report-dashboard">
-        <h3>Tableau de bord : Cibles de protection</h3>
-        <div class="dashboard-grid">
-            <div class="dashboard-cell"><div class="dashboard-label">Capital Décès (montant versé à vos proches)</div><div class="dashboard-value">~ ${formatCurrency(s.lifeBase)}</div></div>
-            ${diCell}
-            <div class="dashboard-cell"><div class="dashboard-label">Montant Maladie Grave</div><div class="dashboard-value">~ ${formatCurrency(s.mgBase)}</div></div>
-            <div class="dashboard-cell highlight"><div class="dashboard-label gold">Votre Budget Mensuel</div><div class="dashboard-value gold">${s.budgetText}</div></div>
+    // --- 0. INDICE DE VULNÉRABILITÉ ---
+    let v = 35;
+    if (has('liquidites', 'critical')) v += 20; else if (has('liquidites', 'med')) v += 10; else if (has('liquidites', 'safe')) v -= 5;
+    if (has('collectif', 'none')) v += 10; else if (has('collectif', 'unknown')) v += 5; else if (has('collectif', 'taxable')) v += 3; else if (has('collectif', 'good')) v -= 10;
+    if (has('dettes_hypo', 'none')) v += 12; else if (has('dettes_hypo', 'bank')) v += 6;
+    if (has('ante_familiaux', 'yes_2')) v += 10; else if (has('ante_familiaux', 'yes_1')) v += 5;
+    if (has('conjoint_travail', 'no')) v += 8; else if (has('conjoint_travail', 'yes_uninsured')) v += 4;
+    if (has('famille', 'kids') || has('famille', 'special_needs')) v += 8;
+    if (has('patrimoine', 'low')) v += 8; else if (has('patrimoine', 'vhigh')) v -= 10;
+    if (has('frais_generaux', 'high')) v += 5;
+    ['partner', 'loan', 'key'].forEach(k => { if (has('obligations_biz', k)) v += 3; });
+    if (has('risque', 'future')) v += 3;
+    if (s.isRetiree) v -= 5;
+    s.vulnScore = Math.max(8, Math.min(96, Math.round(v)));
+    if (s.vulnScore < 30) { s.vulnLabel = 'Faible'; s.vulnColor = '#22c55e'; }
+    else if (s.vulnScore < 50) { s.vulnLabel = 'Modérée'; s.vulnColor = '#f59e0b'; }
+    else if (s.vulnScore < 70) { s.vulnLabel = 'Élevée'; s.vulnColor = '#f97316'; }
+    else { s.vulnLabel = 'Critique'; s.vulnColor = '#ef4444'; }
+
+    // Zones à sécuriser (comptées pour le texte du héros)
+    const zones = [];
+    if (s.hasWorkIncome && !has('collectif', 'good')) zones.push('votre revenu');
+    if (!has('dettes_hypo', 'perso') && !has('dettes_hypo', 'na') && s.lifeBase > 50000) zones.push('vos proches');
+    zones.push('votre santé');
+    if (s.isCorp) zones.push(s.isAgri ? 'votre ferme' : 'votre entreprise');
+
+    // --- 1. HÉROS ---
+    html += `<div class="vuln-hero" style="--vc:${s.vulnColor};">
+        <div class="vuln-gauge">${gaugeSVG(s.vulnScore, s.vulnColor)}</div>
+        <div class="vuln-text">
+            <div class="vuln-kicker">INDICE DE VULNÉRABILITÉ FINANCIÈRE</div>
+            <div class="vuln-level">${s.vulnLabel}</div>
+            <p class="vuln-desc">Vos réponses révèlent <strong>${zones.length} zone${zones.length > 1 ? 's' : ''} à sécuriser</strong> : ${zones.join(', ')}. Plus l'indice est haut, plus un imprévu (maladie, accident, décès) frapperait fort financièrement. Voici votre plan, dans l'ordre.</p>
         </div>
-        ${s.hasWorkIncome ? '<p style="font-size:0.8rem; opacity:0.65; margin-top:8px;">* Rente : montant qui vous serait versé chaque mois si vous ne pouviez plus travailler.</p>' : ''}
     </div>`;
 
-    // --- 2. DÉCOMPOSITION DU CAPITAL DÉCÈS (transparence = confiance) ---
-    html += `<div class="report-section" style="border-left: 4px solid rgba(198,172,143,0.5);">
-        <div class="section-header" style="color: var(--c-gold);">D'OÙ VIENT VOTRE CIBLE DE ${formatCurrency(s.lifeBase)} ?</div>
-        <div class="rec-text"><ul style="margin-top:8px;">
-            ${s.lifeBreakdown.map(b => `<li><strong>${b.label} :</strong> ${formatCurrency(b.amount)}</li>`).join('')}
-        </ul></div>
+    // --- 2. TABLEAU DE BORD ---
+    const diCell = s.hasWorkIncome
+        ? `<div class="dashboard-cell"><div class="dashboard-icon">🛡️</div><div class="dashboard-label">Protection de revenu</div><div class="dashboard-value">${s.diText}</div><div class="dashboard-sub">rente mensuelle si vous ne pouvez plus travailler</div></div>`
+        : `<div class="dashboard-cell"><div class="dashboard-icon">🏛️</div><div class="dashboard-label">Stratégie successorale</div><div class="dashboard-value">Prioritaire</div><div class="dashboard-sub">impôt au décès et transmission</div></div>`;
+    html += `<div class="report-dashboard">
+        <h3>Vos cibles de protection</h3>
+        <div class="dashboard-grid">
+            <div class="dashboard-cell"><div class="dashboard-icon">👨‍👩‍👧</div><div class="dashboard-label">Capital décès</div><div class="dashboard-value">~ ${formatCurrency(s.lifeBase)}</div><div class="dashboard-sub">versé à vos proches, sans impôt</div></div>
+            ${diCell}
+            <div class="dashboard-cell"><div class="dashboard-icon">🏥</div><div class="dashboard-label">Maladie grave</div><div class="dashboard-value">~ ${formatCurrency(s.mgBase)}</div><div class="dashboard-sub">montant forfaitaire au diagnostic</div></div>
+            <div class="dashboard-cell highlight"><div class="dashboard-icon">💛</div><div class="dashboard-label gold">Votre budget mensuel</div><div class="dashboard-value gold">${s.budgetText}</div><div class="dashboard-sub">tel que déclaré</div></div>
+        </div>
+        <details class="breakdown no-print"><summary>D'où vient la cible de ${formatCurrency(s.lifeBase)} ?</summary>
+            <ul>${s.lifeBreakdown.map(b => `<li><span>${b.label}</span><strong>${formatCurrency(b.amount)}</strong></li>`).join('')}</ul>
+        </details>
+        <div class="print-only" style="margin-top:10px; font-size:0.85rem;"><strong>Composition du capital décès :</strong> ${s.lifeBreakdown.map(b => `${b.label} ${formatCurrency(b.amount)}`).join(' · ')}</div>
     </div>`;
 
-    // --- 3. MIROIR DES PRÉOCCUPATIONS (écho émotionnel) ---
+    // --- 3. MIROIR DES PRÉOCCUPATIONS ---
     if (answers.risque && answers.risque.length > 0) {
         const concernMap = {
-            house: "<strong>« Perdre mon logement / mes actifs »</strong> — le capital décès et la protection de revenu ci-dessous sont précisément dimensionnés pour que vos proches gardent leur milieu de vie.",
-            debt: "<strong>« Transmettre mes dettes à autrui »</strong> — vos protections sont calculées pour éteindre vos obligations, afin que personne n'hérite de vos paiements.",
-            burden: "<strong>« Perdre mon autonomie financière »</strong> — la protection de revenu et la maladie grave existent exactement pour que vous n'ayez jamais à dépendre de vos proches.",
-            reer_drain: "<strong>« Vider mes épargnes pour des soins »</strong> — le capital maladie grave est votre bouclier : il évite de piger dans vos placements au pire moment.",
-            future: "<strong>« Devenir inassurable »</strong> — c'est la seule chose qu'aucun conseiller ne peut réparer après coup : chaque année d'attente augmente le risque qu'un changement de santé ferme des portes. Agir pendant que votre dossier est bon est la seule vraie garantie."
+            house: ["🏠", "Perdre mon logement / mes actifs", "le capital décès et la protection de revenu ci-dessous sont dimensionnés pour que vos proches gardent leur milieu de vie."],
+            debt: ["⚖️", "Transmettre mes dettes à autrui", "vos protections sont calculées pour éteindre vos obligations, afin que personne n'hérite de vos paiements."],
+            burden: ["🧭", "Perdre mon autonomie financière", "la protection de revenu et la maladie grave existent exactement pour que vous n'ayez jamais à dépendre de vos proches."],
+            reer_drain: ["🏦", "Vider mes épargnes pour des soins", "le capital maladie grave est votre bouclier : il évite de piger dans vos placements au pire moment."],
+            future: ["⏳", "Devenir inassurable", "c'est la seule chose qu'aucun conseiller ne peut réparer après coup. Agir pendant que votre dossier de santé est bon est la seule vraie garantie."]
         };
-        const items = answers.risque.filter(v => concernMap[v]).map(v => `<li style="margin-bottom:8px;">${concernMap[v]}</li>`);
+        const items = answers.risque.filter(x => concernMap[x]).map(x => `<div class="concern"><div class="concern-icon">${concernMap[x][0]}</div><div><strong>« ${concernMap[x][1]} »</strong><br><span>${concernMap[x][2]}</span></div></div>`);
         if (items.length) {
-            html += `<div class="report-section" style="border-left: 4px solid var(--c-gold);">
-                <div class="section-header" style="color: var(--c-gold);">CE QUE VOUS NOUS AVEZ DIT VOULOIR ÉVITER</div>
-                <div class="rec-text"><ul style="margin-top:8px;">${items.join('')}</ul></div>
-            </div>`;
+            html += `<div class="report-section"><div class="section-header">Ce que vous voulez éviter</div><div class="concern-grid">${items.join('')}</div></div>`;
         }
     }
 
-    // --- 4. POURQUOI AGIR MAINTENANT (urgence légitime et personnalisée) ---
-    const urgencyReasons = [];
-    const ageUrgency = {
-        '19-34': "Vos primes sont <strong>au plus bas de votre vie</strong> : chaque contrat signé maintenant verrouille ce tarif pour des décennies.",
-        '35-45': "La quarantaine est la <strong>dernière fenêtre des tarifs avantageux</strong> — les primes grimpent à chaque anniversaire.",
-        '46-55': "À votre âge, <strong>chaque anniversaire augmente définitivement la prime</strong>, et les enjeux de santé qui ferment des portes se multiplient.",
-        'over55': "Passé 55 ans, <strong>l'assurabilité devient le nerf de la guerre</strong> : chaque année d'attente peut coûter cher — ou fermer définitivement des options."
-    };
-    if (ageUrgency[answers.age]) urgencyReasons.push(ageUrgency[answers.age]);
-    if (has('ante_familiaux', 'yes_2') || has('ante_familiaux', 'yes_1')) urgencyReasons.push("Vos <strong>antécédents familiaux</strong> peuvent influencer la tarification : plus le dossier est ouvert tôt, meilleures sont les conditions obtenues.");
-    if (has('liquidites', 'critical') && s.hasWorkIncome) urgencyReasons.push("Avec <strong>moins d'un mois de réserve</strong>, un seul arrêt de travail imprévu enclenche l'endettement immédiatement — c'est la vulnérabilité n°1 de votre profil.");
-    if (has('dettes_hypo', 'none')) urgencyReasons.push("Votre hypothèque n'est <strong>couverte par aucune assurance</strong> : en cas de décès, vos proches assumeraient seuls chaque paiement.");
-    if (urgencyReasons.length > 0) {
-        html += `<div class="report-section" style="border-left: 4px solid #ef4444;">
-            <div class="section-header" style="color: #ef4444;">⏳ POURQUOI AGIR MAINTENANT</div>
-            <div class="rec-text"><ul style="margin-top:8px;">${urgencyReasons.slice(0, 3).map(r => `<li style="margin-bottom:8px;">${r}</li>`).join('')}</ul></div>
-        </div>`;
-    }
-
-    // --- 5. POINTS FORTS (l'honnêteté qui crédibilise le reste) ---
-    const strengths = [];
-    if (has('collectif', 'good')) strengths.push("Votre assurance collective est bien maîtrisée — une base solide que peu de gens ont.");
-    if (has('liquidites', 'safe') || has('liquidites', 'good')) strengths.push("Votre fonds d'urgence est en santé : il vous donne du pouvoir de négociation (délais de carence plus longs = primes réduites).");
-    if (has('dettes_hypo', 'perso')) strengths.push("Votre hypothèque est couverte par une assurance vie personnelle — le bon choix : vos proches reçoivent l'argent, pas la banque.");
-    if (has('conjoint_travail', 'yes_insured')) strengths.push("Le revenu assuré de votre conjoint(e) réduit la pression sur votre propre couverture.");
-    if (strengths.length > 0) {
-        html += `<div class="report-section" style="border-left: 4px solid #22c55e;">
-            <div class="section-header" style="color: #22c55e;">✓ LES POINTS FORTS DE VOTRE SITUATION</div>
-            <div class="rec-text"><ul style="margin-top:8px;">${strengths.map(t => `<li style="margin-bottom:6px;">${t}</li>`).join('')}</ul></div>
-        </div>`;
-    }
-
-    // --- 6. SECTIONS PRIORISÉES ---
+    // --- 4. CARTES DE PRIORITÉ ---
     let sections = [];
 
-    // A. PROTECTION DE REVENU — seulement si revenu de travail
     if (s.hasWorkIncome) {
         const wellCovered = has('collectif', 'good');
         const enjeuDI = wellCovered
-            ? "Votre collective couvre la base — les angles morts typiques sont la <strong>fin de la couverture si vous quittez l'emploi</strong>, le plafonnement du % de salaire et la définition d'invalidité après 2 ans. C'est précisément ce que la rencontre validera."
-            : "Votre capacité à gagner un revenu est votre plus grand actif financier. Sans protection adéquate, un arrêt de travail prolongé épuise l'épargne puis mène à l'endettement.";
-        const divNote = (has('revenus', 'div')) ? `<li><strong>Particularité dividendes :</strong> un revenu en dividendes demande une structuration spéciale pour être assurable — un point technique que nous réglons en rencontre.</li>` : '';
-        let invHtml = `<div class="report-section" style="border-left: 4px solid #ef4444;">
-            <div class="section-header" style="color: #ef4444;">PRIORITÉ {IDX} : SÉCURITÉ DU REVENU (INVALIDITÉ)</div>
-            <div class="rec-text">
-                <strong>L'enjeu :</strong> ${enjeuDI}<br><br>
-                <strong>🎯 Architecture de la solution :</strong>
-                <ul style="margin-top:8px;">
-                    <li><strong>Montant visé :</strong> ${s.diText} (versé sans impôt si la prime est payée personnellement).</li>
-                    <li><strong>Produit recommandé :</strong> assurance invalidité avec définition « profession habituelle » (vous êtes couvert si vous ne pouvez plus faire VOTRE métier).</li>
-                    <li><strong>Délai d'attente avant le premier versement (carence) :</strong> ${s.carence}.</li>
-                    ${divNote}
-                </ul>
-            </div>
-        </div>`;
-        sections.push({ type: 'Invalidité', score: s.scoreDI, html: invHtml });
+            ? "Votre collective couvre la base. Les angles morts typiques : <strong>fin de la couverture si vous quittez l'emploi</strong>, plafonnement du % de salaire et définition d'invalidité qui change après 2 ans. C'est précisément ce que la rencontre validera."
+            : "Votre capacité à gagner un revenu est votre plus grand actif financier. Sans protection adéquate, un arrêt de travail prolongé épuise l'épargne, puis mène à l'endettement.";
+        const items = [
+            `<strong>Montant visé :</strong> ${s.diText}, versé sans impôt si la prime est payée personnellement.`,
+            `<strong>Produit recommandé :</strong> assurance invalidité avec définition « profession habituelle » (couvert si vous ne pouvez plus faire VOTRE métier).`,
+            `<strong>Délai avant le premier versement (carence) :</strong> ${s.carence}.`
+        ];
+        if (has('revenus', 'div')) items.push(`<strong>Particularité dividendes :</strong> un revenu en dividendes demande une structuration spéciale pour être assurable. Un point technique que nous réglons en rencontre.`);
+        sections.push({ type: 'Invalidité', score: s.scoreDI, html: prioCard({ icon: '🛡️', color: '#ef4444', score: s.scoreDI, title: 'Sécurité du revenu (invalidité)', amount: s.diText, amountLabel: 'Rente mensuelle visée', enjeu: enjeuDI, items }) });
     }
 
-    // B. ASSURANCE VIE
-    const bankAttack = has('dettes_hypo', 'bank') ? `<li><strong style="color:#f59e0b;">À savoir sur votre assurance hypothécaire bancaire :</strong> elle protège la banque, pas votre famille — le montant versé diminue chaque année alors que votre prime, elle, reste pareille. Une assurance vie personnelle du même montant coûte souvent moins cher et l'argent va à vos proches.</li>` : '';
-    const specialNote = has('famille', 'special_needs') ? `<li><strong style="color:#3b82f6;">Enfant à besoins particuliers :</strong> la stratégie passe par une assurance permanente combinée à une <strong>fiducie (de type Henson)</strong> — pour soutenir votre enfant à vie sans lui faire perdre ses prestations gouvernementales — et au <strong>REEI</strong> (régime d'épargne avec subventions allant jusqu'à 70 000 $). C'est une expertise pointue que nous maîtrisons.</li>` : '';
-    const retireeNote = (s.isRetiree || (has('age', 'over55') && (has('heritage', 'taxes') || has('heritage', 'maximize')))) ? `<li><strong>Impôt au décès :</strong> vos REER/FERR sont imposés comme un revenu au décès — la facture peut dépasser 25-50 % de leur valeur. L'assurance permanente paie cette facture pour que vos héritiers n'aient pas à liquider vos actifs.</li>` : '';
-    let lifeHtml = `<div class="report-section" style="border-left: 4px solid var(--c-gold);">
-        <div class="section-header" style="color: var(--c-gold);">PRIORITÉ {IDX} : PROTECTION DU PATRIMOINE (VIE)</div>
-        <div class="rec-text">
-            <strong>L'enjeu :</strong> assurer la continuité du niveau de vie de vos proches et ne transmettre aucune dette.<br><br>
-            <strong>🎯 Architecture de la solution :</strong>
-            <ul style="margin-top:8px;">
-                <li><strong>Capital cible :</strong> ~ ${formatCurrency(s.lifeBase)} (montant versé à vos proches, sans impôt — détail plus haut).</li>
-                <li><strong>Produits recommandés :</strong><ul style="margin-top:5px;">${s.vieProduits.map(p => `<li style="margin-bottom:6px;">${p}</li>`).join('')}</ul></li>
-                ${bankAttack}
-                ${specialNote}
-                ${retireeNote}
-            </ul>
-        </div>
-    </div>`;
-    sections.push({ type: 'Vie', score: s.scoreLife, html: lifeHtml });
+    {
+        const items = [
+            `<strong>Capital cible :</strong> ~ ${formatCurrency(s.lifeBase)}, versé à vos proches sans impôt (détail plus haut).`,
+            `<strong>Produits recommandés :</strong><ul class="prio-sublist">${s.vieProduits.map(p => `<li>${p}</li>`).join('')}</ul>`
+        ];
+        if (has('dettes_hypo', 'bank')) items.push(`<strong style="color:#f59e0b;">À savoir sur votre assurance hypothécaire bancaire :</strong> elle protège la banque, pas votre famille. Le montant versé diminue chaque année alors que votre prime reste la même. Une assurance vie personnelle du même montant coûte souvent moins cher et l'argent va à vos proches.`);
+        if (has('famille', 'special_needs')) items.push(`<strong style="color:#3b82f6;">Enfant à besoins particuliers :</strong> assurance permanente combinée à une <strong>fiducie (de type Henson)</strong>, pour soutenir votre enfant à vie sans lui faire perdre ses prestations, et au <strong>REEI</strong> (subventions jusqu'à 70 000 $). Une expertise pointue que nous maîtrisons.`);
+        if (s.isRetiree || (has('age', 'over55') && (has('heritage', 'taxes') || has('heritage', 'maximize')))) items.push(`<strong>Impôt au décès :</strong> vos REER/FERR sont imposés comme un revenu au décès, la facture peut dépasser 25 à 50 % de leur valeur. L'assurance permanente paie cette facture pour que vos héritiers n'aient pas à liquider vos actifs.`);
+        sections.push({ type: 'Vie', score: s.scoreLife, html: prioCard({ icon: '👨‍👩‍👧', color: '#C6AC8F', score: s.scoreLife, title: 'Protection du patrimoine (vie)', amount: '~ ' + formatCurrency(s.lifeBase), amountLabel: 'Capital décès visé', enjeu: "assurer la continuité du niveau de vie de vos proches et ne transmettre aucune dette.", items }) });
+    }
 
-    // C. MALADIE GRAVE
-    const mgCosts = has('famille', 'spouse') ? "(déplacements, soins privés, perte de revenus du conjoint)" : "(déplacements, soins privés, perte de revenus)";
-    const mgAngle = has('patrimoine', 'low')
-        ? `Une maladie sévère (cancer, AVC, infarctus) entraîne des coûts que la RAMQ ne couvre pas ${mgCosts}. Sans réserve importante, c'est l'endettement assuré.`
-        : "Une maladie sévère (cancer, AVC, infarctus) entraîne des coûts que la RAMQ ne couvre pas. Ce capital évite de vider vos placements au pire moment — un retrait précipité est aussi lourdement imposé.";
-    const mgClosing = (has('ante_familiaux', 'yes_2') || has('ante_familiaux', 'yes_1'))
-        ? `<li><strong style="color: #ef4444;">Note d'assurabilité :</strong> avec vos antécédents familiaux, chaque année compte — il faut sécuriser cette protection pendant que votre dossier de santé personnel est encore favorable.</li>`
-        : (has('famille', 'spouse')
-            ? `<li><strong>Le pouvoir de choisir :</strong> accéder à des soins privés, ou permettre à votre conjoint(e) de prendre une pause sans stress financier pour vous accompagner.</li>`
-            : `<li><strong>Le pouvoir de choisir :</strong> accéder à des soins privés et vous donner le temps de guérir, sans pression financière.</li>`);
-    let mgHtml = `<div class="report-section" style="border-left: 4px solid #3b82f6;">
-        <div class="section-header" style="color: #3b82f6;">PRIORITÉ {IDX} : BOUCLIER DE SANTÉ (MALADIE GRAVE)</div>
-        <div class="rec-text">
-            <strong>L'enjeu :</strong> ${mgAngle}<br><br>
-            <strong>🎯 Architecture de la solution :</strong>
-            <ul style="margin-top:8px;">
-                <li><strong>Montant forfaitaire visé :</strong> ~ ${formatCurrency(s.mgBase)}, versé d'un coup et sans impôt dès le diagnostic.</li>
-                <li><strong>Produit recommandé :</strong> assurance maladie grave (T-10 ou T-20, selon le budget).</li>
-                ${mgClosing}
-            </ul>
-        </div>
-    </div>`;
-    sections.push({ type: 'Maladie grave', score: s.scoreMG, html: mgHtml });
+    {
+        const mgCosts = has('famille', 'spouse') ? "(déplacements, soins privés, perte de revenus du conjoint)" : "(déplacements, soins privés, perte de revenus)";
+        const mgAngle = has('patrimoine', 'low')
+            ? `une maladie sévère (cancer, AVC, infarctus) entraîne des coûts que la RAMQ ne couvre pas ${mgCosts}. Sans réserve importante, c'est l'endettement assuré.`
+            : "une maladie sévère (cancer, AVC, infarctus) entraîne des coûts que la RAMQ ne couvre pas. Ce capital évite de vider vos placements au pire moment, un retrait précipité étant aussi lourdement imposé.";
+        const items = [
+            `<strong>Montant forfaitaire visé :</strong> ~ ${formatCurrency(s.mgBase)}, versé d'un coup et sans impôt dès le diagnostic.`,
+            `<strong>Produit recommandé :</strong> assurance maladie grave (T-10 ou T-20, selon le budget).`
+        ];
+        if (has('ante_familiaux', 'yes_2') || has('ante_familiaux', 'yes_1')) items.push(`<strong style="color:#ef4444;">Note d'assurabilité :</strong> avec vos antécédents familiaux, chaque année compte. Il faut sécuriser cette protection pendant que votre dossier de santé personnel est encore favorable.`);
+        else items.push(has('famille', 'spouse') ? `<strong>Le pouvoir de choisir :</strong> accéder à des soins privés, ou permettre à votre conjoint(e) de prendre une pause sans stress financier pour vous accompagner.` : `<strong>Le pouvoir de choisir :</strong> accéder à des soins privés et vous donner le temps de guérir, sans pression financière.`);
+        sections.push({ type: 'Maladie grave', score: s.scoreMG, html: prioCard({ icon: '🏥', color: '#3b82f6', score: s.scoreMG, title: 'Bouclier de santé (maladie grave)', amount: '~ ' + formatCurrency(s.mgBase), amountLabel: 'Montant forfaitaire visé', enjeu: mgAngle, items }) });
+    }
 
-    // D. ENTREPRISE / FERME
     if (s.isCorp) {
-        let corpNeeds = [];
-        if (has('obligations_biz', 'partner')) corpNeeds.push("<strong>Entente de rachat des parts financée :</strong> sans elle, votre famille devient l'associée involontaire de vos partenaires.");
-        if (has('obligations_biz', 'loan')) corpNeeds.push("<strong>Couverture des prêts garantis personnellement :</strong> votre maison et vos épargnes sont actuellement exposées si l'entreprise a des difficultés sans vous.");
-        if (has('obligations_biz', 'key')) corpNeeds.push("<strong>Assurance « personne clé » :</strong> donner à l'entreprise les liquidités pour survivre le temps de vous remplacer.");
-        if (has('frais_generaux', 'high')) corpNeeds.push("<strong>Assurance frais généraux :</strong> elle paie le loyer, les employés et les paiements d'équipement pendant votre invalidité.");
-        if (has('obligations_biz', 'releve') || has('heritage', 'transfer')) corpNeeds.push("<strong>Plan de transfert à la relève :</strong> structurer le passage du flambeau (gel successoral, équité entre les héritiers) pendant que vous êtes en pleine maîtrise.");
-        const agriNote = s.isAgri ? `<li><strong style="color:#22c55e;">Volet agricole — notre spécialité :</strong> transfert de ferme intergénérationnel, exonération du gain en capital agricole, équité entre l'enfant qui reprend et les autres : l'assurance est l'outil central pour transférer la ferme SANS la fragmenter ni endetter la relève.</li>` : '';
-        // Le discours fiscal corporatif (CDC, polices détenues par la société) ne
-        // s'applique qu'aux incorporés (dividendes/ferme) — pas au travailleur
-        // autonome non incorporé, pour qui ce jargon est hors sujet.
         const isIncorporated = has('revenus', 'div') || has('revenus', 'agri');
+        let needs = [];
+        if (has('obligations_biz', 'partner')) needs.push("<strong>Entente de rachat des parts financée :</strong> sans elle, votre famille devient l'associée involontaire de vos partenaires.");
+        if (has('obligations_biz', 'loan')) needs.push("<strong>Couverture des prêts garantis personnellement :</strong> votre maison et vos épargnes sont exposées si l'entreprise a des difficultés sans vous.");
+        if (has('obligations_biz', 'key')) needs.push(isIncorporated ? "<strong>Assurance « personne clé » :</strong> donner à l'entreprise les liquidités pour survivre le temps de vous remplacer." : "<strong>Tout repose sur vous :</strong> votre priorité absolue est la sécurité du revenu (carte Invalidité), c'est elle qui garde votre activité et votre ménage à flot.");
+        if (has('frais_generaux', 'high')) needs.push("<strong>Assurance frais généraux :</strong> elle paie le loyer, les employés et les paiements d'équipement pendant votre invalidité.");
+        if (has('obligations_biz', 'releve') || has('heritage', 'transfer')) needs.push("<strong>Plan de transfert à la relève :</strong> structurer le passage du flambeau (gel successoral, équité entre les héritiers) pendant que vous êtes en pleine maîtrise.");
+        if (s.isAgri) needs.push("<strong style=\"color:#22c55e;\">Volet agricole, notre spécialité :</strong> transfert de ferme intergénérationnel, exonération du gain en capital agricole, équité entre l'enfant qui reprend et les autres. L'assurance est l'outil central pour transférer la ferme SANS la fragmenter ni endetter la relève.");
         if (isIncorporated) {
-            let corpHtml = `<div class="report-section" style="border-left: 4px solid #f59e0b;">
-                <div class="section-header" style="color: #f59e0b;">PRIORITÉ {IDX} : ${s.isAgri ? "L'ENTREPRISE, LA FERME & LA FISCALITÉ" : "L'ENTREPRISE & L'OPTIMISATION FISCALE"}</div>
-                <div class="rec-text">
-                    <strong>L'enjeu :</strong> payer des primes avec de l'argent personnel déjà imposé est inefficace pour un incorporé. Une structuration corporative protège l'entreprise tout en enrichissant votre succession.<br><br>
-                    <strong>🎯 Architecture de la solution :</strong>
-                    <ul style="margin-top:8px;">
-                        <li><strong>Stratégie fiscale :</strong> détenir les bonnes polices dans la société (payées avec des dollars moins imposés) et utiliser le compte de dividendes en capital (CDC) — le mécanisme qui permet de sortir l'argent de l'entreprise <em>sans impôt</em> au décès.</li>
-                        <li><strong>Nuance importante :</strong> l'assurance invalidité reste généralement payée personnellement pour que la rente demeure non imposable — c'est exactement le genre d'arbitrage qu'on règle en rencontre.</li>
-                        ${corpNeeds.length > 0 ? `<li><strong>Protections requises selon vos réponses :</strong><ul style="margin-top:5px;">${corpNeeds.map(c => `<li style="margin-bottom:6px;">${c}</li>`).join('')}</ul></li>` : ''}
-                        ${agriNote}
-                    </ul>
-                </div>
-            </div>`;
-            sections.push({ type: s.isAgri ? 'Entreprise/Ferme' : 'Entreprise', score: s.scoreCorp, html: corpHtml });
-        } else {
-            // Travailleur autonome non incorporé : version adaptée, sans jargon corporatif
-            let soloNeeds = [];
-            if (has('obligations_biz', 'key')) soloNeeds.push("<strong>Tout repose sur vous :</strong> votre priorité absolue est la sécurité du revenu (voir la section Invalidité) — c'est elle qui garde votre activité et votre ménage à flot.");
-            if (has('obligations_biz', 'loan')) soloNeeds.push("<strong>Prêts garantis avec vos biens personnels :</strong> votre maison et vos épargnes sont exposées — une couverture dédiée s'impose.");
-            if (has('frais_generaux', 'high')) soloNeeds.push("<strong>Assurance frais généraux :</strong> elle paie le loyer, les employés et l'équipement pendant votre invalidité.");
-            if (has('obligations_biz', 'releve') || has('heritage', 'transfer')) soloNeeds.push("<strong>Plan de transfert :</strong> organiser la suite de votre activité pendant que vous êtes en pleine maîtrise.");
-            if (soloNeeds.length > 0) {
-                let soloHtml = `<div class="report-section" style="border-left: 4px solid #f59e0b;">
-                    <div class="section-header" style="color: #f59e0b;">PRIORITÉ {IDX} : VOTRE ACTIVITÉ DE TRAVAILLEUR AUTONOME</div>
-                    <div class="rec-text">
-                        <strong>L'enjeu :</strong> à votre compte, aucun filet public standard ne protège votre activité — tout repose sur votre capacité à travailler.<br><br>
-                        <strong>🎯 Points à sécuriser selon vos réponses :</strong>
-                        <ul style="margin-top:8px;">${soloNeeds.map(c => `<li style="margin-bottom:6px;">${c}</li>`).join('')}</ul>
-                    </div>
-                </div>`;
-                sections.push({ type: 'Travail autonome', score: s.scoreCorp - 15, html: soloHtml });
-            }
+            const items = [
+                "<strong>Stratégie fiscale :</strong> détenir les bonnes polices dans la société (payées avec des dollars moins imposés) et utiliser le compte de dividendes en capital (CDC), le mécanisme qui permet de sortir l'argent de l'entreprise <em>sans impôt</em> au décès.",
+                "<strong>Nuance importante :</strong> l'assurance invalidité reste généralement payée personnellement pour que la rente demeure non imposable. Exactement le genre d'arbitrage qu'on règle en rencontre."
+            ].concat(needs);
+            sections.push({ type: s.isAgri ? 'Entreprise/Ferme' : 'Entreprise', score: s.scoreCorp, html: prioCard({ icon: s.isAgri ? '🚜' : '🏢', color: '#f59e0b', score: s.scoreCorp, title: s.isAgri ? "L'entreprise, la ferme et la fiscalité" : "L'entreprise et l'optimisation fiscale", amount: needs.length + (needs.length > 1 ? ' protections' : ' protection'), amountLabel: 'À structurer selon vos réponses', enjeu: "payer des primes avec de l'argent personnel déjà imposé est inefficace pour un incorporé. Une structuration corporative protège l'entreprise tout en enrichissant votre succession.", items }) });
+        } else if (needs.length) {
+            sections.push({ type: 'Travail autonome', score: s.scoreCorp - 15, html: prioCard({ icon: '🧰', color: '#f59e0b', score: s.scoreCorp - 15, title: 'Votre activité de travailleur autonome', amount: needs.length + (needs.length > 1 ? ' points' : ' point'), amountLabel: 'À sécuriser selon vos réponses', enjeu: "à votre compte, aucun filet public standard ne protège votre activité : tout repose sur votre capacité à travailler.", items: needs }) });
         }
     }
 
-    // --- 7. AFFICHAGE EN ORDRE DE PRIORITÉ ---
     sections.sort((a, b) => b.score - a.score);
     s.priorityOrder = sections.map(sec => sec.type);
+    html += `<div class="prio-intro"><span class="section-kicker">VOTRE PLAN, DANS L'ORDRE</span><h3>${sections.length} priorités, classées par urgence</h3></div>`;
     sections.forEach((sec, index) => { html += sec.html.replace('{IDX}', index + 1); });
 
-    // --- 8. PAR OÙ COMMENCER (réconciliation avec le budget) ---
+    // --- 5. POINTS FORTS ---
+    const strengths = [];
+    if (has('collectif', 'good')) strengths.push("Votre assurance collective est bien maîtrisée, une base solide que peu de gens ont.");
+    if (has('liquidites', 'safe') || has('liquidites', 'good')) strengths.push("Votre fonds d'urgence est en santé : il vous donne du pouvoir de négociation (délais de carence plus longs = primes réduites).");
+    if (has('dettes_hypo', 'perso')) strengths.push("Votre hypothèque est couverte par une assurance vie personnelle, le bon choix : vos proches reçoivent l'argent, pas la banque.");
+    if (has('conjoint_travail', 'yes_insured')) strengths.push("Le revenu assuré de votre conjoint(e) réduit la pression sur votre propre couverture.");
+    if (has('patrimoine', 'vhigh') || has('patrimoine', 'high')) strengths.push("Votre patrimoine vous permet d'absorber une partie des imprévus : l'assurance vient compléter, pas remplacer.");
+    if (strengths.length > 0) {
+        html += `<div class="report-section strengths"><div class="section-header" style="color:#22c55e;">✓ Les points forts de votre situation</div><div class="rec-text"><ul>${strengths.map(t => `<li>${t}</li>`).join('')}</ul></div></div>`;
+    }
+
+    // --- 6. POURQUOI AGIR MAINTENANT ---
+    const urgencyReasons = [];
+    const ageUrgency = {
+        '19-34': "Vos primes sont <strong>au plus bas de votre vie</strong> : chaque contrat signé maintenant verrouille ce tarif pour des décennies.",
+        '35-45': "La quarantaine est la <strong>dernière fenêtre des tarifs avantageux</strong>. Les primes grimpent à chaque anniversaire.",
+        '46-55': "À votre âge, <strong>chaque anniversaire augmente définitivement la prime</strong>, et les enjeux de santé qui ferment des portes se multiplient.",
+        'over55': "Passé 55 ans, <strong>l'assurabilité devient le nerf de la guerre</strong> : chaque année d'attente peut coûter cher, ou fermer définitivement des options."
+    };
+    if (ageUrgency[answers.age]) urgencyReasons.push(ageUrgency[answers.age]);
+    if (has('ante_familiaux', 'yes_2') || has('ante_familiaux', 'yes_1')) urgencyReasons.push("Vos <strong>antécédents familiaux</strong> peuvent influencer la tarification : plus le dossier est ouvert tôt, meilleures sont les conditions obtenues.");
+    if (has('liquidites', 'critical') && s.hasWorkIncome) urgencyReasons.push("Avec <strong>moins d'un mois de réserve</strong>, un seul arrêt de travail imprévu enclenche l'endettement immédiatement. C'est la vulnérabilité n°1 de votre profil.");
+    if (has('dettes_hypo', 'none')) urgencyReasons.push("Votre hypothèque n'est <strong>couverte par aucune assurance</strong> : en cas de décès, vos proches assumeraient seuls chaque paiement.");
+    if (urgencyReasons.length > 0) {
+        html += `<div class="report-section urgency-box"><div class="section-header" style="color:#ef4444;">⏳ Pourquoi agir maintenant</div><div class="rec-text"><ul>${urgencyReasons.slice(0, 3).map(r => `<li>${r}</li>`).join('')}</ul></div></div>`;
+    }
+
+    // --- 7. PAR OÙ COMMENCER ---
     const startMap = {
         micro: `Avec votre budget, l'important n'est pas de tout faire d'un coup : on sécurise d'abord <strong>${s.priorityOrder[0]}</strong>, et le reste se bâtit par étapes. Un budget bien placé vaut mieux qu'un gros budget mal réparti.`,
         base: `Votre budget permet de couvrir solidement la priorité n°1 (<strong>${s.priorityOrder[0]}</strong>) et de poser la première pierre de la n°2. La rencontre sert exactement à maximiser chaque dollar.`,
-        medium: `Votre budget permet de couvrir les deux premières priorités dès maintenant — un excellent point de départ.`,
+        medium: `Votre budget permet de couvrir les deux premières priorités dès maintenant, un excellent point de départ.`,
         high: `Votre budget permet une stratégie complète sur vos ${s.priorityOrder.length} priorités. Chaque mois d'attente a un coût d'opportunité réel.`,
-        premium: `Votre budget ouvre la porte à une stratégie complète incluant l'optimisation fiscale — le niveau où l'assurance devient un outil de création de richesse, pas une dépense.`,
+        premium: `Votre budget ouvre la porte à une stratégie complète incluant l'optimisation fiscale, le niveau où l'assurance devient un outil de création de richesse, pas une dépense.`,
         elite: `À ce niveau de budget, la conversation dépasse la protection : structuration corporative, CDC, legs optimisé. Une rencontre stratégique s'impose rapidement.`,
-        tbd: `Le budget se définira ensemble en rencontre — l'ordre des priorités ci-dessus vous indique déjà quoi sécuriser en premier.`
+        tbd: `Le budget se définira ensemble en rencontre. L'ordre des priorités ci-dessus vous indique déjà quoi sécuriser en premier.`
     };
-    html += `<div class="report-section" style="border-left: 4px solid #22c55e;">
-        <div class="section-header" style="color: #22c55e;">🧭 PAR OÙ COMMENCER</div>
-        <div class="rec-text">
-            ${startMap[answers.budget] || startMap.tbd}<br><br>
-            <strong>Votre séquence recommandée :</strong>
-            <ol style="margin-top:8px; padding-left: 20px;">${s.priorityOrder.map(p => `<li style="margin-bottom:4px;">${p}</li>`).join('')}</ol>
+    html += `<div class="report-section start-box">
+        <div class="section-header" style="color:#22c55e;">🧭 Par où commencer</div>
+        <div class="rec-text">${startMap[answers.budget] || startMap.tbd}</div>
+        <div class="timeline">
+            ${s.priorityOrder.map((p, i) => `<div class="tl-step"><div class="tl-num">${i + 1}</div><div class="tl-label">${p}</div></div>`).join('')}
+            <div class="tl-step tl-final"><div class="tl-num">✓</div><div class="tl-label">Validation en rencontre</div></div>
         </div>
     </div>`;
 
-    // --- 9. APPEL À L'ACTION ---
-    html += `<div class="no-print" style="text-align:center; margin-top: 30px; padding: 30px 20px; border: 2px solid var(--c-gold); border-radius: 14px; background: rgba(198,172,143,0.07);">
-        <h3 style="color: var(--c-gold); font-size: 1.4rem; margin-bottom: 12px;">Passez à l'action pendant que c'est frais</h3>
-        <p style="color: var(--c-light-beige); opacity: 0.9; margin-bottom: 20px; line-height: 1.6;">Ces chiffres sont des cibles préliminaires. La prochaine étape : les valider ensemble en 30 minutes — gratuitement et en toute confidentialité. Choisissez vous-même votre moment :</p>
-        <a href="https://calendly.com/joelcamire-jccapital/consultation" target="_blank" rel="noopener" style="display:inline-block; background: var(--c-gold); color: #0A0908; font-weight: 700; font-size: 1.05rem; padding: 14px 32px; border-radius: 10px; text-decoration: none; text-transform: uppercase;">📅 Réserver ma consultation gratuite</a>
-        <p style="color: var(--c-light-beige); opacity: 0.75; margin-top: 15px; font-size: 0.95rem;">ou appelez-nous directement : <a href="tel:+15813986747" style="color: var(--c-gold); font-weight: 700; text-decoration: none;">581 398-6747</a></p>
+    // --- 8. APPEL À L'ACTION ---
+    html += `<div class="final-cta no-print">
+        <h3>Passez à l'action pendant que c'est frais</h3>
+        <p>Ces chiffres sont des cibles préliminaires. La prochaine étape : les valider ensemble en 30 minutes, puis choisir ce qui vaut vraiment la peine pour vous. Rien de plus.</p>
+        <div class="cta-chips"><span>✓ Gratuit</span><span>✓ Sans engagement</span><span>✓ 30 minutes</span><span>✓ À Lévis ou en visio</span></div>
+        <a href="${CALENDLY_URL}" target="_blank" rel="noopener" class="cta-main">📅 Réserver ma consultation gratuite</a>
+        <p class="cta-alt">ou appelez directement Joël : <a href="tel:+15813986747">581 398-6747</a></p>
     </div>`;
 
     container.innerHTML = html;
     return s;
 }
-
 
     </script>
 </body>
