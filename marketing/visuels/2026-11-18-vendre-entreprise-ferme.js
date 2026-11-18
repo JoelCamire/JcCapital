@@ -3,6 +3,7 @@
 // v4 (17 nov.) : questions plus personnelles demandées par Joël (plus d'« impôt » dans la question, « reprendre les rênes »).
 // v5 (18 nov.) : Q3 « Combien il vous en restera, après ? » jugée floue → « Et vous, vous allez vivre de quoi ? ».
 // v6 (18 nov.) : « Vendre un jour ? » pas assez accrocheur → « Un jour, ce sera à quelqu'un d'autre. »
+// v7 (18 nov.) : Joël rejette « Un jour, ce sera à quelqu'un d'autre » et le « cinq ans ». Accroche chiffrée (FCEI oct. 2026 : 6 % des PME; U. Laval févr. 2026 : 8,5 % des fermes QC ont un plan) + question directe.
 // Gauche = atelier (silhouette d'un artisan, Pexels 37681628), droite = tracteur au coucher du soleil (Pexels 36610244), filet doré au centre.
 // Usage : node 2026-11-18-vendre-entreprise-ferme.js <dossier-de-construction>   (pexels-37681628.jpg et pexels-36610244.jpg doivent s'y trouver)
 // Rendu : chrome --headless=new --virtual-time-budget=8000 --window-size=1080,1350 --screenshot=<png> <html>
@@ -15,8 +16,8 @@ const fr = (t) => t.replace(/« /g, '«&nbsp;').replace(/ ([»?!:;%$])/g, '&nbsp
 const p = {
   left:  { photo: 37681628, size: 'auto 130%', pos: '37% 0%', bright: 1.05, sat: 1.0 },
   right: { photo: 36610244, size: 'auto 118%', pos: '17% 100%', bright: 1.0, sat: 1.05 },
-  eyebrow: 'Entreprise ou ferme',
-  h1: "Un jour, ce sera à quelqu'un d'autre. <em>Trois questions à vous poser cinq ans avant.</em>",
+  eyebrow: 'Entrepreneurs et agriculteurs',
+  h1: "Moins de 1 sur 10 ont un plan de relève. <em>Vous, vous en êtes où ?</em>",
   items: ['Qui va reprendre les rênes ?', 'Vous vous voyez partir quand ?', 'Et vous, vous allez vivre de quoi ?'],
   cta: 'Un « je ne sais pas » à l\'une des trois ? <strong>C\'est le bon moment d\'en parler.</strong>',
 };
