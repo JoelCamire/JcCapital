@@ -1,5 +1,6 @@
 // Visuel unique 18 nov. 2026, v2 (17 nov.) : Joël veut « moitié de la photo entreprise, l'autre ferme ».
 // v3 (17 nov.) : « 2 ou 3 ans » jugé trop serré par Joël → « cinq ans avant ».
+// v4 (17 nov.) : questions plus personnelles demandées par Joël (plus d'« impôt » dans la question, « reprendre les rênes »).
 // Gauche = atelier (silhouette d'un artisan, Pexels 37681628), droite = tracteur au coucher du soleil (Pexels 36610244), filet doré au centre.
 // Usage : node 2026-11-18-vendre-entreprise-ferme.js <dossier-de-construction>   (pexels-37681628.jpg et pexels-36610244.jpg doivent s'y trouver)
 // Rendu : chrome --headless=new --virtual-time-budget=8000 --window-size=1080,1350 --screenshot=<png> <html>
@@ -14,7 +15,7 @@ const p = {
   right: { photo: 36610244, size: 'auto 118%', pos: '17% 100%', bright: 1.0, sat: 1.05 },
   eyebrow: 'Entreprise ou ferme',
   h1: 'Vendre un jour ? <em>Trois questions à vous poser cinq ans avant.</em>',
-  items: ['Qui va acheter ?', 'Quand voulez-vous partir ?', 'Êtes-vous prêt du côté de l\'impôt ?'],
+  items: ['Qui va reprendre les rênes ?', 'Vous vous voyez partir quand ?', 'Combien il vous en restera, après ?'],
   cta: 'Un « je ne sais pas » à l\'une des trois ? <strong>C\'est le bon moment d\'en parler.</strong>',
 };
 const half = (h, side) => `.photo.${side} { ${side}: 0; background: url('pexels-${h.photo}.jpg') ${h.pos} / ${h.size} no-repeat; filter: saturate(${h.sat}) contrast(1.05) brightness(${h.bright}); }`;
